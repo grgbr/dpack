@@ -114,16 +114,19 @@ dpack_xtract_u64_range(struct mpack_reader_t * reader,
  * 8 bits integer
  ******************************************************************************/
 
-int
-dpack_encode_u8(struct dpack_encoder * encoder, uint8_t value)
-{
-	dpack_assert(encoder);
-	dpack_assert(mpack_writer_error(&encoder->mpack) == mpack_ok);
+#define DPACK_STDINT_DEFINE_ENCODE(_name, _type, _func) \
+	int \
+	_name(struct dpack_encoder * encoder, _type value) \
+	{ \
+		dpack_assert(encoder); \
+		dpack_assert(mpack_writer_error(&encoder->mpack) == mpack_ok); \
+		\
+		_func(&encoder->mpack, value); \
+		\
+		return dpack_encoder_error_state(&encoder->mpack); \
+	}
 
-	mpack_write_u8(&encoder->mpack, value);
-
-	return dpack_encoder_error_state(&encoder->mpack);
-}
+DPACK_STDINT_DEFINE_ENCODE(dpack_encode_u8, uint8_t, mpack_write_u8)
 
 int
 dpack_decode_u8(struct dpack_decoder * decoder, uint8_t * value)
@@ -213,16 +216,7 @@ dpack_decode_u8_range(struct dpack_decoder * decoder,
  * 16 bits integer
  ******************************************************************************/
 
-int
-dpack_encode_u16(struct dpack_encoder * encoder, uint16_t value)
-{
-	dpack_assert(encoder);
-	dpack_assert(mpack_writer_error(&encoder->mpack) == mpack_ok);
-
-	mpack_write_u16(&encoder->mpack, value);
-
-	return dpack_encoder_error_state(&encoder->mpack);
-}
+DPACK_STDINT_DEFINE_ENCODE(dpack_encode_u16, uint16_t, mpack_write_u16)
 
 int
 dpack_decode_u16(struct dpack_decoder * decoder, uint16_t * value)
@@ -313,16 +307,7 @@ dpack_decode_u16_range(struct dpack_decoder * decoder,
  * 32 bits integer
  ******************************************************************************/
 
-int
-dpack_encode_u32(struct dpack_encoder * encoder, uint32_t value)
-{
-	dpack_assert(encoder);
-	dpack_assert(mpack_writer_error(&encoder->mpack) == mpack_ok);
-
-	mpack_write_u32(&encoder->mpack, value);
-
-	return dpack_encoder_error_state(&encoder->mpack);
-}
+DPACK_STDINT_DEFINE_ENCODE(dpack_encode_u32, uint32_t, mpack_write_u32)
 
 int
 dpack_decode_u32(struct dpack_decoder * decoder, uint32_t * value)
@@ -413,16 +398,7 @@ dpack_decode_u32_range(struct dpack_decoder * decoder,
  * 64 bits integer
  ******************************************************************************/
 
-int
-dpack_encode_u64(struct dpack_encoder * encoder, uint64_t value)
-{
-	dpack_assert(encoder);
-	dpack_assert(mpack_writer_error(&encoder->mpack) == mpack_ok);
-
-	mpack_write_u64(&encoder->mpack, value);
-
-	return dpack_encoder_error_state(&encoder->mpack);
-}
+DPACK_STDINT_DEFINE_ENCODE(dpack_encode_u64, uint64_t, mpack_write_u64)
 
 int
 dpack_decode_u64(struct dpack_decoder * decoder, uint64_t * value)
