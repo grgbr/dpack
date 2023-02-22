@@ -1,46 +1,6 @@
-#include "dpack.h"
-#include <mpack.h>
-#include <errno.h>
-
-#include <assert.h>
-#define dpack_assert(cond) assert(cond)
-
-#define unreachable() __builtin_unreachable()
-
-static inline int
-dpack_errno_from_mpack(enum mpack_error_t err)
-{
-	switch (err) {
-	case mpack_ok:
-		return 0;
-	case mpack_error_io:
-		return -EIO;
-	case mpack_error_invalid:
-		return -EPROTO;
-	case mpack_error_unsupported:
-		return -ENOTSUP;
-	case mpack_error_type:
-		return -ENOMSG;
-	case mpack_error_too_big:
-		return -EMSGSIZE;
-	case mpack_error_memory:
-		return -ENOMEM;
-	case mpack_error_bug:
-		assert(0);
-	case mpack_error_data:
-		return -EBADMSG;
-	case mpack_error_eof:
-		return -ENODATA;
-	default:
-		dpack_assert(0);
-	}
-
-	unreachable();
-}
-
-/******************************************************************************
- * Encoder / packer
- ******************************************************************************/
+#include "dpack/stdint.h"
+#include "dpack/codec.h"
+#include "common.h"
 
 static int
 dpack_encoder_error_state(struct mpack_writer_t * writer)
@@ -55,96 +15,6 @@ dpack_encoder_error_state(struct mpack_writer_t * writer)
 
 	return 0;
 }
-
-int
-dpack_encode_u8(struct dpack_encoder * encoder, uint8_t value)
-{
-	dpack_assert(encoder);
-	dpack_assert(mpack_writer_error(&encoder->mpack) == mpack_ok);
-
-	mpack_write_u8(&encoder->mpack, value);
-
-	return dpack_encoder_error_state(&encoder->mpack);
-}
-
-int
-dpack_encode_u16(struct dpack_encoder * encoder, uint16_t value)
-{
-	dpack_assert(encoder);
-	dpack_assert(mpack_writer_error(&encoder->mpack) == mpack_ok);
-
-	mpack_write_u16(&encoder->mpack, value);
-
-	return dpack_encoder_error_state(&encoder->mpack);
-}
-
-int
-dpack_encode_u32(struct dpack_encoder * encoder, uint32_t value)
-{
-	dpack_assert(encoder);
-	dpack_assert(mpack_writer_error(&encoder->mpack) == mpack_ok);
-
-	mpack_write_u32(&encoder->mpack, value);
-
-	return dpack_encoder_error_state(&encoder->mpack);
-}
-
-int
-dpack_encode_u64(struct dpack_encoder * encoder, uint64_t value)
-{
-	dpack_assert(encoder);
-	dpack_assert(mpack_writer_error(&encoder->mpack) == mpack_ok);
-
-	mpack_write_u64(&encoder->mpack, value);
-
-	return dpack_encoder_error_state(&encoder->mpack);
-}
-
-size_t
-dpack_encoder_space_used(struct dpack_encoder * encoder)
-{
-	dpack_assert(encoder);
-
-	return mpack_writer_buffer_used(&encoder->mpack);
-}
-
-size_t
-dpack_encoder_space_left(struct dpack_encoder * encoder)
-{
-	dpack_assert(encoder);
-
-	return mpack_writer_buffer_left(&encoder->mpack);
-}
-
-void
-dpack_init_buffer_encoder(struct dpack_encoder * encoder,
-                          char *                 buffer,
-                          size_t                 size)
-{
-	dpack_assert(encoder);
-	dpack_assert(buffer);
-	dpack_assert(size);
-
-	mpack_writer_init(&encoder->mpack, buffer, size);
-}
-
-void
-dpack_exit_encoder(struct dpack_encoder * encoder)
-{
-	dpack_assert(encoder);
-
-	/*
-	 * As stated into documentation, calling mpack_writer_destroy() with
-	 * any unclosed compound types will assert in tracking mode.
-	 * Flag an error before destruction to prevent from asserting.
-	 */
-	mpack_writer_flag_error(&encoder->mpack, mpack_error_invalid);
-	mpack_writer_destroy(&encoder->mpack);
-}
-
-/******************************************************************************
- * Decoder / unpacker
- ******************************************************************************/
 
 static int
 dpack_decode_tag(struct mpack_reader_t * reader,
@@ -240,6 +110,21 @@ dpack_xtract_u64_range(struct mpack_reader_t * reader,
 	return 0;
 }
 
+/******************************************************************************
+ * 8 bits integer
+ ******************************************************************************/
+
+int
+dpack_encode_u8(struct dpack_encoder * encoder, uint8_t value)
+{
+	dpack_assert(encoder);
+	dpack_assert(mpack_writer_error(&encoder->mpack) == mpack_ok);
+
+	mpack_write_u8(&encoder->mpack, value);
+
+	return dpack_encoder_error_state(&encoder->mpack);
+}
+
 int
 dpack_decode_u8(struct dpack_decoder * decoder, uint8_t * value)
 {
@@ -322,6 +207,21 @@ dpack_decode_u8_range(struct dpack_decoder * decoder,
 	*value = (uint8_t)val;
 
 	return 0;
+}
+
+/******************************************************************************
+ * 16 bits integer
+ ******************************************************************************/
+
+int
+dpack_encode_u16(struct dpack_encoder * encoder, uint16_t value)
+{
+	dpack_assert(encoder);
+	dpack_assert(mpack_writer_error(&encoder->mpack) == mpack_ok);
+
+	mpack_write_u16(&encoder->mpack, value);
+
+	return dpack_encoder_error_state(&encoder->mpack);
 }
 
 int
@@ -409,6 +309,21 @@ dpack_decode_u16_range(struct dpack_decoder * decoder,
 	return 0;
 }
 
+/******************************************************************************
+ * 32 bits integer
+ ******************************************************************************/
+
+int
+dpack_encode_u32(struct dpack_encoder * encoder, uint32_t value)
+{
+	dpack_assert(encoder);
+	dpack_assert(mpack_writer_error(&encoder->mpack) == mpack_ok);
+
+	mpack_write_u32(&encoder->mpack, value);
+
+	return dpack_encoder_error_state(&encoder->mpack);
+}
+
 int
 dpack_decode_u32(struct dpack_decoder * decoder, uint32_t * value)
 {
@@ -494,6 +409,21 @@ dpack_decode_u32_range(struct dpack_decoder * decoder,
 	return 0;
 }
 
+/******************************************************************************
+ * 64 bits integer
+ ******************************************************************************/
+
+int
+dpack_encode_u64(struct dpack_encoder * encoder, uint64_t value)
+{
+	dpack_assert(encoder);
+	dpack_assert(mpack_writer_error(&encoder->mpack) == mpack_ok);
+
+	mpack_write_u64(&encoder->mpack, value);
+
+	return dpack_encoder_error_state(&encoder->mpack);
+}
+
 int
 dpack_decode_u64(struct dpack_decoder * decoder, uint64_t * value)
 {
@@ -573,8 +503,22 @@ dpack_decode_u64_range(struct dpack_decoder * decoder,
 	return 0;
 }
 
+/******************************************************************************
+ * Structure field identifier
+ ******************************************************************************/
+
+#define DPACK_FIELDID_MAX ((uint16_t)1024)
+
 int
-dpack_decode_field_id(struct dpack_decoder * decoder, uint16_t * id)
+dpack_encode_fieldid(struct dpack_encoder * encoder, uint16_t id)
+{
+	dpack_assert(id <= DPACK_FIELDID_MAX);
+
+	return dpack_encode_u16(encoder, id);
+}
+
+int
+dpack_decode_fieldid(struct dpack_decoder * decoder, uint16_t * id)
 {
 	dpack_assert(decoder);
 	dpack_assert(id);
@@ -582,7 +526,6 @@ dpack_decode_field_id(struct dpack_decoder * decoder, uint16_t * id)
 	uint16_t val;
 	int      err;
 
-#define DPACK_FIELDID_MAX ((uint16_t)1024)
 	err = dpack_decode_u16_max(decoder, DPACK_FIELDID_MAX, &val);
 	if (err)
 		return err;
@@ -590,32 +533,4 @@ dpack_decode_field_id(struct dpack_decoder * decoder, uint16_t * id)
 	*id = (uint16_t)val;
 
 	return 0;
-}
-
-size_t
-dpack_decoder_data_left(struct dpack_decoder * decoder)
-{
-	dpack_assert(decoder);
-
-	return mpack_reader_remaining(&decoder->mpack, NULL);
-}
-
-void
-dpack_init_buffer_decoder(struct dpack_decoder * decoder,
-                          const char *           buffer,
-                          size_t                 size)
-{
-	dpack_assert(decoder);
-	dpack_assert(buffer);
-	dpack_assert(size);
-
-	mpack_reader_init_data(&decoder->mpack, buffer, size);
-}
-
-void
-dpack_exit_decoder(struct dpack_decoder * decoder)
-{
-	dpack_assert(decoder);
-
-	mpack_reader_destroy(&decoder->mpack);
 }

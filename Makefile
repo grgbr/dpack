@@ -6,10 +6,10 @@ OPTIM_CFLAGS := -O2 -DNDEBUG
 CFLAGS := -Wall -Wextra -Wformat=2 \
           $(DEBUG_CFLAGS) \
           $(OPTIM_CFLAGS) \
-          -Isrc -Impack/.build/amalgamation/src/mpack
+          -Iinclude/ -Impack/.build/amalgamation/src/mpack
 
 .PHONY: build
-build: $(BUILDDIR)/dpack.a
+build: $(BUILDDIR)/libdpack.a
 
 .PHONY: check
 check: $(BUILDDIR)/test-fix_sample
@@ -34,12 +34,13 @@ $(addsuffix .o,$(addprefix $(BUILDDIR)/,$(sample_libs))): \
 		$(CC) -MD -Itest $(CFLAGS) -o $(@) -c $(<)
 
 # Dpack library
-$(BUILDDIR)/libdpack.a: $(BUILDDIR)/dpack.o $(BUILDDIR)/mpack.o
+$(BUILDDIR)/libdpack.a: $(addprefix $(BUILDDIR)/, \
+                                    array.o stdint.o codec.o mpack.o)
 	$(AR) rcs $(@) $(^)
-$(BUILDDIR)/dpack.o: src/dpack.c | $(BUILDDIR)
-	$(CC) -MD $(CFLAGS) -o $(@) -c $(<)
+$(BUILDDIR)/%.o: src/%.c | $(BUILDDIR)
+	$(CC) -MD -Isrc $(CFLAGS) -o $(@) -c $(<)
 $(BUILDDIR)/mpack.o: mpack/.build/amalgamation/src/mpack/mpack.c | $(BUILDDIR)
-	$(CC) -MD $(CFLAGS) -o $(@) -c $(<)
+	$(CC) -MD -Isrc $(CFLAGS) -o $(@) -c $(<)
 
 $(BUILDDIR):
 	@mkdir -p $(@)

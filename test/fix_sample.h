@@ -1,8 +1,7 @@
 #ifndef _FIX_SAMPLE_H
 #define _FIX_SAMPLE_H
 
-#include <dpack.h>
-#include <stdlib.h>
+#include <dpack/stdint.h>
 
 struct fix_sample {
 	uint8_t  eight;

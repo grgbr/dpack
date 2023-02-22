@@ -3,9 +3,8 @@
 #endif
 
 #include "fix_sample.h"
-#include <mpack.h>
+#include <dpack/codec.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <getopt.h>
 #include <assert.h>
 
