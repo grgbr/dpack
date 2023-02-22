@@ -1,16 +1,15 @@
 #include "fix_sample.h"
-
 #include <assert.h>
 
-#define sample_assert(condition) assert(condition)
+#define fix_sample_assert(condition) assert(condition)
 
 int
 fix_sample_pack(struct dpack_encoder * encoder, const struct fix_sample * data)
 {
-	sample_assert(encoder);
-	sample_assert(data);
-	sample_assert(dpack_encoder_space_left(encoder) >=
-	              FIX_SAMPLE_PACKED_SIZE_MIN);
+	fix_sample_assert(encoder);
+	fix_sample_assert(data);
+	fix_sample_assert(dpack_encoder_space_left(encoder) >=
+	                  FIX_SAMPLE_PACKED_SIZE_MIN);
 
 	int err;
 
@@ -32,10 +31,10 @@ fix_sample_pack(struct dpack_encoder * encoder, const struct fix_sample * data)
 int
 fix_sample_unpack(struct dpack_decoder * decoder, struct fix_sample * data)
 {
-	sample_assert(decoder);
-	sample_assert(data);
-	sample_assert(dpack_decoder_data_left(decoder) >=
-	              FIX_SAMPLE_PACKED_SIZE_MIN);
+	fix_sample_assert(decoder);
+	fix_sample_assert(data);
+	fix_sample_assert(dpack_decoder_data_left(decoder) >=
+	                  FIX_SAMPLE_PACKED_SIZE_MIN);
 
 	int err;
 
