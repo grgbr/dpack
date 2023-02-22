@@ -1,0 +1,86 @@
+sql column constraints:
+=======================
+
+* NOT NULL - Ensures that a column cannot have a NULL value
+* UNIQUE - Ensures that all values in a column are different
+* PRIMARY KEY - A combination of a NOT NULL and UNIQUE. Uniquely identifies each row in a table
+* FOREIGN KEY - Prevents actions that would destroy links between tables
+* CHECK - Ensures that the values in a column satisfies a specific condition
+* DEFAULT - Sets a default value for a column if no value is specified
+* CREATE INDEX - Used to create and retrieve data from the database very quickly
+
+sql example with constraints:
+CREATE TABLE Persons (
+    ID int NOT NULL UNIQUE,
+    LastName varchar(255) NOT NULL,
+    FirstName varchar(255),
+    Age int
+);
+
+CREATE TABLE Orders (
+    OrderID int NOT NULL,
+    OrderNumber int NOT NULL,
+    PersonID int,
+    PRIMARY KEY (OrderID),
+    FOREIGN KEY (PersonID) REFERENCES Persons(PersonID)
+);
+
+CREATE TABLE Persons (
+    ID int NOT NULL,
+    LastName varchar(255) NOT NULL,
+    FirstName varchar(255),
+    Age int,
+    City varchar(255),
+    CONSTRAINT CHK_Person CHECK (Age>=18 AND City='Sandnes')
+);
+
+CREATE TABLE Persons (
+    ID int NOT NULL,
+    LastName varchar(255) NOT NULL,
+    FirstName varchar(255),
+    Age int,
+    City varchar(255) DEFAULT 'Sandnes'
+);
+
+Thrift tutorial:
+http://diwakergupta.github.io/thrift-missing-guide/
+https://cwiki.apache.org/confluence/display/thrift/Tutorial
+
+msgpack idl spec:
+https://github.com/msgpack/msgpack-haskell/blob/master/msgpack-idl/Specification.md
+
+IDL spec:
+#########
+
+Typedefs:
+=========
+
+typedef i32 mytype
+typedef list<i32> mylisttype
+
+Constants:
+==========
+
+const i32 CONST_INT = 22
+const string CONST_STR = "a constant string"
+
+Enumerations:
+=============
+
+enum id {
+	FST_ID = 0,
+	SND_ID,
+	THR_ID,
+	LAST_ID
+}
+
+Structures:
+===========
+
+struct mystruct {
+	1: required u16    first_field
+	2: optional string second_field
+	3: optional u32    third_field = 0xdeadbeef
+}
+
+syntax for unique and check ???? (see sql)
