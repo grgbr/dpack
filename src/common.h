@@ -1,15 +1,12 @@
 #ifndef _DPACK_COMMON_H
 #define _DPACK_COMMON_H
 
+#include "dpack/cdefs.h"
 #include <mpack.h>
 #include <errno.h>
-#include <assert.h>
 
 #define unreachable() \
 	__builtin_unreachable()
-
-#define dpack_assert(cond) \
-	assert(cond)
 
 static inline int
 dpack_errno_from_mpack(enum mpack_error_t err)
@@ -30,7 +27,7 @@ dpack_errno_from_mpack(enum mpack_error_t err)
 	case mpack_error_memory:
 		return -ENOMEM;
 	case mpack_error_bug:
-		assert(0);
+		dpack_assert(0);
 	case mpack_error_data:
 		return -EBADMSG;
 	case mpack_error_eof:
@@ -41,5 +38,10 @@ dpack_errno_from_mpack(enum mpack_error_t err)
 
 	unreachable();
 }
+
+extern int
+dpack_decode_tag(struct mpack_reader_t * reader,
+                 enum mpack_type_t       type,
+                 struct mpack_tag_t    * tag);
 
 #endif /* _DPACK_COMMON_H */

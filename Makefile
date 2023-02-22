@@ -11,31 +11,33 @@ CFLAGS := -Wall -Wextra -Wformat=2 \
 .PHONY: build
 build: $(BUILDDIR)/libdpack.a
 
-.PHONY: check
-check: $(BUILDDIR)/test-fix_sample
-
 .PHONY: clean
 clean:
 	$(RM) -r $(BUILDDIR)
+
+# Sample libraries
+sample_apps := fix_sample scalar_array_sample
+sample_libs := $(addsuffix .a,$(addprefix $(BUILDDIR)/lib,$(sample_apps)))
+sample_objs := $(addsuffix .o,$(addprefix $(BUILDDIR)/,$(sample_apps)))
+
+.PHONY: check
+check: $(BUILDDIR)/test-fix_sample
 
 # Sample test binaries
 $(BUILDDIR)/test-%: test/test-%.c $(BUILDDIR)/lib%.a $(BUILDDIR)/libdpack.a
 	$(CC) -MD -Itest $(CFLAGS) $(LDFLAGS) -o $(@) $(filter %.c %.a %.o,$(^))
 
-# Sample libraries
-sample_libs := fix_sample
+# Sample test libraries
+$(sample_libs): $(BUILDDIR)/lib%.a: $(BUILDDIR)/%.o
+	$(AR) rcs $(@) $(^)
 
-$(addsuffix .a,$(addprefix $(BUILDDIR)/lib,$(sample_libs))): \
-	$(BUILDDIR)/lib%.a: $(BUILDDIR)/%.o
-		$(AR) rcs $(@) $(^)
-
-$(addsuffix .o,$(addprefix $(BUILDDIR)/,$(sample_libs))): \
-	$(BUILDDIR)/%.o: test/%.c | $(BUILDDIR)
-		$(CC) -MD -Itest $(CFLAGS) -o $(@) -c $(<)
+# Sample test library objects
+$(sample_objs): $(BUILDDIR)/%.o: test/%.c | $(BUILDDIR)
+	$(CC) -MD -Itest $(CFLAGS) -o $(@) -c $(<)
 
 # Dpack library
 $(BUILDDIR)/libdpack.a: $(addprefix $(BUILDDIR)/, \
-                                    array.o stdint.o codec.o mpack.o)
+                                    array.o stdint.o codec.o common.o mpack.o)
 	$(AR) rcs $(@) $(^)
 $(BUILDDIR)/%.o: src/%.c | $(BUILDDIR)
 	$(CC) -MD -Isrc $(CFLAGS) -o $(@) -c $(<)

@@ -17,30 +17,6 @@ dpack_encoder_error_state(struct mpack_writer_t * writer)
 }
 
 static int
-dpack_decode_tag(struct mpack_reader_t * reader,
-                 enum mpack_type_t       type,
-                 struct mpack_tag_t    * tag)
-{
-	dpack_assert(reader);
-	dpack_assert(tag);
-	dpack_assert(mpack_reader_error(reader) == mpack_ok);
-
-	enum mpack_error_t err;
-
-	*tag = mpack_read_tag(reader);
-	err = mpack_reader_error(reader);
-	if (err != mpack_ok)
-		return dpack_errno_from_mpack(err);
-
-	if (mpack_tag_type(tag) != type) {
-		mpack_reader_flag_error(reader, mpack_error_type);
-		return -ENOMSG;
-	}
-
-	return 0;
-}
-
-static int
 dpack_xtract_u64_min(struct mpack_reader_t * reader,
                      uint64_t                low,
                      uint64_t              * value)
@@ -110,10 +86,6 @@ dpack_xtract_u64_range(struct mpack_reader_t * reader,
 	return 0;
 }
 
-/******************************************************************************
- * 8 bits integer
- ******************************************************************************/
-
 #define DPACK_STDINT_DEFINE_ENCODE(_name, _type, _func) \
 	int \
 	_name(struct dpack_encoder * encoder, _type value) \
@@ -126,279 +98,138 @@ dpack_xtract_u64_range(struct mpack_reader_t * reader,
 		return dpack_encoder_error_state(&encoder->mpack); \
 	}
 
+#define DPACK_STDINT_DEFINE_DECODE(_name, _type, _high) \
+	int \
+	_name(struct dpack_decoder * decoder, _type * value) \
+	{ \
+		dpack_assert(decoder); \
+		dpack_assert(value); \
+		\
+		uint64_t val; \
+		int      err; \
+		\
+		err = dpack_xtract_u64_max(&decoder->mpack, \
+		                           (uint64_t)(_high), \
+		                           &val); \
+		if (err) \
+			return err; \
+		\
+		*value = (_type)val; \
+		\
+		return 0; \
+	}
+
+#define DPACK_STDINT_DEFINE_DECODE_MIN(_name, _type, _high) \
+	int \
+	_name(struct dpack_decoder * decoder, _type low, _type * value) \
+	{ \
+		dpack_assert(decoder); \
+		dpack_assert(low); \
+		dpack_assert(low < (_high)); \
+		dpack_assert(value); \
+		\
+		uint64_t val; \
+		int      err; \
+		\
+		err = dpack_xtract_u64_range(&decoder->mpack, \
+		                             (uint64_t)low, \
+		                             (uint64_t)(_high), \
+		                             &val); \
+		if (err) \
+			return err; \
+		\
+		*value = (_type)val; \
+		\
+		return 0; \
+	}
+
+#define DPACK_STDINT_DEFINE_DECODE_MAX(_name, _type, _high) \
+	int \
+	_name(struct dpack_decoder * decoder, _type high, _type * value) \
+	{ \
+		dpack_assert(decoder); \
+		dpack_assert(high < (_high)); \
+		dpack_assert(value); \
+		\
+		uint64_t val; \
+		int      err; \
+		\
+		err = dpack_xtract_u64_max(&decoder->mpack, \
+		                           (uint64_t)high, \
+		                           &val); \
+		if (err) \
+			return err; \
+		\
+		*value = (_type)val; \
+		\
+		return 0; \
+	}
+
+#define DPACK_STDINT_DEFINE_DECODE_RANGE(_name, _type, _high) \
+	int \
+	_name(struct dpack_decoder * decoder, \
+	      _type                  low, \
+	      _type                  high, \
+	      _type                * value) \
+	{ \
+		dpack_assert(decoder); \
+		dpack_assert(low); \
+		dpack_assert(low < high); \
+		dpack_assert(high < (_high)); \
+		dpack_assert(value); \
+		\
+		uint64_t val; \
+		int      err; \
+		\
+		err = dpack_xtract_u64_range(&decoder->mpack, \
+		                             (uint64_t)low, \
+		                             (uint64_t)high, \
+		                             &val); \
+		if (err) \
+			return err; \
+		\
+		*value = (_type)val; \
+		\
+		return 0; \
+	}
+
+/******************************************************************************
+ * 8 bits integer
+ ******************************************************************************/
+
 DPACK_STDINT_DEFINE_ENCODE(dpack_encode_u8, uint8_t, mpack_write_u8)
-
-int
-dpack_decode_u8(struct dpack_decoder * decoder, uint8_t * value)
-{
-	dpack_assert(decoder);
-
-	uint64_t val;
-	int      err;
-
-	err = dpack_xtract_u64_max(&decoder->mpack, (uint64_t)UINT8_MAX, &val);
-	if (err)
-		return err;
-
-	*value = (uint8_t)val;
-
-	return 0;
-}
-
-int
-dpack_decode_u8_min(struct dpack_decoder * decoder,
-                    uint8_t                low,
-                    uint8_t              * value)
-{
-	dpack_assert(decoder);
-	dpack_assert(value);
-
-	uint64_t val;
-	int      err;
-
-	err = dpack_xtract_u64_range(&decoder->mpack,
-	                             (uint64_t)low,
-	                             (uint64_t)UINT8_MAX,
-	                             &val);
-	if (err)
-		return err;
-
-	*value = (uint8_t)val;
-
-	return 0;
-}
-
-int
-dpack_decode_u8_max(struct dpack_decoder * decoder,
-                    uint8_t                high,
-                    uint8_t              * value)
-{
-	dpack_assert(decoder);
-	dpack_assert(value);
-
-	uint64_t val;
-	int      err;
-
-	err = dpack_xtract_u64_max(&decoder->mpack, (uint64_t)high, &val);
-	if (err)
-		return err;
-
-	*value = (uint8_t)val;
-
-	return 0;
-}
-
-int
-dpack_decode_u8_range(struct dpack_decoder * decoder,
-                      uint8_t                low,
-                      uint8_t                high,
-                      uint8_t              * value)
-{
-	dpack_assert(decoder);
-	dpack_assert(value);
-
-	uint64_t val;
-	int      err;
-
-	err = dpack_xtract_u64_range(&decoder->mpack,
-	                             (uint64_t)low,
-	                             (uint64_t)high,
-	                             &val);
-	if (err)
-		return err;
-
-	*value = (uint8_t)val;
-
-	return 0;
-}
+DPACK_STDINT_DEFINE_DECODE(dpack_decode_u8, uint8_t, UINT8_MAX)
+DPACK_STDINT_DEFINE_DECODE_MIN(dpack_decode_u8_min, uint8_t, UINT8_MAX)
+DPACK_STDINT_DEFINE_DECODE_MAX(dpack_decode_u8_max, uint8_t, UINT8_MAX)
+DPACK_STDINT_DEFINE_DECODE_RANGE(dpack_decode_u8_range, uint8_t, UINT8_MAX)
 
 /******************************************************************************
  * 16 bits integer
  ******************************************************************************/
 
 DPACK_STDINT_DEFINE_ENCODE(dpack_encode_u16, uint16_t, mpack_write_u16)
-
-int
-dpack_decode_u16(struct dpack_decoder * decoder, uint16_t * value)
-{
-	dpack_assert(decoder);
-	dpack_assert(value);
-
-	uint64_t val;
-	int      err;
-
-	err = dpack_xtract_u64_max(&decoder->mpack, (uint64_t)UINT16_MAX, &val);
-	if (err)
-		return err;
-
-	*value = (uint16_t)val;
-
-	return 0;
-}
-
-int
-dpack_decode_u16_min(struct dpack_decoder * decoder,
-                     uint16_t               low,
-                     uint16_t             * value)
-{
-	dpack_assert(decoder);
-	dpack_assert(value);
-
-	uint64_t val;
-	int      err;
-
-	err = dpack_xtract_u64_range(&decoder->mpack,
-	                             (uint64_t)low,
-	                             (uint64_t)UINT16_MAX,
-	                             &val);
-	if (err)
-		return err;
-
-	*value = (uint16_t)val;
-
-	return 0;
-}
-
-int
-dpack_decode_u16_max(struct dpack_decoder * decoder,
-                     uint16_t               high,
-                     uint16_t             * value)
-{
-	dpack_assert(decoder);
-	dpack_assert(value);
-
-	uint64_t val;
-	int      err;
-
-	err = dpack_xtract_u64_max(&decoder->mpack, (uint64_t)high, &val);
-	if (err)
-		return err;
-
-	*value = (uint16_t)val;
-
-	return 0;
-}
-
-int
-dpack_decode_u16_range(struct dpack_decoder * decoder,
-                       uint16_t               low,
-                       uint16_t               high,
-                       uint16_t             * value)
-{
-	dpack_assert(decoder);
-	dpack_assert(value);
-
-	uint64_t val;
-	int      err;
-
-	err = dpack_xtract_u64_range(&decoder->mpack,
-	                             (uint64_t)low,
-	                             (uint64_t)high,
-	                             &val);
-	if (err)
-		return err;
-
-	*value = (uint16_t)val;
-
-	return 0;
-}
+DPACK_STDINT_DEFINE_DECODE(dpack_decode_u16, uint16_t, UINT16_MAX)
+DPACK_STDINT_DEFINE_DECODE_MIN(dpack_decode_u16_min, uint16_t, UINT16_MAX)
+DPACK_STDINT_DEFINE_DECODE_MAX(dpack_decode_u16_max, uint16_t, UINT16_MAX)
+DPACK_STDINT_DEFINE_DECODE_RANGE(dpack_decode_u16_range, uint16_t, UINT16_MAX)
 
 /******************************************************************************
  * 32 bits integer
  ******************************************************************************/
 
 DPACK_STDINT_DEFINE_ENCODE(dpack_encode_u32, uint32_t, mpack_write_u32)
-
-int
-dpack_decode_u32(struct dpack_decoder * decoder, uint32_t * value)
-{
-	dpack_assert(decoder);
-	dpack_assert(value);
-
-	uint64_t val;
-	int      err;
-
-	err = dpack_xtract_u64_max(&decoder->mpack, (uint64_t)UINT32_MAX, &val);
-	if (err)
-		return err;
-
-	*value = (uint32_t)val;
-
-	return 0;
-}
-
-int
-dpack_decode_u32_min(struct dpack_decoder * decoder,
-                     uint32_t               low,
-                     uint32_t             * value)
-{
-	dpack_assert(decoder);
-	dpack_assert(value);
-
-	uint64_t val;
-	int      err;
-
-	err = dpack_xtract_u64_range(&decoder->mpack,
-	                             (uint64_t)low,
-	                             (uint64_t)UINT32_MAX,
-	                             &val);
-	if (err)
-		return err;
-
-	*value = (uint32_t)val;
-
-	return 0;
-}
-
-int
-dpack_decode_u32_max(struct dpack_decoder * decoder,
-                     uint32_t               high,
-                     uint32_t             * value)
-{
-	dpack_assert(decoder);
-	dpack_assert(value);
-
-	uint64_t val;
-	int      err;
-
-	err = dpack_xtract_u64_max(&decoder->mpack, (uint64_t)high, &val);
-	if (err)
-		return err;
-
-	*value = (uint32_t)val;
-
-	return 0;
-}
-
-int
-dpack_decode_u32_range(struct dpack_decoder * decoder,
-                       uint32_t               low,
-                       uint32_t               high,
-                       uint32_t             * value)
-{
-	dpack_assert(decoder);
-	dpack_assert(value);
-
-	uint64_t val;
-	int      err;
-
-	err = dpack_xtract_u64_range(&decoder->mpack,
-	                             (uint64_t)low,
-	                             (uint64_t)high,
-	                             &val);
-	if (err)
-		return err;
-
-	*value = (uint32_t)val;
-
-	return 0;
-}
+DPACK_STDINT_DEFINE_DECODE(dpack_decode_u32, uint32_t, UINT32_MAX)
+DPACK_STDINT_DEFINE_DECODE_MIN(dpack_decode_u32_min, uint32_t, UINT32_MAX)
+DPACK_STDINT_DEFINE_DECODE_MAX(dpack_decode_u32_max, uint32_t, UINT32_MAX)
+DPACK_STDINT_DEFINE_DECODE_RANGE(dpack_decode_u32_range, uint32_t, UINT32_MAX)
 
 /******************************************************************************
  * 64 bits integer
  ******************************************************************************/
 
 DPACK_STDINT_DEFINE_ENCODE(dpack_encode_u64, uint64_t, mpack_write_u64)
+DPACK_STDINT_DEFINE_DECODE_MAX(dpack_decode_u64_max, uint64_t, UINT64_MAX)
+DPACK_STDINT_DEFINE_DECODE_RANGE(dpack_decode_u64_range, uint64_t, UINT64_MAX)
 
 int
 dpack_decode_u64(struct dpack_decoder * decoder, uint64_t * value)
@@ -424,6 +255,8 @@ dpack_decode_u64_min(struct dpack_decoder * decoder,
                      uint64_t             * value)
 {
 	dpack_assert(decoder);
+	dpack_assert(low);
+	dpack_assert(low < UINT64_MAX);
 	dpack_assert(value);
 
 	uint64_t val;
@@ -434,79 +267,6 @@ dpack_decode_u64_min(struct dpack_decoder * decoder,
 		return err;
 
 	*value = val;
-
-	return 0;
-}
-
-int
-dpack_decode_u64_max(struct dpack_decoder * decoder,
-                     uint64_t               high,
-                     uint64_t             * value)
-{
-	dpack_assert(decoder);
-	dpack_assert(value);
-
-	uint64_t val;
-	int      err;
-
-	err = dpack_xtract_u64_max(&decoder->mpack, high, &val);
-	if (err)
-		return err;
-
-	*value = val;
-
-	return 0;
-}
-
-int
-dpack_decode_u64_range(struct dpack_decoder * decoder,
-                       uint64_t               low,
-                       uint64_t               high,
-                       uint64_t             * value)
-{
-	dpack_assert(decoder);
-	dpack_assert(value);
-
-	uint64_t val;
-	int      err;
-
-	err = dpack_xtract_u64_range(&decoder->mpack, low, high, &val);
-	if (err)
-		return err;
-
-	*value = val;
-
-	return 0;
-}
-
-/******************************************************************************
- * Structure field identifier
- ******************************************************************************/
-
-#define DPACK_FIELDID_MAX ((uint16_t)1024)
-
-int
-dpack_encode_fieldid(struct dpack_encoder * encoder, uint16_t id)
-{
-	dpack_assert(id <= DPACK_FIELDID_MAX);
-
-	return dpack_encode_u16(encoder, id);
-}
-
-int
-dpack_decode_fieldid(struct dpack_decoder * decoder, uint16_t * id)
-{
-	dpack_assert(decoder);
-	dpack_assert(id);
-
-	uint16_t val;
-	int      err;
-
-	err = dpack_decode_u16_max(decoder, DPACK_FIELDID_MAX, &val);
-	if (err)
-		return err;
-
-	*id = (uint16_t)val;
 
 	return 0;
 }
