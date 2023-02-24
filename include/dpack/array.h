@@ -59,6 +59,12 @@ dpack_array_decode_u8_max(struct dpack_decoder * decoder,
                           uint8_t                high,
                           uint8_t              * array,
 	                  unsigned int           nr);
+extern int
+dpack_array_decode_u8_range(struct dpack_decoder * decoder,
+                            uint8_t                low,
+                            uint8_t                high,
+                            uint8_t              * array,
+	                    unsigned int           nr);
 
 /******************************************************************************
  * 16 bits integer arrays
@@ -88,6 +94,12 @@ dpack_array_decode_u16_max(struct dpack_decoder * decoder,
                            uint16_t               high,
                            uint16_t             * array,
 	                   unsigned int           nr);
+extern int
+dpack_array_decode_u16_range(struct dpack_decoder * decoder,
+                             uint16_t               low,
+                             uint16_t               high,
+                             uint16_t             * array,
+	                     unsigned int           nr);
 
 /******************************************************************************
  * 32 bits integer arrays
@@ -118,6 +130,12 @@ dpack_array_decode_u32_max(struct dpack_decoder * decoder,
                            uint32_t               high,
                            uint32_t             * array,
 	                   unsigned int           nr);
+extern int
+dpack_array_decode_u32_range(struct dpack_decoder * decoder,
+                             uint32_t               low,
+                             uint32_t               high,
+                             uint32_t             * array,
+	                     unsigned int           nr);
 
 /******************************************************************************
  * 64 bits integer arrays
@@ -148,5 +166,11 @@ dpack_array_decode_u64_max(struct dpack_decoder * decoder,
                            uint64_t               high,
                            uint64_t             * array,
 	                   unsigned int           nr);
+extern int
+dpack_array_decode_u64_range(struct dpack_decoder * decoder,
+                             uint64_t               low,
+                             uint64_t               high,
+                             uint64_t             * array,
+	                     unsigned int           nr);
 
 #endif /* _DPACK_ARRAY_H */
