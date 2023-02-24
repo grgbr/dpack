@@ -50,6 +50,12 @@ dpack_array_decode_u8(struct dpack_decoder * decoder,
                       uint8_t              * array,
 	              unsigned int           nr);
 
+extern int
+dpack_array_decode_u8_min(struct dpack_decoder * decoder,
+                          uint8_t                low,
+                          uint8_t              * array,
+	                  unsigned int           nr);
+
 /******************************************************************************
  * 16 bits integer arrays
  ******************************************************************************/
@@ -68,6 +74,12 @@ extern int
 dpack_array_decode_u16(struct dpack_decoder * decoder,
                        uint16_t             * array,
 	               unsigned int           nr);
+
+extern int
+dpack_array_decode_u16_min(struct dpack_decoder * decoder,
+                           uint16_t               low,
+                           uint16_t             * array,
+	                   unsigned int           nr);
 
 /******************************************************************************
  * 32 bits integer arrays
@@ -88,6 +100,12 @@ dpack_array_decode_u32(struct dpack_decoder * decoder,
                        uint32_t             * array,
 	               unsigned int           nr);
 
+extern int
+dpack_array_decode_u32_min(struct dpack_decoder * decoder,
+                           uint32_t               low,
+                           uint32_t             * array,
+	                   unsigned int           nr);
+
 /******************************************************************************
  * 64 bits integer arrays
  ******************************************************************************/
@@ -106,5 +124,11 @@ extern int
 dpack_array_decode_u64(struct dpack_decoder * decoder,
                        uint64_t             * array,
 	               unsigned int           nr);
+
+extern int
+dpack_array_decode_u64_min(struct dpack_decoder * decoder,
+                           uint64_t               low,
+                           uint64_t             * array,
+	                   unsigned int           nr);
 
 #endif /* _DPACK_ARRAY_H */

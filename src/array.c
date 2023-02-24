@@ -30,19 +30,6 @@
 		return 0; \
 	}
 
-DPACK_ARRAY_DEFINE_ENCODE(dpack_array_encode_u8,
-                          uint8_t,
-                          dpack_encode_u8)
-DPACK_ARRAY_DEFINE_ENCODE(dpack_array_encode_u16,
-                          uint16_t,
-                          dpack_encode_u16)
-DPACK_ARRAY_DEFINE_ENCODE(dpack_array_encode_u32,
-                          uint32_t,
-                          dpack_encode_u32)
-DPACK_ARRAY_DEFINE_ENCODE(dpack_array_encode_u64,
-                          uint64_t,
-                          dpack_encode_u64)
-
 static int
 dpack_array_begin(struct mpack_reader_t * reader, unsigned int nr)
 {
@@ -95,15 +82,89 @@ dpack_array_end(struct mpack_reader_t * reader)
 		return 0; \
 	}
 
+#define DPACK_ARRAY_DEFINE_DECODE_MIN(_name, _type, _func) \
+	int \
+	_name(struct dpack_decoder * decoder, \
+	      _type                  low, \
+	      _type                * array, \
+	      unsigned int nr) \
+	{ \
+		dpack_assert(decoder); \
+		dpack_assert(array); \
+		dpack_assert(nr); \
+		dpack_assert(nr < DPACK_ARRAY_NR_MAX); \
+		dpack_assert(mpack_reader_error(&decoder->mpack) == mpack_ok); \
+		\
+		int          err; \
+		unsigned int elm; \
+		\
+		err = dpack_array_begin(&decoder->mpack, nr); \
+		if (err) \
+			return err; \
+		\
+		for (elm = 0; elm < nr; elm++) { \
+			err = _func(decoder, low, &array[elm]); \
+			if (err) \
+				return err; \
+		} \
+		\
+		dpack_array_end(&decoder->mpack); \
+		\
+		return 0; \
+	}
+
+/******************************************************************************
+ * 8 bits integer arrays
+ ******************************************************************************/
+
+DPACK_ARRAY_DEFINE_ENCODE(dpack_array_encode_u8,
+                          uint8_t,
+                          dpack_encode_u8)
 DPACK_ARRAY_DEFINE_DECODE(dpack_array_decode_u8,
                           uint8_t,
                           dpack_decode_u8)
+DPACK_ARRAY_DEFINE_DECODE_MIN(dpack_array_decode_u8_min,
+                              uint8_t,
+                              dpack_decode_u8_min)
+
+/******************************************************************************
+ * 16 bits integer arrays
+ ******************************************************************************/
+
+DPACK_ARRAY_DEFINE_ENCODE(dpack_array_encode_u16,
+                          uint16_t,
+                          dpack_encode_u16)
 DPACK_ARRAY_DEFINE_DECODE(dpack_array_decode_u16,
                           uint16_t,
                           dpack_decode_u16)
+DPACK_ARRAY_DEFINE_DECODE_MIN(dpack_array_decode_u16_min,
+                              uint16_t,
+                              dpack_decode_u16_min)
+
+/******************************************************************************
+ * 32 bits integer arrays
+ ******************************************************************************/
+
+DPACK_ARRAY_DEFINE_ENCODE(dpack_array_encode_u32,
+                          uint32_t,
+                          dpack_encode_u32)
 DPACK_ARRAY_DEFINE_DECODE(dpack_array_decode_u32,
                           uint32_t,
                           dpack_decode_u32)
+DPACK_ARRAY_DEFINE_DECODE_MIN(dpack_array_decode_u32_min,
+                              uint32_t,
+                              dpack_decode_u32_min)
+
+/******************************************************************************
+ * 64 bits integer arrays
+ ******************************************************************************/
+
+DPACK_ARRAY_DEFINE_ENCODE(dpack_array_encode_u64,
+                          uint64_t,
+                          dpack_encode_u64)
 DPACK_ARRAY_DEFINE_DECODE(dpack_array_decode_u64,
                           uint64_t,
                           dpack_decode_u64)
+DPACK_ARRAY_DEFINE_DECODE_MIN(dpack_array_decode_u64_min,
+                              uint64_t,
+                              dpack_decode_u64_min)
