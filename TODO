@@ -1,0 +1,15 @@
+Features
+========
+
+* float
+* test array
+* strings / utf8 ?
+* bool
+* nil
+* discard
+* bins
+* default values
+* vectors
+* maps
+* mpack build
+* gcc attributes and build hidden by default
