@@ -113,6 +113,37 @@ dpack_array_end(struct mpack_reader_t * reader)
 		return 0; \
 	}
 
+#define DPACK_ARRAY_DEFINE_DECODE_MAX(_name, _type, _func) \
+	int \
+	_name(struct dpack_decoder * decoder, \
+	      _type                  high, \
+	      _type                * array, \
+	      unsigned int nr) \
+	{ \
+		dpack_assert(decoder); \
+		dpack_assert(array); \
+		dpack_assert(nr); \
+		dpack_assert(nr < DPACK_ARRAY_NR_MAX); \
+		dpack_assert(mpack_reader_error(&decoder->mpack) == mpack_ok); \
+		\
+		int          err; \
+		unsigned int elm; \
+		\
+		err = dpack_array_begin(&decoder->mpack, nr); \
+		if (err) \
+			return err; \
+		\
+		for (elm = 0; elm < nr; elm++) { \
+			err = _func(decoder, high, &array[elm]); \
+			if (err) \
+				return err; \
+		} \
+		\
+		dpack_array_end(&decoder->mpack); \
+		\
+		return 0; \
+	}
+
 /******************************************************************************
  * 8 bits integer arrays
  ******************************************************************************/
@@ -126,6 +157,9 @@ DPACK_ARRAY_DEFINE_DECODE(dpack_array_decode_u8,
 DPACK_ARRAY_DEFINE_DECODE_MIN(dpack_array_decode_u8_min,
                               uint8_t,
                               dpack_decode_u8_min)
+DPACK_ARRAY_DEFINE_DECODE_MAX(dpack_array_decode_u8_max,
+                              uint8_t,
+                              dpack_decode_u8_max)
 
 /******************************************************************************
  * 16 bits integer arrays
@@ -140,6 +174,9 @@ DPACK_ARRAY_DEFINE_DECODE(dpack_array_decode_u16,
 DPACK_ARRAY_DEFINE_DECODE_MIN(dpack_array_decode_u16_min,
                               uint16_t,
                               dpack_decode_u16_min)
+DPACK_ARRAY_DEFINE_DECODE_MAX(dpack_array_decode_u16_max,
+                              uint16_t,
+                              dpack_decode_u16_max)
 
 /******************************************************************************
  * 32 bits integer arrays
@@ -154,6 +191,9 @@ DPACK_ARRAY_DEFINE_DECODE(dpack_array_decode_u32,
 DPACK_ARRAY_DEFINE_DECODE_MIN(dpack_array_decode_u32_min,
                               uint32_t,
                               dpack_decode_u32_min)
+DPACK_ARRAY_DEFINE_DECODE_MAX(dpack_array_decode_u32_max,
+                              uint32_t,
+                              dpack_decode_u32_max)
 
 /******************************************************************************
  * 64 bits integer arrays
@@ -168,3 +208,6 @@ DPACK_ARRAY_DEFINE_DECODE(dpack_array_decode_u64,
 DPACK_ARRAY_DEFINE_DECODE_MIN(dpack_array_decode_u64_min,
                               uint64_t,
                               dpack_decode_u64_min)
+DPACK_ARRAY_DEFINE_DECODE_MAX(dpack_array_decode_u64_max,
+                              uint64_t,
+                              dpack_decode_u64_max)
