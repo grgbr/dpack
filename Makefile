@@ -1,12 +1,22 @@
 BUILDDIR := $(CURDIR)/build
 
-OPTIM_CFLAGS := -O2 -DNDEBUG
-#OPTIM_CFLAGS := -O0
-#DEBUG_CFLAGS := -ggdb3
+DPACK_DEBUG := 1
+
+ifeq ($(DPACK_DEBUG),1)
+OPTIM_CFLAGS := -O0
+DEBUG_CFLAGS := -ggdb3 -DDPACK_DEBUG
+else
+OPTIM_CFLAGS := -O2 -DNDEBUG -ffast-math
+endif
+
 CFLAGS := -Wall -Wextra -Wformat=2 \
+          -D_GNU_SOURCE \
           $(DEBUG_CFLAGS) \
           $(OPTIM_CFLAGS) \
-          -Iinclude/ -Impack/.build/amalgamation/src/mpack
+          -include mpack-config.h \
+          -Iinclude/ \
+          -Impack/.build/amalgamation/src/mpack \
+          -I$(CURDIR)
 
 .PHONY: build
 build: $(BUILDDIR)/libdpack.a

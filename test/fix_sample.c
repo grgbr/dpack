@@ -1,7 +1,9 @@
 #include "fix_sample.h"
+#include <dpack/codec.h>
 #include <assert.h>
 
-#define fix_sample_assert(condition) assert(condition)
+#define fix_sample_assert(condition) \
+	dpack_assert(condition)
 
 int
 fix_sample_pack(struct dpack_encoder * encoder, const struct fix_sample * data)

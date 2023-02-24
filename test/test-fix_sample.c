@@ -1,11 +1,8 @@
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
-
 #include "fix_sample.h"
 #include <dpack/codec.h>
 #include <stdio.h>
 #include <getopt.h>
+#include <errno.h>
 #include <assert.h>
 
 #define show_error(_format, ...) \
