@@ -124,7 +124,6 @@ dpack_xtract_u64_range(struct mpack_reader_t * reader,
 	_name(struct dpack_decoder * decoder, _type low, _type * value) \
 	{ \
 		dpack_assert(decoder); \
-		dpack_assert(low); \
 		dpack_assert(low < (_high)); \
 		dpack_assert(value); \
 		\
@@ -173,7 +172,6 @@ dpack_xtract_u64_range(struct mpack_reader_t * reader,
 	      _type                * value) \
 	{ \
 		dpack_assert(decoder); \
-		dpack_assert(low); \
 		dpack_assert(low < high); \
 		dpack_assert(high < (_high)); \
 		dpack_assert(value); \
@@ -255,7 +253,6 @@ dpack_decode_u64_min(struct dpack_decoder * decoder,
                      uint64_t             * value)
 {
 	dpack_assert(decoder);
-	dpack_assert(low);
 	dpack_assert(low < UINT64_MAX);
 	dpack_assert(value);
 
