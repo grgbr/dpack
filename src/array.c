@@ -3,16 +3,19 @@
 #include "dpack/codec.h"
 #include "common.h"
 
+#define dpack_array_assert(_codec, _array, _nr) \
+	dpack_assert(_codec); \
+	dpack_assert(_array); \
+	dpack_assert(_nr); \
+	dpack_assert((_nr) < DPACK_ARRAY_NR_MAX)
+
 #define DPACK_ARRAY_DEFINE_ENCODE(_name, _type, _func) \
 	int \
 	_name(struct dpack_encoder * encoder, \
 	      const _type          * array, \
 	      unsigned int           nr) \
 	{ \
-		dpack_assert(encoder); \
-		dpack_assert(array); \
-		dpack_assert(nr); \
-		dpack_assert(nr < DPACK_ARRAY_NR_MAX); \
+		dpack_array_assert(encoder, array, nr); \
 		dpack_assert(mpack_writer_error(&encoder->mpack) == mpack_ok); \
 		\
 		unsigned int elm; \
@@ -54,15 +57,15 @@ dpack_array_end(struct mpack_reader_t * reader)
 	mpack_done_array(reader);
 }
 
+#define dpack_array_assert_decoder(_decoder, _array, _nr) \
+	dpack_array_assert(_decoder, _array, _nr); \
+	dpack_assert(mpack_reader_error(&(_decoder)->mpack) == mpack_ok)
+
 #define DPACK_ARRAY_DEFINE_DECODE(_name, _type, _func) \
 	int \
 	_name(struct dpack_decoder * decoder, _type * array, unsigned int nr) \
 	{ \
-		dpack_assert(decoder); \
-		dpack_assert(array); \
-		dpack_assert(nr); \
-		dpack_assert(nr < DPACK_ARRAY_NR_MAX); \
-		dpack_assert(mpack_reader_error(&decoder->mpack) == mpack_ok); \
+		dpack_array_assert_decoder(decoder, array, nr); \
 		\
 		int          err; \
 		unsigned int elm; \
@@ -89,11 +92,7 @@ dpack_array_end(struct mpack_reader_t * reader)
 	      _type                * array, \
 	      unsigned int nr) \
 	{ \
-		dpack_assert(decoder); \
-		dpack_assert(array); \
-		dpack_assert(nr); \
-		dpack_assert(nr < DPACK_ARRAY_NR_MAX); \
-		dpack_assert(mpack_reader_error(&decoder->mpack) == mpack_ok); \
+		dpack_array_assert_decoder(decoder, array, nr); \
 		\
 		int          err; \
 		unsigned int elm; \
@@ -120,11 +119,7 @@ dpack_array_end(struct mpack_reader_t * reader)
 	      _type                * array, \
 	      unsigned int nr) \
 	{ \
-		dpack_assert(decoder); \
-		dpack_assert(array); \
-		dpack_assert(nr); \
-		dpack_assert(nr < DPACK_ARRAY_NR_MAX); \
-		dpack_assert(mpack_reader_error(&decoder->mpack) == mpack_ok); \
+		dpack_array_assert_decoder(decoder, array, nr); \
 		\
 		int          err; \
 		unsigned int elm; \
