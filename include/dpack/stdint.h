@@ -2,7 +2,6 @@
 #define _DPACK_STDINT_H
 
 #include <dpack/cdefs.h>
-#include <mpack.h>
 #include <stdint.h>
 
 struct dpack_encoder;
