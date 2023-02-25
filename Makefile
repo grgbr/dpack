@@ -1,25 +1,50 @@
 BUILDDIR := $(CURDIR)/build
 
-DPACK_DEBUG := 1
+DPACK_DEBUG := 0
 
 ifeq ($(DPACK_DEBUG),1)
-OPTIM_CFLAGS := -O0
-DEBUG_CFLAGS := -ggdb3 -DDPACK_DEBUG
+DEBUG_CFLAGS    := -ggdb3 -DDPACK_DEBUG
+OPTIM_CFLAGS    := -O0
 else
-OPTIM_CFLAGS := -O2 -DNDEBUG -ffast-math
+OPTIM_CFLAGS    := -O2 -DNDEBUG
 endif
 
-CFLAGS := -Wall -Wextra -Wformat=2 \
-          -D_GNU_SOURCE \
-          $(DEBUG_CFLAGS) \
-          $(OPTIM_CFLAGS) \
-          -include mpack-config.h \
-          -Iinclude/ \
-          -Impack/.build/amalgamation/src/mpack \
-          -I$(CURDIR)
+MACHINE_CFLAGS  := -march=native \
+                   -fcf-protection=full -mcet-switch -mshstk
+OPTIM_CFLAGS    += -ffast-math \
+                   -flto=auto -fuse-linker-plugin \
+                   -fno-semantic-interposition
+HARDEN_CFLAGS   := -D_FORTIFY_SOURCE=3 \
+                   -fstack-protector-strong --param=ssp-buffer-size=4 \
+                   -fstack-clash-protection \
+                   -fasynchronous-unwind-tables
+CFLAGS          := -Wall -Wextra -Wformat=2 \
+                   -D_GNU_SOURCE \
+                   -include mpack-config.h \
+                   -Iinclude/ \
+                   -Impack/.build/amalgamation/src/mpack \
+                   -I$(CURDIR) \
+                   -fvisibility=hidden \
+                   $(DEBUG_CFLAGS) \
+                   $(MACHINE_CFLAGS) \
+                   $(OPTIM_CFLAGS) \
+                   $(HARDEN_CFLAGS)
+
+MACHINE_LDFLAGS := -Wl,-z,ibt -Wl,-z,shstk
+OPTIM_LDFLAGS   := -Wl,-z,combreloc -Wl,--hash-style=gnu
+HARDEN_LDFLAGS  := -Wl,-z,nodynamic-undefined-weak \
+                   -Wl,-z,defs \
+                   -Wl,-z,nodlopen -Wl,-z,nodump \
+                   -Wl,-z,interpose \
+                   -Wl,-z,noexecstack \
+                   -Wl,-z,now -Wl,-z,relro -Wl,-z,separate-code
+LDFLAGS         := -Wl,-gc-sections -Wl,-print-gc-sections \
+                    $(MACHINE_LDFLAGS) \
+                    $(OPTIM_LDFLAGS) \
+                    $(HARDEN_LDFLAGS)
 
 .PHONY: build
-build: $(BUILDDIR)/libdpack.a
+build: $(BUILDDIR)/libdpack.a $(BUILDDIR)/libdpack.so
 
 .PHONY: clean
 clean:
@@ -34,8 +59,10 @@ sample_objs := $(addsuffix .o,$(addprefix $(BUILDDIR)/,$(sample_apps)))
 check: $(BUILDDIR)/test-fix_sample
 
 # Sample test binaries
-$(BUILDDIR)/test-%: test/test-%.c $(BUILDDIR)/lib%.a $(BUILDDIR)/libdpack.a
-	$(CC) -MD -Itest $(CFLAGS) $(LDFLAGS) -o $(@) $(filter %.c %.a %.o,$(^))
+$(BUILDDIR)/test-%: test/test-%.c $(BUILDDIR)/lib%.a $(BUILDDIR)/libdpack.so
+	$(CC) -MD -Itest \
+	      -pie $(CFLAGS) $(LDFLAGS) \
+	      -o $(@) $(filter %.c %.a %.o %.so,$(^))
 
 # Sample test libraries
 $(sample_libs): $(BUILDDIR)/lib%.a: $(BUILDDIR)/%.o
@@ -43,16 +70,37 @@ $(sample_libs): $(BUILDDIR)/lib%.a: $(BUILDDIR)/%.o
 
 # Sample test library objects
 $(sample_objs): $(BUILDDIR)/%.o: test/%.c | $(BUILDDIR)
-	$(CC) -MD -Itest $(CFLAGS) -o $(@) -c $(<)
+	$(CC) -MD -Itest -fpie $(CFLAGS) -o $(@) -c $(<)
 
-# Dpack library
-$(BUILDDIR)/libdpack.a: $(addprefix $(BUILDDIR)/, \
-                                    array.o stdint.o codec.o common.o mpack.o)
+################################################################################
+# Dpack libraries
+################################################################################
+
+dpack_objs := array stdint codec common mpack
+
+# Dpack static library
+statlib_dpack_objs := $(addprefix $(BUILDDIR)/,$(addsuffix .o,$(dpack_objs)))
+
+$(BUILDDIR)/libdpack.a: $(statlib_dpack_objs)
 	$(AR) rcs $(@) $(^)
 $(BUILDDIR)/%.o: src/%.c | $(BUILDDIR)
-	$(CC) -MD -Isrc $(CFLAGS) -o $(@) -c $(<)
+	$(CC) -MD -Isrc -fpie $(CFLAGS) -o $(@) -c $(<)
 $(BUILDDIR)/mpack.o: mpack/.build/amalgamation/src/mpack/mpack.c | $(BUILDDIR)
-	$(CC) -MD -Isrc $(CFLAGS) -o $(@) -c $(<)
+	$(CC) -MD -Isrc -fpie $(CFLAGS) -o $(@) -c $(<)
+
+# Dpack shared library
+solib_dpack_objs := $(addprefix $(BUILDDIR)/,\
+                                $(addsuffix _shared.o,$(dpack_objs)))
+
+$(BUILDDIR)/libdpack.so: $(solib_dpack_objs)
+	$(CC) -MD -Isrc $(CFLAGS) $(LDFLAGS) \
+	      -fpic -Bsymbolic -shared -Wl,-soname,$(notdir $(@)) \
+	      -o $(@) $(^)
+$(BUILDDIR)/%_shared.o: src/%.c | $(BUILDDIR)
+	$(CC) -MD -Isrc -fpic $(CFLAGS) -o $(@) -c $(<)
+$(BUILDDIR)/mpack_shared.o: mpack/.build/amalgamation/src/mpack/mpack.c \
+                            | $(BUILDDIR)
+	$(CC) -MD -Isrc -fpic $(CFLAGS) -o $(@) -c $(<)
 
 $(BUILDDIR):
 	@mkdir -p $(@)

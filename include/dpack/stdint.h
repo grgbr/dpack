@@ -18,22 +18,22 @@ struct dpack_decoder;
 #define DPACK_U8_SIZE_MAX (2U)
 
 extern int
-dpack_encode_u8(struct dpack_encoder * encoder, uint8_t value);
+dpack_encode_u8(struct dpack_encoder * encoder, uint8_t value) __dpack_export;
 extern int
-dpack_decode_u8(struct dpack_decoder * decoder, uint8_t * value);
+dpack_decode_u8(struct dpack_decoder * decoder, uint8_t * value) __dpack_export;
 extern int
 dpack_decode_u8_min(struct dpack_decoder * decoder,
                     uint8_t                low,
-                    uint8_t              * value);
+                    uint8_t              * value) __dpack_export;
 extern int
 dpack_decode_u8_max(struct dpack_decoder * decoder,
                     uint8_t                high,
-                    uint8_t              * value);
+                    uint8_t              * value) __dpack_export;
 extern int
 dpack_decode_u8_range(struct dpack_decoder * decoder,
                       uint8_t                low,
                       uint8_t                high,
-                      uint8_t              * value);
+                      uint8_t              * value) __dpack_export;
 
 /******************************************************************************
  * 16 bits integers
@@ -43,22 +43,23 @@ dpack_decode_u8_range(struct dpack_decoder * decoder,
 #define DPACK_U16_SIZE_MAX (3U)
 
 extern int
-dpack_encode_u16(struct dpack_encoder * encoder, uint16_t value);
+dpack_encode_u16(struct dpack_encoder * encoder, uint16_t value) __dpack_export;
 extern int
-dpack_decode_u16(struct dpack_decoder * decoder, uint16_t * value);
+dpack_decode_u16(struct dpack_decoder * decoder, uint16_t * value)
+	__dpack_export;
 extern int
 dpack_decode_u16_min(struct dpack_decoder * decoder,
                      uint16_t               low,
-                     uint16_t             * value);
+                     uint16_t             * value) __dpack_export;
 extern int
 dpack_decode_u16_max(struct dpack_decoder * decoder,
                      uint16_t               high,
-                     uint16_t             * value);
+                     uint16_t             * value) __dpack_export;
 extern int
 dpack_decode_u16_range(struct dpack_decoder * decoder,
                        uint16_t               low,
                        uint16_t               high,
-                       uint16_t             * value);
+                       uint16_t             * value) __dpack_export;
 
 /******************************************************************************
  * 32 bits integers
@@ -68,22 +69,24 @@ dpack_decode_u16_range(struct dpack_decoder * decoder,
 #define DPACK_U32_SIZE_MAX (5U)
 
 extern int
-dpack_encode_u32(struct dpack_encoder * encoder, uint32_t value);
+dpack_encode_u32(struct dpack_encoder * encoder, uint32_t value)
+	__dpack_export;
 extern int
-dpack_decode_u32(struct dpack_decoder * decoder, uint32_t * value);
+dpack_decode_u32(struct dpack_decoder * decoder, uint32_t * value)
+	__dpack_export;
 extern int
 dpack_decode_u32_min(struct dpack_decoder * decoder,
                      uint32_t               low,
-                     uint32_t             * value);
+                     uint32_t             * value) __dpack_export;
 extern int
 dpack_decode_u32_max(struct dpack_decoder * decoder,
                      uint32_t               high,
-                     uint32_t             * value);
+                     uint32_t             * value) __dpack_export;
 extern int
 dpack_decode_u32_range(struct dpack_decoder * decoder,
                        uint32_t               low,
                        uint32_t               high,
-                       uint32_t             * value);
+                       uint32_t             * value) __dpack_export;
 
 /******************************************************************************
  * 64 bits integers
@@ -93,22 +96,24 @@ dpack_decode_u32_range(struct dpack_decoder * decoder,
 #define DPACK_U64_SIZE_MAX (9U)
 
 extern int
-dpack_encode_u64(struct dpack_encoder * encoder, uint64_t value);
+dpack_encode_u64(struct dpack_encoder * encoder, uint64_t value)
+	__dpack_export;
 extern int
-dpack_decode_u64(struct dpack_decoder * decoder, uint64_t * value);
+dpack_decode_u64(struct dpack_decoder * decoder, uint64_t * value)
+	__dpack_export;
 extern int
 dpack_decode_u64_min(struct dpack_decoder * decoder,
                      uint64_t               low,
-                     uint64_t             * value);
+                     uint64_t             * value) __dpack_export;
 extern int
 dpack_decode_u64_max(struct dpack_decoder * decoder,
                      uint64_t               high,
-                     uint64_t             * value);
+                     uint64_t             * value) __dpack_export;
 extern int
 dpack_decode_u64_range(struct dpack_decoder * decoder,
                        uint64_t               low,
                        uint64_t               high,
-                       uint64_t             * value);
+                       uint64_t             * value) __dpack_export;
 
 /******************************************************************************
  * Structure field identifier

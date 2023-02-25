@@ -3,6 +3,9 @@
 
 #include <assert.h>
 
+#define __dpack_export \
+	__attribute__((visibility("default")))
+
 #define dpack_assert(cond) \
 	assert(cond)
 
