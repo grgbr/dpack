@@ -50,19 +50,26 @@ build: $(BUILDDIR)/libdpack.a $(BUILDDIR)/libdpack.so
 clean:
 	$(RM) -r $(BUILDDIR)
 
+# Sample test binaries
+test_objs := test-fix_sample test-scalar_array_sample
+
+.PHONY: check
+check: $(addprefix $(BUILDDIR)/,$(test_objs))
+
+$(BUILDDIR)/test-%: test/test-%.c $(BUILDDIR)/test.o \
+                    $(BUILDDIR)/lib%.a $(BUILDDIR)/libdpack.so
+	$(CC) -MD -Itest \
+	      -pie $(CFLAGS) $(LDFLAGS) \
+	      -o $(@) $(filter %.c %.a %.o %.so,$(^))
+
+$(BUILDDIR)/test.o: test/test.c | $(BUILDDIR)
+	$(CC) -MD -Itest -fpie $(CFLAGS) -o $(@) -c $(<)
+
+
 # Sample libraries
 sample_apps := fix_sample scalar_array_sample
 sample_libs := $(addsuffix .a,$(addprefix $(BUILDDIR)/lib,$(sample_apps)))
 sample_objs := $(addsuffix .o,$(addprefix $(BUILDDIR)/,$(sample_apps)))
-
-.PHONY: check
-check: $(BUILDDIR)/test-fix_sample
-
-# Sample test binaries
-$(BUILDDIR)/test-%: test/test-%.c $(BUILDDIR)/lib%.a $(BUILDDIR)/libdpack.so
-	$(CC) -MD -Itest \
-	      -pie $(CFLAGS) $(LDFLAGS) \
-	      -o $(@) $(filter %.c %.a %.o %.so,$(^))
 
 # Sample test libraries
 $(sample_libs): $(BUILDDIR)/lib%.a: $(BUILDDIR)/%.o

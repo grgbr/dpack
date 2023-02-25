@@ -2,7 +2,6 @@ Features
 ========
 
 * float
-* test array
 * strings / utf8 ?
 * bool
 * nil
@@ -12,4 +11,4 @@ Features
 * vectors
 * maps
 * mpack build
-* gcc attributes and build hidden by default
+* gcc attributes
