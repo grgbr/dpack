@@ -166,13 +166,18 @@ dpack_decode_strdup_fix(struct dpack_decoder  * decoder,
 
 	struct mpack_reader_t * reader = &decoder->mpack;
 	struct mpack_tag_t      tag;
-	int                     err;
+	int                     ret;
 
-	err = dpack_decode_tag(reader, mpack_type_str, &tag);
-	if (err)
-		return err;
+	ret = dpack_decode_tag(reader, mpack_type_str, &tag);
+	if (ret)
+		return ret;
 
-	if (mpack_tag_str_length(&tag) != len) {
+	ret = mpack_tag_str_length(&tag);
+	dpack_assert(ret);
+	if (ret < 0)
+		return ret;
+
+	if ((size_t)ret != len) {
 		mpack_reader_flag_error(reader, mpack_error_data);
 		return -EBADMSG;
 	}
