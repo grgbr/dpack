@@ -37,6 +37,7 @@ dpack_decode_str_tag(struct mpack_reader_t * reader,
                      size_t                  min_len,
                      size_t                  max_len)
 {
+	dpack_assert(mpack_reader_error(reader) == mpack_ok);
 	dpack_assert(min_len);
 	dpack_assert(min_len < max_len);
 	dpack_assert(max_len <= DPACK_STRLEN_MAX);
@@ -63,11 +64,12 @@ dpack_decode_str_tag(struct mpack_reader_t * reader,
 }
 
 static ssize_t
-dpack_xtract_str(struct mpack_reader_t * reader, char ** value, uint32_t len)
+dpack_xtract_strdup(struct mpack_reader_t * reader, char ** value, uint32_t len)
 {
 	dpack_assert(reader);
 	dpack_assert(mpack_reader_error(reader) == mpack_ok);
 	dpack_assert(value);
+	dpack_assert(len);
 	dpack_assert(len <= DPACK_STRLEN_MAX);
 
 	char * str;
@@ -75,6 +77,16 @@ dpack_xtract_str(struct mpack_reader_t * reader, char ** value, uint32_t len)
 	str = mpack_read_bytes_alloc(reader, len);
 	if (!str)
 		return dpack_decoder_error_state(reader);
+
+	/*
+	 * Ensure the read string contains no NULL byte since msgpack do not
+	 * serialize terminating NULL byte.
+	 */
+	if (memchr(str, 0, len)) {
+		mpack_reader_flag_error(reader, mpack_error_type);
+		free(str);
+		return -EBADMSG;
+	}
 
 	*value = str;
 
@@ -93,25 +105,7 @@ dpack_decode_strdup(struct dpack_decoder * decoder, char ** value)
 	if (len < 0)
 		return len;
 
-	return dpack_xtract_str(&decoder->mpack, value, len);
-}
-
-ssize_t
-dpack_decode_strdup_min(struct dpack_decoder  * decoder,
-                        size_t                  min_len,
-                        char                 ** value)
-{
-	dpack_assert(decoder);
-	dpack_assert(min_len);
-	dpack_assert(value);
-
-	ssize_t len;
-
-	len = dpack_decode_str_tag(&decoder->mpack, min_len, DPACK_STRLEN_MAX);
-	if (len < 0)
-		return len;
-
-	return dpack_xtract_str(&decoder->mpack, value, len);
+	return dpack_xtract_strdup(&decoder->mpack, value, len);
 }
 
 ssize_t
@@ -130,7 +124,7 @@ dpack_decode_strdup_max(struct dpack_decoder  * decoder,
 	if (len < 0)
 		return len;
 
-	return dpack_xtract_str(&decoder->mpack, value, len);
+	return dpack_xtract_strdup(&decoder->mpack, value, len);
 }
 
 ssize_t
@@ -151,7 +145,29 @@ dpack_decode_strdup_range(struct dpack_decoder  * decoder,
 	if (len < 0)
 		return len;
 
-	return dpack_xtract_str(&decoder->mpack, value, len);
+	return dpack_xtract_strdup(&decoder->mpack, value, len);
+}
+
+static int
+dpack_decode_str_tag_fix(struct mpack_reader_t * reader, size_t len)
+{
+	dpack_assert(mpack_reader_error(reader) == mpack_ok);
+	dpack_assert(len);
+	dpack_assert(len <= DPACK_STRLEN_MAX);
+
+	struct mpack_tag_t tag;
+	int                err;
+
+	err = dpack_decode_tag(reader, mpack_type_str, &tag);
+	if (err)
+		return err;
+
+	if (mpack_tag_str_length(&tag) != len) {
+		mpack_reader_flag_error(reader, mpack_error_data);
+		return -EBADMSG;
+	}
+
+	return 0;
 }
 
 ssize_t
@@ -164,23 +180,111 @@ dpack_decode_strdup_fix(struct dpack_decoder  * decoder,
 	dpack_assert(len <= DPACK_STRLEN_MAX);
 	dpack_assert(value);
 
-	struct mpack_reader_t * reader = &decoder->mpack;
-	struct mpack_tag_t      tag;
-	int                     ret;
+	int err;
 
-	ret = dpack_decode_tag(reader, mpack_type_str, &tag);
-	if (ret)
-		return ret;
+	err = dpack_decode_str_tag_fix(&decoder->mpack, len);
+	if (err)
+		return err;
 
-	ret = mpack_tag_str_length(&tag);
-	dpack_assert(ret);
-	if (ret < 0)
-		return ret;
+	return dpack_xtract_strdup(&decoder->mpack, value, len);
+}
 
-	if ((size_t)ret != len) {
-		mpack_reader_flag_error(reader, mpack_error_data);
-		return -EBADMSG;
+static ssize_t
+dpack_xtract_strcpy(struct mpack_reader_t * reader,
+                    char                  * value,
+                    uint32_t                len)
+{
+	dpack_assert(reader);
+	dpack_assert(mpack_reader_error(reader) == mpack_ok);
+	dpack_assert(value);
+	dpack_assert(len);
+	dpack_assert(len <= DPACK_STRLEN_MAX);
+
+	int err;
+
+	mpack_read_bytes(reader, value, len);
+	err = dpack_decoder_error_state(reader);
+	if (err)
+		goto err;
+
+	/*
+	 * Ensure the read string contains no NULL byte since msgpack do not
+	 * serialize terminating NULL byte.
+	 */
+	if (memchr(value, 0, len)) {
+		mpack_reader_flag_error(reader, mpack_error_type);
+		err = -EBADMSG;
+		goto err;
 	}
 
-	return dpack_xtract_str(reader, value, len);
+	value[len] = '\0';
+
+	return (ssize_t)len;
+
+err:
+	/*
+	 * Just to make sure the caller is safe to use value even when ignoring
+	 * returned error code.
+	 */
+	value[0] = '\0';
+
+	return err;
+}
+
+ssize_t
+dpack_decode_strcpy(struct dpack_decoder * decoder,
+                    size_t                 size,
+                    char                 * value)
+{
+	dpack_assert(decoder);
+	dpack_assert(size > 1);
+	dpack_assert(size <= (DPACK_STRLEN_MAX + 1));
+	dpack_assert(value);
+
+	ssize_t len;
+
+	len = dpack_decode_str_tag(&decoder->mpack, 1, size - 1);
+	if (len < 0)
+		return len;
+
+	return dpack_xtract_strcpy(&decoder->mpack, value, len);
+}
+
+ssize_t
+dpack_decode_strcpy_range(struct dpack_decoder * decoder,
+                          size_t                 min_len,
+                          size_t                 size,
+                          char                 * value)
+{
+	dpack_assert(decoder);
+	dpack_assert(min_len);
+	dpack_assert((min_len + 1) < size);
+	dpack_assert(size <= (DPACK_STRLEN_MAX + 1));
+	dpack_assert(value);
+
+	ssize_t len;
+
+	len = dpack_decode_str_tag(&decoder->mpack, min_len, size - 1);
+	if (len < 0)
+		return len;
+
+	return dpack_xtract_strcpy(&decoder->mpack, value, len);
+}
+
+ssize_t
+dpack_decode_strcpy_fix(struct dpack_decoder * decoder,
+                        size_t                 size,
+                        char                 * value)
+{
+	dpack_assert(decoder);
+	dpack_assert(size > 1);
+	dpack_assert(value);
+
+	int err;
+
+	err = dpack_decode_str_tag_fix(&decoder->mpack, size - 1);
+	if (err)
+		return err;
+
+	return dpack_xtract_strcpy(&decoder->mpack, value, size - 1);
 }

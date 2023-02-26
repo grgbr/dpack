@@ -30,11 +30,6 @@ dpack_decode_strdup(struct dpack_decoder  * decoder,
                     char                 ** value) __dpack_export;
 
 extern ssize_t
-dpack_decode_strdup_min(struct dpack_decoder  * decoder,
-                        size_t                  min_len,
-                        char                 ** value) __dpack_export;
-
-extern ssize_t
 dpack_decode_strdup_max(struct dpack_decoder  * decoder,
                         size_t                  max_len,
                         char                 ** value) __dpack_export;
@@ -49,5 +44,20 @@ extern ssize_t
 dpack_decode_strdup_fix(struct dpack_decoder  * decoder,
                         size_t                  len,
                         char                 ** value) __dpack_export;
+
+extern ssize_t
+dpack_decode_strcpy(struct dpack_decoder * decoder,
+                    size_t                 size,
+                    char                 * value) __dpack_export;
+extern ssize_t
+dpack_decode_strcpy_range(struct dpack_decoder * decoder,
+                          size_t                 min_len,
+                          size_t                 size,
+                          char                 * value) __dpack_export;
+
+extern ssize_t
+dpack_decode_strcpy_fix(struct dpack_decoder * decoder,
+                        size_t                 size,
+                        char                 * value) __dpack_export;
 
 #endif /* _DPACK_STRING_H */
