@@ -40,6 +40,12 @@ dpack_errno_from_mpack(enum mpack_error_t err)
 }
 
 extern int
+dpack_encoder_error_state(struct mpack_writer_t * writer);
+
+extern int
+dpack_decoder_error_state(struct mpack_reader_t * reader);
+
+extern int
 dpack_decode_tag(struct mpack_reader_t * reader,
                  enum mpack_type_t       type,
                  struct mpack_tag_t    * tag);

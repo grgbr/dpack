@@ -9,7 +9,8 @@ Features
 * bins
 * default values
 * vectors
-* maps
+* maps / integer key
 * mpack build
 * gcc attributes
 * min/max/range
+* enum string

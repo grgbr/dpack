@@ -65,7 +65,6 @@ $(BUILDDIR)/test-%: test/test-%.c $(BUILDDIR)/test.o \
 $(BUILDDIR)/test.o: test/test.c | $(BUILDDIR)
 	$(CC) -MD -Itest -fpie $(CFLAGS) -o $(@) -c $(<)
 
-
 # Sample libraries
 sample_apps := fix_sample scalar_array_sample
 sample_libs := $(addsuffix .a,$(addprefix $(BUILDDIR)/lib,$(sample_apps)))
@@ -83,7 +82,7 @@ $(sample_objs): $(BUILDDIR)/%.o: test/%.c | $(BUILDDIR)
 # Dpack libraries
 ################################################################################
 
-dpack_objs := array stdint codec common mpack
+dpack_objs := string array stdint codec common mpack
 
 # Dpack static library
 statlib_dpack_objs := $(addprefix $(BUILDDIR)/,$(addsuffix .o,$(dpack_objs)))

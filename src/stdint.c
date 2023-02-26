@@ -3,20 +3,6 @@
 #include "common.h"
 
 static int
-dpack_encoder_error_state(struct mpack_writer_t * writer)
-{
-	dpack_assert(writer);
-
-	enum mpack_error_t err;
-
-	err = mpack_writer_error(writer);
-	if (err != mpack_ok)
-		return dpack_errno_from_mpack(err);
-
-	return 0;
-}
-
-static int
 dpack_xtract_u64_min(struct mpack_reader_t * reader,
                      uint64_t                low,
                      uint64_t              * value)

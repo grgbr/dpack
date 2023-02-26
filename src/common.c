@@ -16,6 +16,34 @@ mpack_assert_fail(const char * message)
 #endif /* defined(MPACK_CUSTOM_ASSERT) */
 
 int
+dpack_encoder_error_state(struct mpack_writer_t * writer)
+{
+	dpack_assert(writer);
+
+	enum mpack_error_t err;
+
+	err = mpack_writer_error(writer);
+	if (err != mpack_ok)
+		return dpack_errno_from_mpack(err);
+
+	return 0;
+}
+
+int
+dpack_decoder_error_state(struct mpack_reader_t * reader)
+{
+	dpack_assert(reader);
+
+	enum mpack_error_t err;
+
+	err = mpack_reader_error(reader);
+	if (err != mpack_ok)
+		return dpack_errno_from_mpack(err);
+
+	return 0;
+}
+
+int
 dpack_decode_tag(struct mpack_reader_t * reader,
                  enum mpack_type_t       type,
                  struct mpack_tag_t    * tag)
@@ -38,5 +66,3 @@ dpack_decode_tag(struct mpack_reader_t * reader,
 
 	return 0;
 }
-
-
