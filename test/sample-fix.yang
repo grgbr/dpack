@@ -1,0 +1,31 @@
+module sample-fix{
+	yang-version 1.1;
+	namespace "urn:dpack:sample-fix";
+	prefix "fix";
+
+	organization "Test Inc.";
+	contact "joe@test.com";
+	description
+		"The module for entities implementing the fix sample.";
+
+	revision 2023-02-28 {
+		description "Initial revision.";
+		reference "";
+	}
+
+	container sample {
+		description "The sample main container";
+		leaf eight {
+			type uint8;
+			description "Sample uint8 leaf";
+		}
+		leaf sixteen {
+			type uint16;
+			description "Sample uint16 leaf";
+		}
+		leaf thirty_two {
+			type uint32;
+			description "Sample uint32 leaf";
+		}
+	}
+}
