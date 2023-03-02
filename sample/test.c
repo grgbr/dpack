@@ -2,6 +2,8 @@
 #include <dpack/codec.h>
 #include <getopt.h>
 #include <assert.h>
+#include <stdlib.h>
+#include <stdbool.h>
 
 static int
 save_to_file(const char * path, const char * buffer, size_t size)

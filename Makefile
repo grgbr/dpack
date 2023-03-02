@@ -1,5 +1,8 @@
 BUILDDIR := $(CURDIR)/build
 
+PYANG           := pyang
+PLUGIN          := $(CURDIR)/python/pydpack/plugin
+
 DPACK_DEBUG := 0
 
 ifeq ($(DPACK_DEBUG),1)
@@ -9,14 +12,12 @@ else
 OPTIM_CFLAGS    := -O2 -DNDEBUG
 endif
 
-MACHINE_CFLAGS  := -march=native \
-                   -fcf-protection=full -mcet-switch -mshstk
+MACHINE_CFLAGS  := -march=native
 OPTIM_CFLAGS    += -ffast-math \
                    -flto=auto -fuse-linker-plugin \
                    -fno-semantic-interposition
 HARDEN_CFLAGS   := -D_FORTIFY_SOURCE=3 \
                    -fstack-protector-strong --param=ssp-buffer-size=4 \
-                   -fstack-clash-protection \
                    -fasynchronous-unwind-tables
 CFLAGS          := -Wall -Wextra -Wformat=2 \
                    -D_GNU_SOURCE \
@@ -24,6 +25,7 @@ CFLAGS          := -Wall -Wextra -Wformat=2 \
                    -Iinclude/ \
                    -Impack/.build/amalgamation/src/mpack \
                    -I$(CURDIR) \
+                   -I$(BUILDDIR) \
                    -fvisibility=hidden \
                    $(DEBUG_CFLAGS) \
                    $(MACHINE_CFLAGS) \
@@ -57,6 +59,10 @@ clean:
 # Sample test binaries
 test_objs := test-fix_sample test-scalar_array_sample test-map_sample
 
+ifneq (, $(shell which $(PYANG)))
+test_objs += test-sample-fix test-sample-scalar_array
+endif
+
 .PHONY: check
 check: $(addprefix $(BUILDDIR)/,$(test_objs))
 
@@ -74,6 +80,11 @@ sample_apps := fix_sample scalar_array_sample map_sample
 sample_libs := $(addsuffix .a,$(addprefix $(BUILDDIR)/lib,$(sample_apps)))
 sample_objs := $(addsuffix .o,$(addprefix $(BUILDDIR)/,$(sample_apps)))
 
+# Sample libraries
+pyang_sample_apps := sample-fix sample-scalar_array
+pyang_sample_objs := $(addsuffix .o,$(addprefix $(BUILDDIR)/,$(pyang_sample_apps)))
+sample_libs       += $(addsuffix .a,$(addprefix $(BUILDDIR)/lib,$(pyang_sample_apps)))
+
 # Sample test libraries
 $(sample_libs): $(BUILDDIR)/lib%.a: $(BUILDDIR)/%.o
 	$(AR) rcs $(@) $(^)
@@ -81,6 +92,15 @@ $(sample_libs): $(BUILDDIR)/lib%.a: $(BUILDDIR)/%.o
 # Sample test library objects
 $(sample_objs): $(BUILDDIR)/%.o: sample/%.c | $(BUILDDIR)
 	$(CC) -MD -Itest -fpie $(CFLAGS) -o $(@) -c $(<)
+
+# Sample test library objects
+$(pyang_sample_objs): $(BUILDDIR)/%.o: $(BUILDDIR)/%.c | $(BUILDDIR)
+	$(CC) -MD -Itest -fpie $(CFLAGS) -o $(@) -c $(<)
+
+$(BUILDDIR)/%.c: test/%.yang | $(BUILDDIR)
+	$(Q)PYTHONPYCACHEPREFIX=$(BUILDDIR) PYTHONPATH=$(PYTHONPATH):$(CURDIR)/python/ \
+	      $(PYANG) --plugindir $(PLUGIN) --lint -f dpack \
+	      --dpack-output-dir "$(BUILDDIR)" $(<)
 
 ################################################################################
 # Dpack unit tests

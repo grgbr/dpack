@@ -1,0 +1,32 @@
+module sample-scalar_array {
+	yang-version 1.1;
+	namespace "urn:dpack:sample-scalar_array";
+	prefix "scalar_array";
+
+	organization "Test Inc.";
+	contact "joe@test.com";
+	description
+		"The module for entities implementing the fix sample.";
+
+	revision 2023-02-28 {
+		description "Initial revision.";
+		reference "";
+	}
+
+	container sample {
+		description "The sample main container";
+		leaf thirty_two {
+			type uint32;
+			description "Sample uint32 leaf";
+		}
+		leaf-list array {
+			type uint16;
+			max-elements 7;
+			description "Sample array uint16 leaf";
+		}
+		leaf eight {
+			type uint8;
+			description "Sample uint8 leaf";
+		}
+	}
+}
