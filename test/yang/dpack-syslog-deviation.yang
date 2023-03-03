@@ -1,0 +1,15 @@
+module dpack-syslog-deviation {
+    yang-version 1.1;
+    namespace "urn:ietf:params:xml:ns:yang:dpack-syslog-deviation";
+    prefix syslog; 
+
+    import ietf-syslog {
+        prefix is;
+        reference
+            "RFC zzzz: Syslog YANG Model";
+    }
+
+    deviation /is:syslog/is:actions/is:remote/is:destination/is:transport/is:tls {
+        deviate not-supported;
+    }
+}
