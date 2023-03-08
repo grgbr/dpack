@@ -8,6 +8,14 @@
 #define unreachable() \
 	__builtin_unreachable()
 
+#define dpack_assert_encoder(_enc) \
+	dpack_assert(_enc); \
+	dpack_assert(mpack_writer_error(&(_enc)->mpack) == mpack_ok)
+
+#define dpack_assert_decoder(_dec) \
+	dpack_assert(_dec); \
+	dpack_assert(mpack_reader_error(&(_dec)->mpack) == mpack_ok)
+
 static inline int
 dpack_errno_from_mpack(enum mpack_error_t err)
 {
