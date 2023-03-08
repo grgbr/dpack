@@ -15,15 +15,15 @@ fix_sample_pack(struct dpack_encoder * encoder, const struct fix_sample * data)
 
 	int err;
 
-	err = dpack_encode_u8(encoder, data->eight);
+	err = dpack_encode_uint8(encoder, data->eight);
 	if (err)
 		return err;
 
-	err = dpack_encode_u16(encoder, data->sixteen);
+	err = dpack_encode_uint16(encoder, data->sixteen);
 	if (err)
 		return err;
 
-	err = dpack_encode_u32(encoder, data->thirty_two);
+	err = dpack_encode_uint32(encoder, data->thirty_two);
 	if (err)
 		return err;
 
@@ -40,15 +40,15 @@ fix_sample_unpack(struct dpack_decoder * decoder, struct fix_sample * data)
 
 	int err;
 
-	err = dpack_decode_u8(decoder, &data->eight);
+	err = dpack_decode_uint8(decoder, &data->eight);
 	if (err)
 		return err;
 
-	err = dpack_decode_u16(decoder, &data->sixteen);
+	err = dpack_decode_uint16(decoder, &data->sixteen);
 	if (err)
 		return err;
 
-	err = dpack_decode_u32(decoder, &data->thirty_two);
+	err = dpack_decode_uint32(decoder, &data->thirty_two);
 	if (err)
 		return err;
 
