@@ -82,7 +82,7 @@ $(sample_objs): $(BUILDDIR)/%.o: test/%.c | $(BUILDDIR)
 # Dpack libraries
 ################################################################################
 
-dpack_objs := string array stdint codec common mpack
+dpack_objs := string array scalar codec common mpack
 
 # Dpack static library
 statlib_dpack_objs := $(addprefix $(BUILDDIR)/,$(addsuffix .o,$(dpack_objs)))
@@ -100,7 +100,8 @@ solib_dpack_objs := $(addprefix $(BUILDDIR)/,\
 
 $(BUILDDIR)/libdpack.so: $(solib_dpack_objs)
 	$(CC) -MD -Isrc $(CFLAGS) $(LDFLAGS) \
-	      -fpic -Bsymbolic -shared -Wl,-soname,$(notdir $(@)) \
+	      -fpic -Bsymbolic -Bsymbolic-functions -shared \
+	      -Wl,-soname,$(notdir $(@)) \
 	      -o $(@) $(^)
 $(BUILDDIR)/%_shared.o: src/%.c | $(BUILDDIR)
 	$(CC) -MD -Isrc -fpic $(CFLAGS) -o $(@) -c $(<)

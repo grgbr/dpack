@@ -2,12 +2,23 @@
 #define _DPACK_STDINT_H
 
 #include <dpack/cdefs.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 struct dpack_encoder;
 struct dpack_decoder;
 
 #define DPACK_UINT_SIZE_MIN (1U)
+
+/******************************************************************************
+ * Boolean
+ ******************************************************************************/
+
+extern int
+dpack_encode_bool(struct dpack_encoder * encoder, bool value) __dpack_export;
+
+extern int
+dpack_decode_bool(struct dpack_decoder * decoder, bool * value) __dpack_export;
 
 /******************************************************************************
  * 8 bits integers

@@ -1,6 +1,34 @@
-#include "dpack/stdint.h"
+#include "dpack/scalar.h"
 #include "dpack/codec.h"
 #include "common.h"
+
+int
+dpack_encode_bool(struct dpack_encoder * encoder, bool value)
+{
+	dpack_assert_encoder(encoder);
+
+	mpack_write_bool(&encoder->mpack, value);
+
+	return dpack_encoder_error_state(&encoder->mpack);
+}
+
+int
+dpack_decode_bool(struct dpack_decoder * decoder, bool * value)
+{
+	dpack_assert_decoder(decoder);
+	dpack_assert(value);
+
+	struct mpack_tag_t tag;
+	int                err;
+
+	err = dpack_decode_tag(&decoder->mpack, mpack_type_bool, &tag);
+	if (err)
+		return err;
+
+	*value = mpack_tag_bool_value(&tag);
+
+	return 0;
+}
 
 static int
 dpack_xtract_u64_min(struct mpack_reader_t * reader,

@@ -1,7 +1,7 @@
 #ifndef _FIX_SAMPLE_H
 #define _FIX_SAMPLE_H
 
-#include <dpack/stdint.h>
+#include <dpack/scalar.h>
 #include <stdlib.h>
 
 struct fix_sample {

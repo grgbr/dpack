@@ -1,5 +1,5 @@
 #include "dpack/array.h"
-#include "dpack/stdint.h"
+#include "dpack/scalar.h"
 #include "dpack/codec.h"
 #include "common.h"
 

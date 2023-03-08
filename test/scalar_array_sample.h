@@ -1,7 +1,7 @@
 #ifndef _SCALAR_ARRAY_SAMPLE_H
 #define _SCALAR_ARRAY_SAMPLE_H
 
-#include <dpack/stdint.h>
+#include <dpack/scalar.h>
 #include <dpack/array.h>
 #include <stdlib.h>
 

@@ -1,17 +1,19 @@
 Features
 ========
 
-* float
-* test strings
-* length-value strings ??
-* utf8 ?
-* bool
-* nil
-* discard
-* bins
-* default values
-* vectors
+* enum
 * maps / integer key
+* float
+* signed integer
+* length-value strings ??
+* default values
+* bins
+* vectors
+* discard
+
+* test strings
+* utf8 ?
+* nil
 * mpack build
 * gcc attributes
 * min/max/range
