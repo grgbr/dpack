@@ -1,10 +1,11 @@
 Features
 ========
 
+* signed integer array
+* signed integer: sample code
 * enum
 * maps / integer key
 * float
-* signed integer
 * length-value strings ??
 * default values
 * bins
