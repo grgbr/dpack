@@ -1,0 +1,254 @@
+module kvs-syslog {
+    yang-version 1.1;
+    namespace "dpack:kvs-syslog";
+    prefix syslog;
+
+    import pydpack-types {
+        prefix dp;
+        reference
+            "";
+    }
+
+    import ietf-inet-types {
+        prefix inet;
+        reference
+          "RFC 6991: Common YANG Data Types";
+    }
+
+    organization
+            "";
+    contact
+            "";
+    description
+            "";
+    revision 2023-03-07 {
+        description
+          "Initial Revision";
+        reference
+          "";
+    }
+
+    grouping severity-filter {
+        leaf severity {
+            type bits {
+                bit emergency {
+                    position 0;
+                    description
+                    "The severity level 'Emergency' indicating that the
+                    system is unusable.";
+                }
+                bit alert {
+                    position 1;
+                    description
+                    "The severity level 'Alert' indicating that an
+                    action must be taken immediately.";
+                }
+                bit critical {
+                    position 2;
+                    description
+                    "The severity level 'Critical' indicating a
+                    critical condition.";
+                }
+                bit error {
+                    position 3;
+                    description
+                    "The severity level 'Error' indicating an error
+                    condition.";
+                }
+                bit warning {
+                    position 4;
+                    description
+                    "The severity level 'Warning' indicating a warning
+                    condition.";
+                }
+                bit notice {
+                    position 5;
+                    description
+                    "The severity level 'Notice' indicating a normal
+                    but significant condition.";
+                }
+                bit info {
+                    position 6;
+                    description
+                    "The severity level 'Info' indicating an
+                    informational message.";
+                }
+                bit debug {
+                    position 7;
+                    description
+                    "The severity level 'Debug' indicating a
+                    debug-level message.";
+                }
+            }
+            description
+                "The definitions for Syslog message severity.
+                Note that a lower value is a higher severity. Comparisons
+                of equal-or-higher severity mean equal or lower numeric
+                value";
+            reference
+                "RFC 5424: The Syslog Protocol";
+        }
+    }
+
+    grouping facility-filter {
+        leaf facility {
+            type bits {
+                bit kern {
+                    position 0;
+                    description
+                    "The facility codes 'kern' indicating it's kernel
+                    messages.";
+                }
+                bit user {
+                    position 1;
+                    description
+                    "The facility codes 'user' indicating it's random user-level
+                    messages.";
+                }
+                bit mail {
+                    position 2;
+                    description
+                    "The facility codes 'mail' indicating it's mail system.";
+                }
+                bit daemon {
+                    position 3;
+                    description
+                    "The facility codes 'daemon' indicating it's system
+                    daemons.";
+                }
+                bit auth {
+                    position 4;
+                    description
+                    "The facility codes 'auth' indicating it's security /
+                    authorization messages.";
+                }
+                bit syslog {
+                    position 5;
+                    description
+                    "The facility codes 'syslog' indicating it's messages
+                    generated internally by syslogd.";
+                }
+                bit lpr {
+                    position 6;
+                    description
+                    "The facility codes 'lpr' indicating it's line printer
+                    subsystem.";
+                }
+                bit news {
+                    position 7;
+                    description
+                    "The facility codes 'news' indicating it's network news
+                    subsystem.";
+                }
+                bit uucp {
+                    position 8;
+                    description
+                    "The facility codes 'uucp' indicating it's UUCP subsystem.";
+                }
+                bit cron {
+                    position 9;
+                    description
+                    "The facility codes 'cron' indicating it's clock daemon.";
+                }
+                bit authpriv {
+                    position 10;
+                    description
+                    "The facility codes 'authpriv' indicating it's security /
+                    authorization messages (private).";
+                }
+                bit ftp {
+                    position 11;
+                    description
+                    "The facility codes 'ftp' indicating it's ftp daemon.";
+                }
+                bit local0 {
+                    position 16;
+                    description
+                    "The facility codes 'local0' is eserved for local use.";
+                }
+                bit local1 {
+                    position 17;
+                    description
+                    "The facility codes 'local1' is eserved for local use.";
+                }
+                bit local2 {
+                    position 18;
+                    description
+                    "The facility codes 'local2' is eserved for local use.";
+                }
+                bit local3 {
+                    position 19;
+                    description
+                    "The facility codes 'local3' is eserved for local use.";
+                }
+                bit local4 {
+                    position 20;
+                    description
+                    "The facility codes 'local4' is eserved for local use.";
+                }
+                bit local5 {
+                    position 21;
+                    description
+                    "The facility codes 'local5' is eserved for local use.";
+                }
+                bit local6 {
+                    position 22;
+                    description
+                    "The facility codes 'local6' is eserved for local use.";
+                }
+                bit local7 {
+                    position 23;
+                    description
+                    "The facility codes 'local7' is eserved for local use.";
+                }
+            }
+        }
+    }
+
+    container remote {
+        leaf oid {
+            type dp:oid;
+        }
+        leaf name {
+            type string;
+        }
+        leaf transport {
+            type dp:oid;
+        }
+    }
+
+    container udp {
+        leaf oid {
+            type dp:oid;
+        }
+        leaf address {
+            type inet:host;
+        }
+        leaf port {
+            type inet:port-number;
+        }
+    }
+
+    list filters {
+        key "dest_oid";
+        leaf oid {
+            type dp:oid;
+        }
+        leaf dest_oid {
+            type dp:oid;
+        }
+        uses facility-filter;
+        uses severity-filter;
+        leaf pattern-match {
+            type string;
+            description
+              "This leaf describes a Posix 1003.2 regular expression
+               string that can be used to select a syslog message for
+               logging. The match is performed on the SYSLOG-MSG
+               field.";
+            reference
+              "RFC 5424: The Syslog Protocol
+               Std-1003.1-2008 Regular Expressions";
+        }
+    }
+}

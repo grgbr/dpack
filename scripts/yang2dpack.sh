@@ -21,4 +21,4 @@ if [ ! -f "${yang2dpack}" ]; then
         ${venv}/bin/pip install -e ${topdir}/python
 fi
 
-PYTHONPYCACHEPREFIX=${builddir} exec ${yang2dpack} $@
+PYTHONPYCACHEPREFIX=${builddir} exec ${yang2dpack} "$@"

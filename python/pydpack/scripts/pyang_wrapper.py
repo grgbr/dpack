@@ -1,4 +1,6 @@
-import sys;
+import sys
+import os
+from pydpack import modules
 from pydpack.plugin import dpack
 from pyang import plugin
 from pyang.scripts import pyang_tool
@@ -21,5 +23,19 @@ def run():
     m = sys.modules['pyang.plugin']
     m.init = init_maker(m.init)
     sys.modules['pyang.plugin'] = m
-    sys.argv.extend(["-f", "dpack"])
+    fix_path = os.path.dirname(modules.__file__)
+    for i, v in enumerate(sys.argv):
+        if v == "-p" or v.startswith("--path"):
+            if v.startswith("--path="):
+                sys.argv[i] += f':{fix_path}'
+            else:
+                sys.argv[i + 1] += f':{fix_path}'
+            fix_path = None
+    if fix_path:
+        sys.argv.append(
+            f'--path="{fix_path}"'
+        )
+    sys.argv.extend([
+            "-f", "dpack"
+        ])
     sys.exit(pyang_tool.run())
