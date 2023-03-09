@@ -1,0 +1,80 @@
+module pydpack-extension {
+    yang-version 1.1;
+    namespace "pydpack:pydpack-extention";
+    prefix extention;
+
+    organization
+        "";
+    contact
+        "";
+    description
+        "This extention add 2 way to define new base type:
+         The first simple static definition.
+            typedef u8 {
+                type empty;
+                c-include 'dpack/stdint.h';
+                c-type    'uint8_t';
+                c-pack    'dpack_encode_u8';
+                c-unpack  'dpack_decode_u8';
+                c-min     'DPACK_U8_SIZE_MIN';
+                c-max     'DPACK_U8_SIZE_MAX';
+            }
+
+         The second is python module imported.
+            typedef u8 {
+                type empty
+                py-module 'mypython.module.type'
+            }
+        ";
+
+    revision 2023-03-07 {
+        description
+          "Initial Revision";
+        reference
+          "";
+    }
+
+    extension c-include {
+        description
+            "The include file";
+        argument "file";
+    }
+
+    extension c-type {
+        description
+            "";
+        argument "type";
+    }
+
+    extension c-pack {
+        description
+            "";
+        argument "pack";
+    }
+
+    extension c-unpack {
+        description
+            "";
+        argument "unpack";
+    }
+
+    extension c-min {
+        description
+            "";
+        argument "min";
+    }
+
+    extension c-max {
+        description
+            "";
+        argument "max";
+    }
+
+    extension py-module {
+        description
+            "python module plugin approach. the 'module' is imported and call
+             dpack_BaseType_maker(ctx, node, name) expect pydpack.types.BaseType
+             object";
+        argument "module";
+    }
+}

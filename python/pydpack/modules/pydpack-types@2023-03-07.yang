@@ -1,0 +1,27 @@
+module pydpack-types {
+    yang-version 1.1;
+    namespace "pydpack:pydpack-types";
+    prefix extention;
+
+    import pydpack-extension {
+        prefix ex;
+        reference
+            "";
+    }
+
+    revision 2023-03-07 {
+        description
+          "Initial Revision";
+        reference
+          "";
+    }
+
+    typedef oid {
+        type uint64;
+        ex:c-include "dpack/kvs.h";
+        ex:c-pack    "dpack_encode_oid";
+        ex:c-unpack  "dpack_decode_oid";
+        ex:c-min     "DPACK_OID_SIZE_MIN";
+        ex:c-max     "DPACK_OID_SIZE_MAX";
+    }
+}
