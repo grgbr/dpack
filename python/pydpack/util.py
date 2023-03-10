@@ -32,6 +32,23 @@ def addStructure(node, name: str, content: list[tuple[str, str]]):
 def getAssertFunction(node):
     return node.top.dpack_module.assertFunction
 
+def removeStart(data: str) -> tuple[str, int]:
+    c = 0
+    data = str.strip(data)
+    while data[-1] == "*":
+        c += 1
+        data = str.strip(data[:-1])
+    return data, c
+
+def findAlign(data: list[str]) -> int:
+    c = 0
+    m = 0
+    for x in data:
+        d, t = removeStart(x)
+        c = max([c, t])
+        m = max([m, len(d)])
+    return m + c + 1
+
 def defAlign(align: int, name: str, data: list[str]) -> list[str]:
     a = ""
     if len(data) == 0:
@@ -63,7 +80,11 @@ def functionAlign(function: tuple[str, str, list[tuple[str, str]]], endline = ""
     _ , f, args = function
     inline  = f"{f}("
     if len(args) > 0:
-        inline += ", ".join([t + " " + n if t[-1] != "*" else t + n for t, n in args])
+        l = []
+        for t, n in args:
+            t, s = removeStart(t)
+            l.append(t + " " + "*" * s + n)
+        inline += ", ".join(l)
     else:
         inline += "void"
     inline += ")" + endline
@@ -73,20 +94,17 @@ def functionAlign(function: tuple[str, str, list[tuple[str, str]]], endline = ""
          return [inline]
     ret = []
     l = f"{f}("
-    a = max([len(x[0]) for x in args]) + 2
+    a = findAlign([x[0] for x in args])
     args_cp = args[:]
     ft, fv = args_cp.pop(0)
     lt, lv = args_cp.pop()
-    if ft[-1] == "*":
-        ft, fv = ft[:-1], "*" + fv
-    ret = [l + ft + " " * (a - len(ft)) + fv + ","]
+    ft, s = removeStart(ft)
+    ret = [l + ft + " " * (a - len(ft) - s) + "*" * s + fv + ","]
     for t, v in args_cp:
-        if t[-1] == "*":
-            t, v = t[:-1], "*" + v
-        ret.append(" " * len(l) + t + " " * (a - len(t)) + v + ",")
-    if lt[-1] == "*":
-        lt, lv = lt[:-1], "*" + lv
-    ret.append(" " * len(l) + lt + " " * (a - len(lt)) + lv + ")" + endline)
+        t, s = removeStart(t)
+        ret.append(" " * len(l) + t + " " * (a - len(t) - s) + "*" * s + v + ",")
+    lt, s = removeStart(lt)
+    ret.append(" " * len(l) + lt + " " * (a - len(lt) - s) + "*" * s + lv + ")" + endline)
     return ret
 
 def addBracket(l: list[str]):
@@ -100,3 +118,24 @@ def addBracket(l: list[str]):
         ret.extend(l)
         ret[-1] += ")"
         return ret
+
+def range2liststr(ranges: list, value: str) -> list[str]:
+    t = []
+    for mi, ma in ranges:
+        ti = None
+        ta = None
+        if mi != 'min':
+            ti = f"({value} >= {hex(mi)})"
+        if ma != 'max':
+            ta = f"({value} <= {hex(ma)})"
+        if ti and ta:
+            t.append(f"({ti} && {ta})")
+        elif ti:
+            t.append(ti)
+        elif ta:
+            t.append(ta)
+    if len(t) == 1:
+        return [t[0][1:-1]]
+    for i in range(len(t) - 1):
+        t[i] += " ||"
+    return t
