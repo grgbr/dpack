@@ -70,6 +70,12 @@ module pydpack-extension {
         argument "max";
     }
 
+    extension c-copy {
+        description
+            "";
+        argument "copy";
+    }
+
     extension py-module {
         description
             "python module plugin approach. the 'module' is imported and call

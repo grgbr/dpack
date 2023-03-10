@@ -11,7 +11,7 @@ class Module(object):
         self.node = node
         self.node.dpack_module = self
 
-        self.includes = set(['stdlib.h'])
+        self.includes = set(['stdlib.h', 'errno.h'])
         self.defines = []
         self.typedefs = []
         self.InlineFunctions = []
@@ -88,84 +88,126 @@ class Struct(object):
         value_min = []
         value_max = []
         value_struct = []
-        value_pack = []
-        value_unpack = []
-        value_free = []
 
-        value_free.append(f"{getAssertFunction(node)}(data);")
-        newline(value_free)
-
-        value_pack.append(f"{getAssertFunction(node)}(encoder);")
-        value_pack.append(f"{getAssertFunction(node)}(data);")
-        value_pack.append(f"{getAssertFunction(node)}(dpack_encoder_space_left(encoder) >=")
-        value_pack.append(f"{' ' * (len(getAssertFunction(node)) + 1)}{name_min});")
-        newline(value_pack)
-        value_pack.append("int err;")
-        newline(value_pack)
-
-        value_unpack.append(f"{getAssertFunction(node)}(decoder)")
-        value_unpack.append(f"{getAssertFunction(node)}(data)")
-        value_unpack.append(f"{getAssertFunction(node)}(dpack_decoder_data_left(decoder) >=")
-        value_unpack.append(f"{' ' * (len(getAssertFunction(node)) + 1)}{name_max});")
-        newline(value_unpack)
-        value_unpack.append("int err;")
-        newline(value_unpack)
+        nameSpace = {
+            'prefix': self.prefix,
+            'name': self.name,
+            'assert': getAssertFunction(node),
+            'name_min': name_min,
+            'name_max': name_max,
+            'struct': struct
+        }
 
         for t, n in struct:
+            t.addFunctions(n, name_struct)
+
             value_struct.append((t.getType(), n))
-            x = t.getMin()
-            if len(x) == 1:
-                value_min.append(f"{x[0]} +")
-            else:
-                x = addBracket(x)
-                x[-1] += " +"
-                value_min.extend(x)
-            
-            x = t.getMax()
-            if len(x) == 1:
-                value_max.append(f"{x[0]} +")
-            else:
-                x = addBracket(x)
-                x[-1] += " +"
-                value_max.extend(x)
 
-            value_pack.append(f"err = {t.getEncode('encoder', f'data->{n}')};")
-            value_pack.append("if (err)")
-            value_pack.append("\treturn err;")
-            newline(value_pack)
-
-            value_unpack.append(f"err = {t.getDecode('decoder', f'data->{n}')};")
-            value_unpack.append("if (err)")
-            value_unpack.append("\treturn err;")
-            newline(value_unpack)
-
-            if t.mustFree():
-                value_free.append(f"if (data->{n})")
-                value_free.append(f"\t{t.getFree(f'data->{n}')};")
-
-        value_pack.append("return 0;")
-        value_unpack.append("return 0;")
+            value_min.append(f"{t.getMin()} +")
+            value_max.append(f"{t.getMax()} +")
 
         value_min[-1] = value_min[-1][:-2]
         value_max[-1] = value_max[-1][:-2]
         addDefine(node, name_min, addBracket(value_min))
         addDefine(node, name_max, addBracket(value_max))
         addStructure(node, name_struct, value_struct)
-        addInlineFunction(node, 
+        addFunction(node, 
             (f"struct {self.prefix}_{self.name} *", f"{self.prefix}_{self.name}_alloc", []),
             [f"return malloc(sizeof(struct {self.prefix}_{self.name}));"])
-        value_free.append("return free(data);")
-        addInlineFunction(node, 
+        addFunction(node, 
             (f"void", f"{self.prefix}_{self.name}_free", [(f"struct {self.prefix}_{self.name} *", "data")]),
-            value_free)
-        
+            ["free(data);"])
+        addFunction(node, 
+            (f"int", f"{self.prefix}_{self.name}_init", [(f"struct {self.prefix}_{self.name} *", "data")]),
+            ["UNUSED(data);", "", "return 0;"])
+
+        fini_template = '''\
+#set $unused = True
+#for $t, $n in $struct
+#if $t.mustFree()
+#set $unused = False
+#echo $t.getFree('data->' + $n) + ';'
+#end if
+#end for
+#if $unused
+UNUSED(data);
+#end if
+'''
+        addFunction(node, 
+            (f"void", f"{self.prefix}_{self.name}_fini", [(f"struct {self.prefix}_{self.name} *", "data")]),
+            str(Template(fini_template, searchList=[nameSpace])).splitlines())
+
+        create_template = '''\
+struct $(prefix)_$(name) *data;
+
+data = $(prefix)_$(name)_alloc();
+if (data == NULL)
+	return NULL;
+
+if ($(prefix)_$(name)_init(data) == 0)
+	return data;
+
+$(prefix)_$(name)_free(data);
+return NULL;
+'''
+        addFunction(node, 
+            (f"struct {self.prefix}_{self.name} *", f"{self.prefix}_{self.name}_create", []),
+            str(Template(create_template, searchList=[nameSpace])).splitlines())
+
+        pack_template = '''\
+$(assert)(encoder);
+$(assert)(data);
+$(assert)(dpack_encoder_space_left(encoder) >=
+#echo ' ' * (len($assert) + 1) + $name_min + ');'
+
+
+int err;
+
+#for $t, $n in $struct
+#echo 'err = ' + $t.getEncode('encoder', 'data->' + $n) + ';'
+
+if (err)
+	return err;
+
+#end for
+return 0;
+'''
+
+        addFunction(node, 
+            (f"void", f"{self.prefix}_{self.name}_destroy", [(f"struct {self.prefix}_{self.name} *", "data")]),
+            [f"{self.prefix}_{self.name}_fini(data);",
+             f"{self.prefix}_{self.name}_free(data);"])
+
         addFunction(node, 
             (f"int", f"{self.prefix}_{self.name}_pack", [
                 (f"struct dpack_encoder *", "encoder"),
                 (f"const struct {self.prefix}_{self.name} *", "data")
-            ]), value_pack)
+            ]), str(Template(pack_template, searchList=[nameSpace])).splitlines())
+
+        unpack_template = '''\
+$(assert)(decoder);
+$(assert)(data);
+$(assert)(dpack_decoder_data_left(decoder) >=
+#echo ' ' * (len($assert) + 1) + $name_max + ');'
+
+
+int err;
+
+#for $t, $n in $struct
+#echo 'err = ' + $t.getDecode('decoder', '&data->' + $n) + ';'
+
+if (err)
+	return err;
+
+err = $(prefix)_$(name)_check_$(n)(data->$n);
+if (err)
+	return err;
+
+#end for
+return 0;
+'''
         addFunction(node, 
             (f"int", f"{self.prefix}_{self.name}_unpack", [
                 (f"struct dpack_decoder *", "decoder"),
-                (f"const struct {self.prefix}_{self.name} *", "data")
-            ]), value_unpack)
+                (f"struct {self.prefix}_{self.name} *", "data")
+            ]), str(Template(unpack_template, searchList=[nameSpace])).splitlines())

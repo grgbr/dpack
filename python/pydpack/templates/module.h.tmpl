@@ -5,7 +5,7 @@ commentStartToken = #@#@
 directiveStartToken = %%
 cheetahVarStartToken = @
 #end compiler-settings
-%from pydpack.util import defAlign, functionAlign
+%from pydpack.util import defAlign, functionAlign, findAlign, removeStart
 #@#@ Lines up to (and including) this one will get discarded from final output.
 #ifndef @(define)
 #define @(define)
@@ -15,7 +15,7 @@ cheetahVarStartToken = @
 %end for
 
 %if len(@defines) > 0
-%set @al = max([len(x) for x, y in @defines if len(y) > 0]) + len("#define ") + 2
+%set @al = findAlign([x for x, y in @defines if len(y) > 0]) + len("#define ")
 %for @n, @d in @defines
 %set @r = defAlign(@al, @n, @d)
 %if len(@r) > 1
@@ -39,12 +39,10 @@ typedef @t @p@n;
 %end if
 %for @n, @c in @structures
 struct @n {
-%set @al  = max([len(x[0]) for x in @c]) + 2
+%set @al  = findAlign([x[0] for x in @c])
 %for @t, @v in @c
-%set @p = " " * (@al - len(@t))
-%if @t[-1] == "*"
-%set @t, @v = @t[:-1], "*" + @v
-%end if
+%set @t, @c = removeStart(@t)
+%set @p = " " * (@al - len(@t) - @c) + "*" * @c
 	@t@p@v;
 %end for
 };

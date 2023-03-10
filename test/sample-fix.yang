@@ -24,7 +24,9 @@ module sample-fix{
 			description "Sample uint16 leaf";
 		}
 		leaf thirty_two {
-			type uint32;
+			type uint32 {
+				range "1..50";
+			}
 			description "Sample uint32 leaf";
 		}
 	}
