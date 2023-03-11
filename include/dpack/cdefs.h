@@ -9,6 +9,9 @@
 #define dpack_assert(cond) \
 	assert(cond)
 
+#define dpack_array_nr(_array) \
+	(sizeof(_array) / sizeof(_array[0]))
+
 #define dpack_sizeof_member(_type, _member) \
 	(sizeof(((_type *)0)->_member))
 

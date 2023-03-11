@@ -492,9 +492,9 @@ dpack_decode_uint64_range(struct dpack_decoder * decoder,
                           uint64_t             * value)
 {
 	dpack_assert_decoder(decoder);
-	dpack_assert(low > INT64_MIN);
+	dpack_assert(low);
 	dpack_assert(low < high);
-	dpack_assert(high < INT64_MAX);
+	dpack_assert(high < UINT64_MAX);
 	dpack_assert(value);
 
 	return dpack_xtract_uint64_range(&decoder->mpack, low, high, value);

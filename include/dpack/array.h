@@ -2,7 +2,7 @@
 #define _DPACK_ARRAY_H
 
 #include <dpack/cdefs.h>
-#include <stdint.h>
+#include <dpack/scalar.h>
 
 struct dpack_encoder;
 struct dpack_decoder;
@@ -29,12 +29,8 @@ struct dpack_decoder;
 
 #endif
 
-#define dpack_array_nr(_array) \
-	(sizeof(_array) / sizeof(_array[0]))
-
-/******************************************************************************
- * 8 bits integer arrays
- ******************************************************************************/
+#define DPACK_ARRAY_BOOL_SIZE_MIN(_elm_nr) \
+	DPACK_ARRAY_SIZE_MIN(DPACK_BOOL_SIZE_MIN, _elm_nr)
 
 #define DPACK_ARRAY_UINT8_SIZE_MIN(_elm_nr) \
 	DPACK_ARRAY_SIZE_MIN(DPACK_UINT8_SIZE_MIN, _elm_nr)
@@ -42,69 +38,11 @@ struct dpack_decoder;
 #define DPACK_ARRAY_UINT8_SIZE_MAX(_elm_nr) \
 	DPACK_ARRAY_SIZE_MAX(DPACK_UINT8_SIZE_MAX, _elm_nr)
 
-extern int
-dpack_array_encode_uint8(struct dpack_encoder * encoder,
-                         const uint8_t        * array,
-	                 unsigned int           nr) __dpack_export;
-extern int
-dpack_array_decode_uint8(struct dpack_decoder * decoder,
-                         uint8_t              * array,
-                         unsigned int           nr) __dpack_export;
-extern int
-dpack_array_decode_uint8_min(struct dpack_decoder * decoder,
-                             uint8_t                low,
-                             uint8_t              * array,
-                             unsigned int           nr) __dpack_export;
-extern int
-dpack_array_decode_uint8_max(struct dpack_decoder * decoder,
-                             uint8_t                high,
-                             uint8_t              * array,
-                             unsigned int           nr) __dpack_export;
-extern int
-dpack_array_decode_uint8_range(struct dpack_decoder * decoder,
-                               uint8_t                low,
-                               uint8_t                high,
-                               uint8_t              * array,
-	                       unsigned int           nr) __dpack_export;
-
-/******************************************************************************
- * 16 bits integer arrays
- ******************************************************************************/
-
 #define DPACK_ARRAY_UINT16_SIZE_MIN(_elm_nr) \
 	DPACK_ARRAY_SIZE_MIN(DPACK_UINT16_SIZE_MIN, _elm_nr)
 
 #define DPACK_ARRAY_UINT16_SIZE_MAX(_elm_nr) \
 	DPACK_ARRAY_SIZE_MAX(DPACK_UINT16_SIZE_MAX, _elm_nr)
-
-extern int
-dpack_array_encode_uint16(struct dpack_encoder * encoder,
-                          const uint16_t       * array,
-                          unsigned int           nr) __dpack_export;
-extern int
-dpack_array_decode_uint16(struct dpack_decoder * decoder,
-                          uint16_t             * array,
-                          unsigned int           nr) __dpack_export;
-extern int
-dpack_array_decode_uint16_min(struct dpack_decoder * decoder,
-                              uint16_t               low,
-                              uint16_t             * array,
-                              unsigned int           nr) __dpack_export;
-extern int
-dpack_array_decode_uint16_max(struct dpack_decoder * decoder,
-                              uint16_t               high,
-                              uint16_t             * array,
-                              unsigned int           nr) __dpack_export;
-extern int
-dpack_array_decode_uint16_range(struct dpack_decoder * decoder,
-                                uint16_t               low,
-                                uint16_t               high,
-                                uint16_t             * array,
-                                unsigned int           nr) __dpack_export;
-
-/******************************************************************************
- * 32 bits integer arrays
- ******************************************************************************/
 
 #define DPACK_ARRAY_UINT32_SIZE_MIN(_elm_nr) \
 	DPACK_ARRAY_SIZE_MIN(DPACK_UINT32_SIZE_MIN, _elm_nr)
@@ -112,66 +50,39 @@ dpack_array_decode_uint16_range(struct dpack_decoder * decoder,
 #define DPACK_ARRAY_UINT32_SIZE_MAX(_elm_nr) \
 	DPACK_ARRAY_SIZE_MAX(DPACK_UINT32_SIZE_MAX, _elm_nr)
 
-extern int
-dpack_array_encode_uint32(struct dpack_encoder * encoder,
-                          const uint32_t       * array,
-                          unsigned int           nr) __dpack_export;
-extern int
-dpack_array_decode_uint32(struct dpack_decoder * decoder,
-                          uint32_t             * array,
-                          unsigned int           nr) __dpack_export;
-
-extern int
-dpack_array_decode_uint32_min(struct dpack_decoder * decoder,
-                              uint32_t               low,
-                              uint32_t             * array,
-                              unsigned int           nr) __dpack_export;
-extern int
-dpack_array_decode_uint32_max(struct dpack_decoder * decoder,
-                              uint32_t               high,
-                              uint32_t             * array,
-                              unsigned int           nr) __dpack_export;
-extern int
-dpack_array_decode_uint32_range(struct dpack_decoder * decoder,
-                                uint32_t               low,
-                                uint32_t               high,
-                                uint32_t             * array,
-                                unsigned int           nr) __dpack_export;
-
-/******************************************************************************
- * 64 bits integer arrays
- ******************************************************************************/
-
 #define DPACK_ARRAY_UINT64_SIZE_MIN(_elm_nr) \
 	DPACK_ARRAY_SIZE_MIN(DPACK_UINT64_SIZE_MIN, _elm_nr)
 
 #define DPACK_ARRAY_UINT64_SIZE_MAX(_elm_nr) \
 	DPACK_ARRAY_SIZE_MAX(DPACK_UINT64_SIZE_MAX, _elm_nr)
 
-extern int
-dpack_array_encode_uint64(struct dpack_encoder * encoder,
-                          const uint64_t       * array,
-                          unsigned int           nr) __dpack_export;
-extern int
-dpack_array_decode_uint64(struct dpack_decoder * decoder,
-                          uint64_t             * array,
-                          unsigned int           nr) __dpack_export;
+extern void
+dpack_array_begin_encode(struct dpack_encoder * encoder,
+                         unsigned int           nr) __dpack_export;
+
+extern void
+dpack_array_end_encode(struct dpack_encoder * encoder) __dpack_export;
 
 extern int
-dpack_array_decode_uint64_min(struct dpack_decoder * decoder,
-                              uint64_t               low,
-                              uint64_t             * array,
-                              unsigned int           nr) __dpack_export;
+dpack_array_begin_decode(struct dpack_decoder * decoder,
+                         unsigned int         * nr) __dpack_export;
 extern int
-dpack_array_decode_uint64_max(struct dpack_decoder * decoder,
-                              uint64_t               high,
-                              uint64_t             * array,
-                              unsigned int           nr) __dpack_export;
+dpack_array_begin_decode_equ(struct dpack_decoder * decoder,
+                             unsigned int           nr) __dpack_export;
 extern int
-dpack_array_decode_uint64_range(struct dpack_decoder * decoder,
-                                uint64_t               low,
-                                uint64_t               high,
-                                uint64_t             * array,
-                                unsigned int           nr) __dpack_export;
+dpack_array_begin_decode_min(struct dpack_decoder * decoder,
+                             unsigned int           min_nr,
+                             unsigned int         * nr) __dpack_export;
+extern int
+dpack_array_begin_decode_max(struct dpack_decoder * decoder,
+                             unsigned int           max_nr,
+                             unsigned int         * nr) __dpack_export;
+extern int
+dpack_array_begin_decode_range(struct dpack_decoder * decoder,
+                               unsigned int           min_nr,
+                               unsigned int           max_nr,
+                               unsigned int         * nr) __dpack_export;
+extern void
+dpack_array_end_decode(struct dpack_decoder * decoder) __dpack_export;
 
 #endif /* _DPACK_ARRAY_H */
