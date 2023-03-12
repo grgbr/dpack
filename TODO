@@ -1,7 +1,7 @@
 Features
 ========
 
-* signed integer array
+* add size handling for string array
 * signed integer: sample code
 * enum
 * maps / integer key

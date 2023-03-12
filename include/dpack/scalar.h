@@ -14,7 +14,7 @@ struct dpack_decoder;
  * Boolean
  ******************************************************************************/
 
-#define DPACK_BOOL_SIZE_MIN (1U)
+#define DPACK_BOOL_SIZE (1U)
 
 extern int
 dpack_encode_bool(struct dpack_encoder * encoder, bool value) __dpack_export;

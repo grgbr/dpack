@@ -2,12 +2,39 @@
 #include "dpack/codec.h"
 #include "common.h"
 
+size_t
+dpack_array_size(size_t elm_size, unsigned int elm_nr)
+{
+	dpack_assert(elm_size);
+	dpack_assert(elm_size <= DPACK_ARRAY_ELMSIZE_MAX);
+	dpack_assert(elm_nr);
+	dpack_assert(elm_nr <= DPACK_ARRAY_ELMNR_MAX);
+	dpack_assert(elm_size <= (DPACK_ARRAY_SIZE_MAX / elm_nr));
+
+	switch (elm_nr) {
+	case 1 ... DPACK_FIXARRAY_ELMNR_MAX:
+		return DPACK_FIXARRAY_SIZE(elm_size, elm_nr);
+#if DPACK_ARRAY_ELMNR_MAX > DPACK_FIXARRAY_ELMNR_MAX
+	case (DPACK_FIXARRAY_ELMNR_MAX + 1) ... DPACK_ARRAY16_ELMNR_MAX:
+		return DPACK_ARRAY16_SIZE(elm_size, elm_nr);
+#endif
+#if DPACK_ARRAY_ELMNR_MAX > DPACK_ARRAY16_ELMNR_MAX
+	case (DPACK_ARRAY16_ELMNR_MAX + 1) ... DPACK_ARRAY32_ELMNR_MAX:
+		return DPACK_ARRAY32_SIZE(elm_size, elm_nr);
+#endif
+	default:
+		dpack_assert(0);
+	}
+
+	unreachable();
+}
+
 void
 dpack_array_begin_encode(struct dpack_encoder * encoder, unsigned int nr)
 {
 	dpack_assert_encoder(encoder);
 	dpack_assert(nr);
-	dpack_assert(nr < DPACK_ARRAY_NR_MAX);
+	dpack_assert(nr < DPACK_ARRAY_ELMNR_MAX);
 
 	mpack_start_array(&encoder->mpack, nr);
 }
@@ -47,7 +74,7 @@ dpack_array_begin_decode(struct dpack_decoder * decoder, unsigned int * nr)
 
 	return dpack_array_begin_decode_range(decoder,
 	                                      1,
-	                                      DPACK_ARRAY_NR_MAX,
+	                                      DPACK_ARRAY_ELMNR_MAX,
 	                                      nr);
 }
 
@@ -56,7 +83,7 @@ dpack_array_begin_decode_equ(struct dpack_decoder * decoder, unsigned int nr)
 {
 	dpack_assert_decoder(decoder);
 	dpack_assert(nr);
-	dpack_assert(nr <= DPACK_ARRAY_NR_MAX);
+	dpack_assert(nr <= DPACK_ARRAY_ELMNR_MAX);
 
 	unsigned int cnt;
 	int          err;
@@ -84,7 +111,7 @@ dpack_array_begin_decode_min(struct dpack_decoder * decoder,
 
 	return dpack_array_begin_decode_range(decoder,
 	                                      min_nr,
-	                                      DPACK_ARRAY_NR_MAX,
+	                                      DPACK_ARRAY_ELMNR_MAX,
 	                                      nr);
 }
 
@@ -95,7 +122,7 @@ dpack_array_begin_decode_max(struct dpack_decoder * decoder,
 {
 	dpack_assert_decoder(decoder);
 	dpack_assert(max_nr);
-	dpack_assert(max_nr < DPACK_ARRAY_NR_MAX);
+	dpack_assert(max_nr < DPACK_ARRAY_ELMNR_MAX);
 	dpack_assert(nr);
 
 	return dpack_array_begin_decode_range(decoder,
@@ -113,7 +140,7 @@ dpack_array_begin_decode_range(struct dpack_decoder * decoder,
 	dpack_assert_decoder(decoder);
 	dpack_assert(min_nr);
 	dpack_assert(min_nr < max_nr);
-	dpack_assert(max_nr < DPACK_ARRAY_NR_MAX);
+	dpack_assert(max_nr < DPACK_ARRAY_ELMNR_MAX);
 	dpack_assert(nr);
 
 	int err;
