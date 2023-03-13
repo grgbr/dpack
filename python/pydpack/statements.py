@@ -11,7 +11,11 @@ class Module(object):
         self.node = node
         self.node.dpack_module = self
 
-        self.includes = set(['stdlib.h', 'errno.h'])
+        self.includes = set([
+            'stdlib.h',
+            'errno.h',
+            'utils/cdefs.h'
+        ])
         self.defines = []
         self.typedefs = []
         self.InlineFunctions = []
@@ -112,29 +116,35 @@ class Struct(object):
         addDefine(node, name_max, addBracket(value_max))
         addStructure(node, name_struct, value_struct)
         addFunction(node, 
-            (f"struct {self.prefix}_{self.name} *", f"{self.prefix}_{self.name}_alloc", []),
+            (f"struct {self.prefix}_{self.name} *", f"{self.prefix}_{self.name}_alloc", [], set(["__warn_result"])),
             [f"return malloc(sizeof(struct {self.prefix}_{self.name}));"])
         addFunction(node, 
-            (f"void", f"{self.prefix}_{self.name}_free", [(f"struct {self.prefix}_{self.name} *", "data")]),
+            (f"void", f"{self.prefix}_{self.name}_free", [
+                (f"struct {self.prefix}_{self.name} *", "data", set())
+            ], set()),
             ["free(data);"])
         addFunction(node, 
-            (f"int", f"{self.prefix}_{self.name}_init", [(f"struct {self.prefix}_{self.name} *", "data")]),
-            ["UNUSED(data);", "", "return 0;"])
+            (f"int", f"{self.prefix}_{self.name}_init", [
+                (f"struct {self.prefix}_{self.name} *", "data", set(["__unused"]))
+            ], set(["__warn_result", "__nonull(1)"])),
+            ["return 0;"])
 
         fini_template = '''\
-#set $unused = True
 #for $t, $n in $struct
 #if $t.mustFree()
-#set $unused = False
 #echo $t.getFree('data->' + $n) + ';'
 #end if
 #end for
-#if $unused
-UNUSED(data);
-#end if
 '''
+        fini_data_attrs = set(["__unused"])
+        for t, _ in struct:
+            if t.mustFree():
+                fini_data_attrs.remove("__unused")
+                break
         addFunction(node, 
-            (f"void", f"{self.prefix}_{self.name}_fini", [(f"struct {self.prefix}_{self.name} *", "data")]),
+            (f"void", f"{self.prefix}_{self.name}_fini", [
+                (f"struct {self.prefix}_{self.name} *", "data", fini_data_attrs)
+            ], set(["__nonull(1)"])),
             str(Template(fini_template, searchList=[nameSpace])).splitlines())
 
         create_template = '''\
@@ -151,7 +161,7 @@ $(prefix)_$(name)_free(data);
 return NULL;
 '''
         addFunction(node, 
-            (f"struct {self.prefix}_{self.name} *", f"{self.prefix}_{self.name}_create", []),
+            (f"struct {self.prefix}_{self.name} *", f"{self.prefix}_{self.name}_create", [], set(["__warn_result"])),
             str(Template(create_template, searchList=[nameSpace])).splitlines())
 
         pack_template = '''\
@@ -174,15 +184,18 @@ return 0;
 '''
 
         addFunction(node, 
-            (f"void", f"{self.prefix}_{self.name}_destroy", [(f"struct {self.prefix}_{self.name} *", "data")]),
+            (f"void", f"{self.prefix}_{self.name}_destroy", [
+                (f"struct {self.prefix}_{self.name} *", "data", set())
+            ], set(["__nonull(1)"])),
             [f"{self.prefix}_{self.name}_fini(data);",
              f"{self.prefix}_{self.name}_free(data);"])
 
         addFunction(node, 
             (f"int", f"{self.prefix}_{self.name}_pack", [
-                (f"struct dpack_encoder *", "encoder"),
-                (f"const struct {self.prefix}_{self.name} *", "data")
-            ]), str(Template(pack_template, searchList=[nameSpace])).splitlines())
+                (f"struct dpack_encoder *", "encoder", set()),
+                (f"const struct {self.prefix}_{self.name} *", "data", set())
+            ], set(["__warn_result", "__nonull(1,2)"])),
+            str(Template(pack_template, searchList=[nameSpace])).splitlines())
 
         unpack_template = '''\
 $(assert)(decoder);
@@ -194,20 +207,39 @@ $(assert)(dpack_decoder_data_left(decoder) >=
 int err;
 
 #for $t, $n in $struct
+#if $decode
 #echo 'err = ' + $t.getDecode('decoder', '&data->' + $n) + ';'
 
 if (err)
 	return err;
-
-err = $(prefix)_$(name)_check_$(n)(data->$n);
+#end if
+#if $check
+err = $(prefix)_$(name)_check_$(n)(data->$n, ctx);
 if (err)
 	return err;
-
+#end if
+    
 #end for
 return 0;
 '''
         addFunction(node, 
             (f"int", f"{self.prefix}_{self.name}_unpack", [
-                (f"struct dpack_decoder *", "decoder"),
-                (f"struct {self.prefix}_{self.name} *", "data")
-            ]), str(Template(unpack_template, searchList=[nameSpace])).splitlines())
+                (f"struct dpack_decoder *", "decoder", set()),
+                (f"struct {self.prefix}_{self.name} *", "data", set()),
+                (f"void *", "ctx", set())
+            ], set(["__warn_result", "__nonull(1,2)"])),
+            str(Template(unpack_template, searchList=[nameSpace, {'decode': True, 'check':True}])).splitlines())
+        
+        addFunction(node, 
+            (f"int", f"{self.prefix}_{self.name}_unpack_no_check", [
+                (f"struct dpack_decoder *", "decoder", set()),
+                (f"struct {self.prefix}_{self.name} *", "data", set())
+            ], set(["__warn_result", "__nonull(1,2)"])),
+            str(Template(unpack_template, searchList=[nameSpace, {'decode': True, 'check':False}])).splitlines())
+        
+        addFunction(node, 
+            (f"int", f"{self.prefix}_{self.name}_check", [
+                (f"struct {self.prefix}_{self.name} *", "data", set()),
+                (f"void *", "ctx", set())
+            ], set(["__warn_result", "__nonull(1)"])),
+            str(Template(unpack_template, searchList=[nameSpace, {'decode': False, 'check':True}])).splitlines())

@@ -20,10 +20,10 @@ def addDefine(node, name: str, data: list[str]):
 def addTypeDef(node, type: str, name: str):
     node.top.dpack_module.typedefs.append((type, name))
 
-def addInlineFunction(node, declaration: tuple[str, str, list[tuple[str, str]]], content: list[str]):
+def addInlineFunction(node, declaration: tuple[str, str, list[tuple[str, str, set[str]]], set[str]], content: list[str]):
     node.top.dpack_module.InlineFunctions.append((declaration, content))
 
-def addFunction(node, declaration: tuple[str, str, list[tuple[str, str]]], content: list[str]):
+def addFunction(node, declaration: tuple[str, str, list[tuple[str, str, set[str]]], set[str]], content: list[str]):
     node.top.dpack_module.functions.append((declaration, content))
 
 def addStructure(node, name: str, content: list[tuple[str, str]]):
@@ -76,35 +76,45 @@ def defAlign(align: int, name: str, data: list[str]) -> list[str]:
         ret.append(f"\t{a}{l}")
     return ret
 
-def functionAlign(function: tuple[str, str, list[tuple[str, str]]], endline = "") -> list[str]:
-    _ , f, args = function
+def functionAlign(function: tuple[str, str, list[tuple[str, str, set[str]]], set[str]], endline = "") -> list[str]:
+    _ , f, args, _ = function
     inline  = f"{f}("
     if len(args) > 0:
         l = []
-        for t, n in args:
+        for t, n, attrs in args:
+            attr = " " + " ".join(attrs) if len(attrs) > 0 else ""
             t, s = removeStart(t)
-            l.append(t + " " + "*" * s + n)
+            l.append(t + " " + "*" * s + n + attr)
         inline += ", ".join(l)
     else:
         inline += "void"
-    inline += ")" + endline
-    if len(inline) < 80:
-        return [inline]
-    if len(args) == 0:
-         return [inline]
+    inline += ")"
+    if len(inline + endline) < 80:
+        return [inline + endline]
+    if len(args) == 0 or (len(args) == 1 and len(endline) == 0):
+        return [inline + endline]
+    if len(args) == 1:
+        return [inline, "\t" + endline]
     ret = []
     l = f"{f}("
     a = findAlign([x[0] for x in args])
     args_cp = args[:]
-    ft, fv = args_cp.pop(0)
-    lt, lv = args_cp.pop()
+    ft, fv, fattrs = args_cp.pop(0)
+    fattr = " " + " ".join(fattrs) if len(fattrs) > 0 else ""
+    lt, lv, lattrs = args_cp.pop()
+    lattr = " " + " ".join(lattrs) if len(lattrs) > 0 else ""
     ft, s = removeStart(ft)
-    ret = [l + ft + " " * (a - len(ft) - s) + "*" * s + fv + ","]
-    for t, v in args_cp:
+    ret = [l + ft + " " * (a - len(ft) - s) + "*" * s + fv + fattr + ","]
+    for t, v, attrs in args_cp:
+        attr = " " + " ".join(attrs) if len(attrs) > 0 else ""
         t, s = removeStart(t)
-        ret.append(" " * len(l) + t + " " * (a - len(t) - s) + "*" * s + v + ",")
+        ret.append(" " * len(l) + t + " " * (a - len(t) - s) + "*" * s + v + attr + ",")
     lt, s = removeStart(lt)
-    ret.append(" " * len(l) + lt + " " * (a - len(lt) - s) + "*" * s + lv + ")" + endline)
+    if len(endline) > 1:
+        ret.append(" " * len(l) + lt + " " * (a - len(lt) - s) + "*" * s + lv + lattr + ")")
+        ret.append("\t" + endline)
+    else:
+        ret.append(" " * len(l) + lt + " " * (a - len(lt) - s) + "*" * s + lv + lattr + ")" + endline)
     return ret
 
 def addBracket(l: list[str]):

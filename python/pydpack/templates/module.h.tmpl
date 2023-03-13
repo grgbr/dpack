@@ -50,17 +50,28 @@ struct @n {
 %end for
 %if len(@functions) > 0
 %for @d, _ in @functions
-%set @r = functionAlign(@d, endline = ";")
-@d[0]
+%if len(@d[3]) > 0
+%set @attr = " " + " ".join(list(@d[3]))
+%else
+%set @attr = ""
+%end if
+%set @r = functionAlign(@d, endline = @attr + ";")
+extern @d[0]
 %for @x in @r
 @x
 %end for
+
 %end for
 
 %end if
 %for @f, @d in @InlineFunctions
 %set @r = functionAlign(@f)
-static inline @f[0]
+%if len(@d[3]) > 0
+%set @attr = " " + " ".join(list(@d[3]))
+%else
+%set @attr = ""
+%end if
+static inline @f[0]@attr
 %for @x in @r
 @x
 %end for
