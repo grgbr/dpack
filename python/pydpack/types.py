@@ -16,6 +16,9 @@ class BaseType(object):
         addIncludes(node, self.include)
         self.nameSpace = dict()
 
+        self.getter_attrs = {
+            "function": set(["__warn_result", "__nonull(1,2)"])
+        }
         self.getter_template = '''\
 $(assert)(obj);
 $(assert)(result);
@@ -23,6 +26,9 @@ $(assert)(result);
 *result = obj->$name;
 return 0;
 '''
+        self.setter_attrs = {
+            "function": set(["__warn_result", "__nonull(1)"])
+        }
         self.setter_template = '''\
 $(assert)(obj);
 $(assert)($(struct_type)_check_$(name)(value) == 0);
@@ -30,9 +36,12 @@ $(assert)($(struct_type)_check_$(name)(value) == 0);
 obj->$name = value;
 return 0;
 '''
+        self.check_attrs = {
+            "function": set(["__warn_result"]),
+            "value": set(["__unused"]),
+            "ctx": set(["__unused"]),
+        }
         self.check_template = '''\
-UNUSED(value);
-
 return 0;
 '''
 
@@ -69,16 +78,20 @@ return 0;
         self.nameSpace["struct_type"] = struct_type
 
         addFunction(self.node, ("int", f"{struct_type}_get_{name}", [
-            (f"struct {struct_type} *", "obj"),
-            (f"{self.type} *", "result"),
-        ]), str(Template(self.getter_template, searchList=[self.nameSpace])).splitlines())
+            (f"struct {struct_type} *", "obj", self.getter_attrs.get("obj", set())),
+            (f"{self.type} *", "result", self.getter_attrs.get("result", set())),
+        ], self.getter_attrs.get("function", set())),
+        str(Template(self.getter_template, searchList=[self.nameSpace])).splitlines())
         addFunction(self.node, ("int", f"{struct_type}_set_{name}", [
-            (f"struct {struct_type} *", "obj"),
-            (self.type, "value"),
-        ]), str(Template(self.setter_template, searchList=[self.nameSpace])).splitlines())
+            (f"struct {struct_type} *", "obj", self.setter_attrs.get("obj", set())),
+            (self.type, "value", self.setter_attrs.get("value", set())),
+        ], self.setter_attrs.get("function", set())),
+        str(Template(self.setter_template, searchList=[self.nameSpace])).splitlines())
         addFunction(self.node, ("int", f"{struct_type}_check_{name}", [
-            (self.type, "value"),
-        ]), str(Template(self.check_template, searchList=[self.nameSpace])).splitlines())
+            (self.type, "value", self.check_attrs.get("value", set())),
+            ("void *", "ctx", self.check_attrs.get("ctx", set())),
+        ], self.check_attrs.get("function", set())),
+        str(Template(self.check_template, searchList=[self.nameSpace])).splitlines())
 
 class scalarType(BaseType):
     def __init__(self, unit, node) -> None:
@@ -88,9 +101,12 @@ class scalarType(BaseType):
         _min    = f"DPACK_{todef(unit)}_SIZE_MIN"
         _max    = f"DPACK_{todef(unit)}_SIZE_MAX"
         super().__init__(node, _type, 'dpack/scalar.h', _encode, _decode, _min, _max)
+
         self.nameSpace["ranges"] = \
             getattr(self.node.search_one("type").i_type_spec, 'ranges', [])
         if len(self.nameSpace["ranges"]) > 0:
+            print(self.nameSpace["ranges"])
+            self.check_attrs["value"].remove("__unused")
             self.check_template = '''\
 #from pydpack.util import range2liststr
 #set $t = "\\n    ".join(range2liststr($ranges, "value"))
@@ -98,7 +114,6 @@ if ($t)
 	return 0;
 return -ERANGE;
 '''
-#set $f = $t.pop(0)
 
 class bitmapType(BaseType):
     def __init__(self, node) -> None:
@@ -227,13 +242,13 @@ def dpack_Typedef_maker(ctx, node, name) -> None:
     value_unpack.append(f"return {dpType.getDecode('decoder', 'value')};")
 
     addFunction(node, ("int", _encode, [
-        ("struct dpack_encoder *", "encoder"),
-        (_type, "value"),
-    ]), value_pack)
+        ("struct dpack_encoder *", "encoder", set()),
+        (_type, "value", set()),
+    ], set()), value_pack)
     addFunction(node, ("int", _decode, [
-        ("struct dpack_decoder *", "decoder"),
-        (_type + " *", "value"),
-    ]), value_unpack)
+        ("struct dpack_decoder *", "decoder", set()),
+        (_type + " *", "value", set()),
+    ], set()), value_unpack)
 
     return lambda node: BaseType(node, _type, None, _encode, _decode, _min, _max)
 
