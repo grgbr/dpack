@@ -94,6 +94,16 @@ return 0;
         str(Template(self.check_template, searchList=[self.nameSpace])).splitlines())
 
 class scalarType(BaseType):
+    unit2c = {
+        'uint8':  'UCHAR',
+        'uint16': 'USHRT',
+        'uint32': 'UINT',
+        'uint64': 'ULLONG',
+        'int8':   'CHAR',
+        'int16':  'SHRT',
+        'int32':  'INT',
+        'int64':  'LLONG',
+    }
     def __init__(self, unit, node) -> None:
         _type   = f"{unit}_t"
         _encode = f"dpack_encode_{unit}"
@@ -105,14 +115,19 @@ class scalarType(BaseType):
         self.nameSpace["ranges"] = \
             getattr(self.node.search_one("type").i_type_spec, 'ranges', [])
         if len(self.nameSpace["ranges"]) > 0:
+            self.nameSpace["c_type"] = scalarType.unit2c[unit]
             print(self.nameSpace["ranges"])
             self.check_attrs["value"].remove("__unused")
             self.check_template = '''\
 #from pydpack.util import range2liststr
-#set $t = "\\n    ".join(range2liststr($ranges, "value"))
-if ($t)
-	return 0;
-return -ERANGE;
+#set $t = "\\n".join(range2liststr($ranges, $c_type))
+switch (value) {
+default:
+	return -ERANGE;
+$t
+	break;
+}
+return 0;
 '''
 
 class bitmapType(BaseType):

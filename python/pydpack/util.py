@@ -129,23 +129,38 @@ def addBracket(l: list[str]):
         ret[-1] += ")"
         return ret
 
-def range2liststr(ranges: list, value: str) -> list[str]:
+def range2liststr(ranges: list, type: str) -> list[str]:
     t = []
+    c = []
     for mi, ma in ranges:
-        ti = None
-        ta = None
-        if mi != 'min':
-            ti = f"({value} >= {hex(mi)})"
-        if ma != 'max':
-            ta = f"({value} <= {hex(ma)})"
-        if ti and ta:
-            t.append(f"({ti} && {ta})")
-        elif ti:
-            t.append(ti)
-        elif ta:
-            t.append(ta)
-    if len(t) == 1:
-        return [t[0][1:-1]]
-    for i in range(len(t) - 1):
-        t[i] += " ||"
+        if mi == 'min':
+            mi = f"{type}_MIN"
+            mih = mi
+        elif mi == 'max':
+            mi = f"{type}_MAX"
+            mih = mi
+        else:
+            mih = hex(mi)
+        if ma == 'max':
+            ma = f"{type}_MAX"
+            mah = ma
+        elif ma:
+            mah = hex(ma)
+        if ma:
+            t.append(f"case {mi} ... {ma}:")
+            c.append((f"{mih}", f"{mah}"))
+        else:
+            t.append(f"case {mi}:")
+            c.append((f"{mih}", ""))
+    pad0 = max([len(x) for x in t]) + 1
+    pad1 = max([len(x) for x, _ in c])
+    pad2 = max([len(x) for _, x in c])
+    for i in range(len(t)):
+        if c[i][1] != "":
+            comment = "/* " + " " * (pad1 - len(c[i][0])) + c[i][0] + " ... " + c[i][1] + " " * (pad2 - len(c[i][1])) + " */"
+        elif pad2 == 0:
+            comment = "/* " + " " * (pad1 - len(c[i][0])) + c[i][0] + " */"
+        else:
+            comment = "/* " + " " * (pad1 - len(c[i][0])) + c[i][0] + "     " + " " * pad2 + " */"
+        t[i] += " " * (pad0 - len(t[i])) + comment
     return t
