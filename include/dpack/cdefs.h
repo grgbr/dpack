@@ -38,6 +38,9 @@
 	             sizeof(_array) / sizeof((_array)[0]), \
 	             "array expected")
 
+#define __unused \
+	__attribute__((unused))
+
 #define __dpack_export \
 	__attribute__((visibility("default")))
 

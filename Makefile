@@ -50,19 +50,23 @@ build: $(BUILDDIR)/libdpack.a $(BUILDDIR)/libdpack.so
 clean:
 	$(RM) -r $(BUILDDIR)
 
+################################################################################
+# Dpack samples
+################################################################################
+
 # Sample test binaries
 test_objs := test-fix_sample test-scalar_array_sample
 
 .PHONY: check
 check: $(addprefix $(BUILDDIR)/,$(test_objs))
 
-$(BUILDDIR)/test-%: test/test-%.c $(BUILDDIR)/test.o \
+$(BUILDDIR)/test-%: sample/test-%.c $(BUILDDIR)/test.o \
                     $(BUILDDIR)/lib%.a $(BUILDDIR)/libdpack.so
 	$(CC) -MD -Itest \
 	      -pie $(CFLAGS) $(LDFLAGS) \
 	      -o $(@) $(filter %.c %.a %.o %.so,$(^))
 
-$(BUILDDIR)/test.o: test/test.c | $(BUILDDIR)
+$(BUILDDIR)/test.o: sample/test.c | $(BUILDDIR)
 	$(CC) -MD -Itest -fpie $(CFLAGS) -o $(@) -c $(<)
 
 # Sample libraries
@@ -75,8 +79,29 @@ $(sample_libs): $(BUILDDIR)/lib%.a: $(BUILDDIR)/%.o
 	$(AR) rcs $(@) $(^)
 
 # Sample test library objects
-$(sample_objs): $(BUILDDIR)/%.o: test/%.c | $(BUILDDIR)
+$(sample_objs): $(BUILDDIR)/%.o: sample/%.c | $(BUILDDIR)
 	$(CC) -MD -Itest -fpie $(CFLAGS) -o $(@) -c $(<)
+
+################################################################################
+# Dpack unit tests
+################################################################################
+
+utest_bins := $(addprefix $(BUILDDIR)/test/,string)
+
+check: $(utest_bins)
+
+# Unit test binaries
+$(utest_bins): $(BUILDDIR)/test/%: test/%.c \
+                                   $(BUILDDIR)/libdpack.a \
+                                   | $(BUILDDIR)/test
+	$(CC) -MD -Itest -fpie $(CFLAGS) $(LDFLAGS) \
+	      $(shell pkg-config --cflags cmocka) \
+	      -o $(@) \
+	      $(filter %.c %.o %.so,$(^)) \
+	      $(shell pkg-config --libs cmocka)
+
+$(BUILDDIR)/test:
+	@mkdir -p $(@)
 
 ################################################################################
 # Dpack libraries
