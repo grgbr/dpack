@@ -34,7 +34,7 @@ dpack_array_begin_encode(struct dpack_encoder * encoder, unsigned int nr)
 {
 	dpack_assert_encoder(encoder);
 	dpack_assert(nr);
-	dpack_assert(nr < DPACK_ARRAY_ELMNR_MAX);
+	dpack_assert(nr <= DPACK_ARRAY_ELMNR_MAX);
 
 	mpack_start_array(&encoder->mpack, nr);
 }
@@ -122,7 +122,7 @@ dpack_array_begin_decode_max(struct dpack_decoder * decoder,
 {
 	dpack_assert_decoder(decoder);
 	dpack_assert(max_nr);
-	dpack_assert(max_nr < DPACK_ARRAY_ELMNR_MAX);
+	dpack_assert(max_nr <= DPACK_ARRAY_ELMNR_MAX);
 	dpack_assert(nr);
 
 	return dpack_array_begin_decode_range(decoder,
@@ -140,7 +140,7 @@ dpack_array_begin_decode_range(struct dpack_decoder * decoder,
 	dpack_assert_decoder(decoder);
 	dpack_assert(min_nr);
 	dpack_assert(min_nr < max_nr);
-	dpack_assert(max_nr < DPACK_ARRAY_ELMNR_MAX);
+	dpack_assert(max_nr <= DPACK_ARRAY_ELMNR_MAX);
 	dpack_assert(nr);
 
 	int err;
