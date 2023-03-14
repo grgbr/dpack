@@ -26,17 +26,17 @@
 	__builtin_types_compatible_p(typeof(_a), typeof(_b))
 
 /*
- * Returns zero / false if typeof(&(_array)[0]) degrades to a pointer and not
- * an array.
+ * Returns true / nonzero when _array is an array wheras typeof(&(_array)[0])
+ * degrades to a pointer, i.e., meaning that _array is an "array type".
  * Borrowed from Linux kernel header kernel.h
  */
 #define _is_array(_array) \
-	_is_same_type(_array, &(_array)[0])
+	(!_is_same_type(_array, &(_array)[0]))
 
 #define array_nr(_array) \
 	compile_eval(_is_array(_array), \
 	             sizeof(_array) / sizeof((_array)[0]), \
-	             "Array expected")
+	             "array expected")
 
 #define __dpack_export \
 	__attribute__((visibility("default")))
@@ -45,7 +45,7 @@
 	assert(cond)
 
 #define dpack_array_nr(_array) \
-	(sizeof(_array) / sizeof((_array)[0]))
+	array_nr(_array)
 
 #define dpack_sizeof_member(_type, _member) \
 	(sizeof(((_type *)0)->_member))
