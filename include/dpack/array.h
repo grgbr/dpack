@@ -158,6 +158,13 @@ struct dpack_decoder;
 #define DPACK_ARRAY_UINT64_SIZE_MAX(_elm_nr) \
 	DPACK_ARRAY_SIZE(DPACK_UINT64_SIZE_MAX, _elm_nr)
 
+#define DPACK_ARRAY_STR_SIZE(_len, _elm_nr) \
+	DPACK_ARRAY_SIZE(DPACK_STR_SIZE(_len), _elm_nr)
+#define DPACK_ARRAY_STR_SIZE_MIN(_elm_nr) \
+        DPACK_ARRAY_STR_SIZE(1, _elm_nr)
+#define DPACK_ARRAY_STR_SIZE_MAX(_elm_nr) \
+        DPACK_ARRAY_STR_SIZE(DPACK_STRLEN_MAX, _elm_nr)
+
 extern size_t
 dpack_array_size(size_t elm_size, unsigned int elm_nr) __dpack_export;
 
