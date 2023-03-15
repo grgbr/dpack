@@ -86,7 +86,7 @@ $(sample_objs): $(BUILDDIR)/%.o: sample/%.c | $(BUILDDIR)
 # Dpack unit tests
 ################################################################################
 
-utest_bins := $(addprefix $(BUILDDIR)/test/,string)
+utest_bins := $(addprefix $(BUILDDIR)/test/,string array)
 
 check: $(utest_bins)
 

@@ -9,17 +9,28 @@ struct dpack_encoder;
 struct dpack_decoder;
 
 /* Maximum number of elements of a dpack array */
-#define DPACK_ARRAY_ELMNR_MAX (1024U)
+#define DPACK_ARRAY_ELMNR_MAX    (1024U)
 /* Maximum size of a dpack array */
-#define DPACK_ARRAY_SIZE_MAX  ((size_t)4 * 1024U * 1024U)
+#define DPACK_ARRAY_SIZE_MAX     ((size_t)64 * 1024U)
+
+/* Maximum number of elements an msgpack fixarray may encode */
+#define DPACK_FIXARRAY_ELMNR_MAX (15U)
+/* Maximum number of elements a 16 bits msgpack array may encode */
+#define DPACK_ARRAY16_ELMNR_MAX  UINT16_MAX
+/* Maximum number of elements a 32 bits msgpack array may encode */
+#define DPACK_ARRAY32_ELMNR_MAX  UINT32_MAX
+
+/* Check DPACK_ARRAY_ELMNR_MAX definition is sensible. */
+#if DPACK_ARRAY_ELMNR_MAX > DPACK_ARRAY32_ELMNR_MAX
+#error msgpack cannot encode array which length is > UINT32_MAX !
+#elif DPACK_ARRAY_ELMNR_MAX < 4U
+#error Huh ?!
+#endif
 
 /******************************************************************************
  * Msgpack fixarray definitions
  ******************************************************************************/
 
-/* Maximum number of elements an msgpack fixarray may encode */
-#define DPACK_FIXARRAY_ELMNR_MAX \
-	(15U)
 /* Compute size of an encoded msgpack fixarray */
 #define DPACK_FIXARRAY_SIZE(_elm_size, _elm_nr) \
 	(1UL + ((_elm_size) * (_elm_nr)))
@@ -36,9 +47,6 @@ struct dpack_decoder;
 
 #if DPACK_ARRAY_ELMNR_MAX > DPACK_FIXARRAY_ELMNR_MAX
 
-/* Maximum number of elements a 16 bits msgpack array may encode */
-#define DPACK_ARRAY16_ELMNR_MAX \
-	((UINT16_MAX) - 1)
 /* Compute size of an encoded 16 bits msgpack array */
 #define DPACK_ARRAY16_SIZE(_elm_size, _elm_nr) \
 	(3UL + ((_elm_size) * (_elm_nr)))
@@ -60,15 +68,14 @@ struct dpack_decoder;
 #define _DPACK_ARRAY_CONST_SIZE(_elm_size, _elm_nr) \
 	DPACK_ARRAY16_CONST_SIZE(_elm_size, _elm_nr)
 
+#endif /* DPACK_ARRAY_ELMNR_MAX > DPACK_FIXARRAY_ELMNR_MAX */
+
 /******************************************************************************
  * Msgpack 32 bits array definitions
  ******************************************************************************/
 
-#elif DPACK_ARRAY_ELMNR_MAX > DPACK_ARRAY16_ELMNR_MAX
+#if DPACK_ARRAY_ELMNR_MAX > DPACK_ARRAY16_ELMNR_MAX
 
-/* Maximum number of elements a 32 bits msgpack array may encode */
-#define DPACK_ARRAY32_ELMNR_MAX \
-	((UINT32_MAX) - 1)
 /* Compute size of an encoded 32 bits msgpack array */
 #define DPACK_ARRAY32_SIZE(_elm_size, _elm_nr)  (5UL + \
                                                  ((_elm_size) * (_elm_nr)))
@@ -90,14 +97,11 @@ struct dpack_decoder;
 #define _DPACK_ARRAY_CONST_SIZE(_elm_size, _elm_nr) \
 	DPACK_ARRAY32_CONST_SIZE(_elm_size, _elm_nr), \
 
-/*
- * Msgpack cannot encode array containing more than (UINT32_MAX - 1) elements.
- */
-#elif DPACK_ARRAY_ELMNR_MAX > DPACK_ARRAY32_ELMNR_MAX
+#endif /* DPACK_ARRAY_ELMNR_MAX > DPACK_ARRAY16_ELMNR_MAX */
 
-#error msgpack cannot encode array which length is >= UINT32_MAX !
-
-#endif
+/******************************************************************************
+ * Top-level array size definitions
+ ******************************************************************************/
 
 /*
  * Maximum size of an array element.
