@@ -160,5 +160,8 @@ static const struct CMUnitTest dpack_str_utests[] = {
 int
 main(void)
 {
-	return cmocka_run_group_tests(dpack_str_utests, NULL, NULL);
+	return cmocka_run_group_tests_name("string size",
+	                                   dpack_str_utests,
+	                                   NULL,
+	                                   NULL);
 }
