@@ -63,9 +63,7 @@ static void
 dpack_str8_sizes_utest(void ** state __unused)
 {
 	/* Msgpack 8 bits string sizes. */
-#if DPACK_STRLEN_MAX >= 32
 	assert_int_equal(DPACK_STR_SIZE(32),            34);
-#endif
 #if DPACK_STRLEN_MAX >= 33
 	assert_int_equal(DPACK_STR_SIZE(33),            35);
 #endif
@@ -96,9 +94,7 @@ static void
 dpack_str16_sizes_utest(void ** state __unused)
 {
 	/* Msgpack 16 bits string sizes. */
-#if DPACK_STRLEN_MAX >= (UINT8_MAX + 1)
 	assert_int_equal(DPACK_STR_SIZE(UINT8_MAX + 1),  UINT8_MAX + 1 + 3);
-#endif
 #if DPACK_STRLEN_MAX >= (UINT8_MAX + 2)
 	assert_int_equal(DPACK_STR_SIZE(UINT8_MAX + 2),  UINT8_MAX + 2 + 3);
 #endif
@@ -129,9 +125,7 @@ static void
 dpack_str32_sizes_utest(void ** state __unused)
 {
 	/* Msgpack 32 bits string sizes. */
-#if DPACK_STRLEN_MAX >= (UINT16_MAX + 1)
 	assert_int_equal(DPACK_STR_SIZE(UINT16_MAX + 1), UINT16_MAX + 1 + 5);
-#endif
 #if DPACK_STRLEN_MAX >= (UINT16_MAX + 2)
 	assert_int_equal(DPACK_STR_SIZE(UINT16_MAX + 2), UINT16_MAX + 2 + 5);
 #endif
@@ -160,7 +154,7 @@ static const struct CMUnitTest dpack_str_utests[] = {
 	cmocka_unit_test(dpack_fixstr_sizes_utest),
 	cmocka_unit_test(dpack_str8_sizes_utest),
 	cmocka_unit_test(dpack_str16_sizes_utest),
-	cmocka_unit_test(dpack_str32_sizes_utest),
+	cmocka_unit_test(dpack_str32_sizes_utest)
 };
 
 int

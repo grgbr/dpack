@@ -2,6 +2,34 @@
 #include "dpack/codec.h"
 #include "common.h"
 
+size_t
+dpack_str_size(size_t len)
+{
+	dpack_assert(len);
+	dpack_assert(len <= DPACK_STRLEN_MAX);
+
+	switch (len) {
+	case 1 ... DPACK_FIXSTR_LEN_MAX:
+		return DPACK_FIXSTR_SIZE(len);
+#if DPACK_STRLEN_MAX > DPACK_FIXSTR_LEN_MAX
+	case (DPACK_FIXSTR_LEN_MAX + 1) ... DPACK_STR8_LEN_MAX:
+		return DPACK_STR8_SIZE(len);
+#endif
+#if DPACK_STRLEN_MAX > DPACK_STR16_LEN_MAX
+	case (DPACK_STR8_LEN_MAX + 1) ... DPACK_STR16_LEN_MAX:
+		return DPACK_STR16_SIZE(len);
+#endif
+#if DPACK_STRLEN_MAX > DPACK_STR32_LEN_MAX
+	case (DPACK_STR16_LEN_MAX + 1) ... DPACK_STR32_LEN_MAX:
+		return DPACK_STR32_SIZE(len);
+#endif
+	default:
+		dpack_assert(0);
+	}
+
+	unreachable();
+}
+
 int
 dpack_encode_str(struct dpack_encoder * encoder, const char * value)
 {

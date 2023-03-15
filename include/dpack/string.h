@@ -101,6 +101,10 @@ struct dpack_decoder;
 
 #endif /* DPACK_STRLEN_MAX > DPACK_STR16_LEN_MAX */
 
+/******************************************************************************
+ * Top-level string size definitions
+ ******************************************************************************/
+
 /*
  * Given the length of a string, compute the size of the corresponding encoded
  * msgpack string.
@@ -124,6 +128,9 @@ struct dpack_decoder;
 	compile_eval(__builtin_constant_p(_len), \
 	             DPACK_STR_CONST_SIZE(_len), \
 	             "constant string length expected")
+
+extern size_t
+dpack_str_size(size_t len) __dpack_export;
 
 extern int
 dpack_encode_str(struct dpack_encoder * encoder,
