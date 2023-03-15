@@ -12,25 +12,63 @@ struct dpack_decoder;
 #define DPACK_MAP_FLDNR_MAX (128U)
 
 /******************************************************************************
+ * Iterating over map fields
+ ******************************************************************************/
+
+extern void
+dpack_map_begin_encode(struct dpack_encoder * encoder,
+                       unsigned int           nr) __dpack_export;
+
+extern void
+dpack_map_end_encode(struct dpack_encoder * encoder) __dpack_export;
+
+extern int
+dpack_map_begin_decode(struct dpack_decoder * decoder,
+                       unsigned int *         nr) __dpack_export;
+
+extern int
+dpack_map_begin_decode_equ(struct dpack_decoder * decoder,
+                           unsigned int           nr) __dpack_export;
+
+extern int
+dpack_map_begin_decode_min(struct dpack_decoder * decoder,
+                           unsigned int           min_nr,
+                           unsigned int         * nr) __dpack_export;
+
+extern int
+dpack_map_begin_decode_max(struct dpack_decoder * decoder,
+                           unsigned int           max_nr,
+                           unsigned int         * nr) __dpack_export;
+
+extern int
+dpack_map_begin_decode_range(struct dpack_decoder * decoder,
+                             unsigned int           min_nr,
+                             unsigned int           max_nr,
+                             unsigned int         * nr) __dpack_export;
+
+extern void
+dpack_map_end_decode(struct dpack_decoder * decoder) __dpack_export;
+
+/******************************************************************************
  * Map field identifier
  ******************************************************************************/
 
-#define DPACK_MAP_FLDID_MAX      ((uint16_t)1024)
-#define DPACK_MAP_FLDID_SIZE_MIN (DPACK_UINT16_SIZE_MIN)
-#define DPACK_MAP_FLDID_SIZE_MAX (DPACK_UINT16_SIZE_MAX)
+#define DPACK_MAP_FLDID_MAX      (1024U)
+#define DPACK_MAP_FLDID_SIZE_MIN (DPACK_UINT_SIZE_MIN)
+#define DPACK_MAP_FLDID_SIZE_MAX (DPACK_UINT_SIZE_MAX)
 
 static inline int
-dpack_map_encode_fldid(struct dpack_encoder * encoder, uint16_t id)
+dpack_map_encode_fldid(struct dpack_encoder * encoder, unsigned int id)
 {
 	dpack_assert(id <= DPACK_MAP_FLDID_MAX);
 
-	return dpack_encode_uint16(encoder, id);
+	return dpack_encode_uint(encoder, id);
 }
 
 static inline int
-dpack_map_decode_fldid(struct dpack_decoder * decoder, uint16_t * id)
+dpack_map_decode_fldid(struct dpack_decoder * decoder, unsigned int * id)
 {
-	return dpack_decode_uint16_max(decoder, DPACK_MAP_FLDID_MAX, id);
+	return dpack_decode_uint_max(decoder, DPACK_MAP_FLDID_MAX, id);
 }
 
 /******************************************************************************

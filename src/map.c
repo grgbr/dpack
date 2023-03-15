@@ -35,6 +35,124 @@ dpack_map_end_encode(struct dpack_encoder * encoder)
 		return _func(encoder, value); \
 	}
 
+static int
+dpack_map_xtract_nr(struct mpack_reader_t * reader, unsigned int * nr)
+{
+	dpack_assert(reader);
+	dpack_assert(mpack_reader_error(reader) == mpack_ok);
+	dpack_assert(nr);
+
+	struct mpack_tag_t tag;
+	int                err;
+
+	err = dpack_decode_tag(reader, mpack_type_map, &tag);
+	if (err)
+		return err;
+
+	*nr = (unsigned int)mpack_tag_map_count(&tag);
+
+	return 0;
+}
+
+int
+dpack_map_begin_decode(struct dpack_decoder * decoder, unsigned int * nr)
+{
+	dpack_assert_decoder(decoder);
+	dpack_assert(nr);
+
+	return dpack_map_begin_decode_range(decoder,
+	                                    1,
+	                                    DPACK_MAP_FLDNR_MAX,
+	                                    nr);
+}
+
+int
+dpack_map_begin_decode_equ(struct dpack_decoder * decoder, unsigned int nr)
+{
+	dpack_assert_decoder(decoder);
+	dpack_assert(nr);
+	dpack_assert(nr <= DPACK_MAP_FLDNR_MAX);
+
+	unsigned int cnt;
+	int          err;
+
+	err = dpack_map_xtract_nr(&decoder->mpack, &cnt);
+	if (err)
+		return err;
+
+	if (cnt != nr) {
+		mpack_reader_flag_error(&decoder->mpack, mpack_error_type);
+		return -ENOMSG;
+	}
+
+	return 0;
+}
+
+int
+dpack_map_begin_decode_min(struct dpack_decoder * decoder,
+                           unsigned int           min_nr,
+                           unsigned int         * nr)
+{
+	dpack_assert_decoder(decoder);
+	dpack_assert(min_nr);
+	dpack_assert(nr);
+
+	return dpack_map_begin_decode_range(decoder,
+	                                    min_nr,
+	                                    DPACK_MAP_FLDNR_MAX,
+	                                    nr);
+}
+
+int
+dpack_map_begin_decode_max(struct dpack_decoder * decoder,
+                           unsigned int           max_nr,
+                           unsigned int         * nr)
+{
+	dpack_assert_decoder(decoder);
+	dpack_assert(max_nr);
+	dpack_assert(max_nr <= DPACK_MAP_FLDNR_MAX);
+	dpack_assert(nr);
+
+	return dpack_map_begin_decode_range(decoder,
+	                                    1,
+	                                    max_nr,
+	                                    nr);
+}
+
+int
+dpack_map_begin_decode_range(struct dpack_decoder * decoder,
+                             unsigned int           min_nr,
+                             unsigned int           max_nr,
+                             unsigned int         * nr)
+{
+	dpack_assert_decoder(decoder);
+	dpack_assert(min_nr);
+	dpack_assert(min_nr < max_nr);
+	dpack_assert(max_nr <= DPACK_MAP_FLDNR_MAX);
+	dpack_assert(nr);
+
+	int err;
+
+	err = dpack_map_xtract_nr(&decoder->mpack, nr);
+	if (err)
+		return err;
+
+	if ((*nr < min_nr) || (*nr > max_nr)) {
+		mpack_reader_flag_error(&decoder->mpack, mpack_error_type);
+		return -ENOMSG;
+	}
+
+	return 0;
+}
+
+void
+dpack_map_end_decode(struct dpack_decoder * decoder)
+{
+	dpack_assert(decoder);
+
+	mpack_done_map(&decoder->mpack);
+}
+
 /******************************************************************************
  * Boolean
  ******************************************************************************/
