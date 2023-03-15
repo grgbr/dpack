@@ -94,7 +94,7 @@ check: $(utest_bins)
 $(utest_bins): $(BUILDDIR)/test/%: test/%.c \
                                    $(BUILDDIR)/libdpack.a \
                                    | $(BUILDDIR)/test
-	$(CC) -MD -Itest -fpie $(CFLAGS) $(LDFLAGS) \
+	$(CC) -MD -Itest -pie $(CFLAGS) $(LDFLAGS) \
 	      $(shell pkg-config --cflags cmocka) \
 	      -o $(@) \
 	      $(filter %.c %.o %.so,$(^)) \
