@@ -11,7 +11,7 @@ struct dpack_decoder;
 /* Maximum number of elements of a dpack array */
 #define DPACK_ARRAY_ELMNR_MAX    (1024U)
 /* Maximum size of a dpack array */
-#define DPACK_ARRAY_SIZE_MAX     ((size_t)64 * 1024U)
+#define DPACK_ARRAY_SIZE_MAX     (64U * 1024U)
 
 /* Maximum number of elements an msgpack fixarray may encode */
 #define DPACK_FIXARRAY_ELMNR_MAX (15U)
@@ -95,9 +95,19 @@ struct dpack_decoder;
 
 #undef _DPACK_ARRAY_CONST_SIZE
 #define _DPACK_ARRAY_CONST_SIZE(_elm_size, _elm_nr) \
-	DPACK_ARRAY32_CONST_SIZE(_elm_size, _elm_nr), \
+	DPACK_ARRAY32_CONST_SIZE(_elm_size, _elm_nr) \
 
 #endif /* DPACK_ARRAY_ELMNR_MAX > DPACK_ARRAY16_ELMNR_MAX */
+
+/*
+ * Check DPACK_ARRAY_ELMNR_MAX and DPACK_ARRAY_SIZE_MAX are consistent.
+ *
+ * Ensure that given the DPACK_ARRAY_SIZE_MAX set above, an array may hold
+ * DPACK_ARRAY_ELMNR_MAX number of elements of at least 1 byte size each.
+ */
+#if (1U * DPACK_ARRAY_ELMNR_MAX) > DPACK_ARRAY_DATA_SIZE_MAX
+#error Array cannot hold elements which size > 0
+#endif
 
 /******************************************************************************
  * Top-level array size definitions
@@ -123,7 +133,7 @@ struct dpack_decoder;
 	             ((_elm_size) < DPACK_ARRAY_ELMSIZE_MAX) && \
 	             ((_elm_nr) > 0) && \
 	             ((_elm_nr) <= DPACK_ARRAY_ELMNR_MAX) && \
-	             ((_elm_size) <= (DPACK_ARRAY_SIZE_MAX / (_elm_nr))), \
+	             (((_elm_size) * (_elm_nr)) <= DPACK_ARRAY_SIZE_MAX), \
 	             _DPACK_ARRAY_CONST_SIZE(_elm_size, _elm_nr), \
 	             "invalid constant size of array element or length")
 
