@@ -1,5 +1,5 @@
-#ifndef _DPACK_STDINT_H
-#define _DPACK_STDINT_H
+#ifndef _DPACK_SCALAR_H
+#define _DPACK_SCALAR_H
 
 #include <dpack/cdefs.h>
 #include <stdbool.h>
@@ -222,26 +222,4 @@ dpack_decode_int64_range(struct dpack_decoder * decoder,
                          int64_t                high,
                          int64_t              * value) __dpack_export;
 
-/******************************************************************************
- * Structure field identifier
- ******************************************************************************/
-
-#define DPACK_FIELDID_MAX      ((uint16_t)1024)
-#define DPACK_FIELDID_SIZE_MIN (DPACK_UINT16_SIZE_MIN)
-#define DPACK_FIELDID_SIZE_MAX (DPACK_UINT16_SIZE_MAX)
-
-static inline int
-dpack_encode_fieldid(struct dpack_encoder * encoder, uint16_t id)
-{
-	dpack_assert(id <= DPACK_FIELDID_MAX);
-
-	return dpack_encode_uint16(encoder, id);
-}
-
-static inline int
-dpack_decode_fieldid(struct dpack_decoder * decoder, uint16_t * id)
-{
-	return dpack_decode_uint16_max(decoder, DPACK_FIELDID_MAX, id);
-}
-
-#endif /* _DPACK_STDINT_H */
+#endif /* _DPACK_SCALAR_H */

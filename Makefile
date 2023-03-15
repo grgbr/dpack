@@ -1,6 +1,6 @@
 BUILDDIR := $(CURDIR)/build
 
-DPACK_DEBUG := 0
+DPACK_DEBUG := 1
 
 ifeq ($(DPACK_DEBUG),1)
 DEBUG_CFLAGS    := -ggdb3 -DDPACK_DEBUG
@@ -107,7 +107,7 @@ $(BUILDDIR)/test:
 # Dpack libraries
 ################################################################################
 
-dpack_objs := string array scalar codec common mpack
+dpack_objs := map array string scalar codec common mpack
 
 # Dpack static library
 statlib_dpack_objs := $(addprefix $(BUILDDIR)/,$(addsuffix .o,$(dpack_objs)))
