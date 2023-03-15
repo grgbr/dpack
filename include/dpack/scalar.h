@@ -149,6 +149,46 @@ dpack_decode_uint32_range(struct dpack_decoder * decoder,
                           uint32_t               high,
                           uint32_t             * value) __dpack_export;
 
+#define DPACK_UINT_SIZE_MIN DPACK_UINT32_SIZE_MIN
+#define DPACK_UINT_SIZE_MAX DPACK_UINT32_SIZE_MAX
+
+static inline int
+dpack_encode_uint(struct dpack_encoder * encoder, unsigned int value)
+{
+	return dpack_encode_uint32(encoder, value);
+}
+
+static inline int
+dpack_decode_uint(struct dpack_decoder * decoder, unsigned int * value)
+{
+	return dpack_decode_uint32(decoder, value);
+}
+
+static inline int
+dpack_decode_uint_min(struct dpack_decoder * decoder,
+                      unsigned int           low,
+                      unsigned int         * value)
+{
+	return dpack_decode_uint32_min(decoder, low, value);
+}
+
+static inline int
+dpack_decode_uint_max(struct dpack_decoder * decoder,
+                      unsigned int           high,
+                      unsigned int         * value)
+{
+	return dpack_decode_uint32_max(decoder, high, value);
+}
+
+static inline int
+dpack_decode_uint_range(struct dpack_decoder * decoder,
+                        unsigned int           low,
+                        unsigned int           high,
+                        unsigned int         * value)
+{
+	return dpack_decode_uint32_range(decoder, low, high, value);
+}
+
 #define DPACK_INT32_SIZE_MIN (DPACK_STDINT_SIZE_MIN)
 #define DPACK_INT32_SIZE_MAX (5U)
 
@@ -171,6 +211,46 @@ dpack_decode_int32_range(struct dpack_decoder * decoder,
                          int32_t                low,
                          int32_t                high,
                          int32_t              * value) __dpack_export;
+
+#define DPACK_INT_SIZE_MIN DPACK_INT32_SIZE_MIN
+#define DPACK_INT_SIZE_MAX DPACK_INT32_SIZE_MAX
+
+static inline int
+dpack_encode_int(struct dpack_encoder * encoder, int value)
+{
+	return dpack_encode_int32(encoder, value);
+}
+
+static inline int
+dpack_decode_int(struct dpack_decoder * decoder, int * value)
+{
+	return dpack_decode_int32(decoder, value);
+}
+
+static inline int
+dpack_decode_int_min(struct dpack_decoder * decoder,
+                     int                    low,
+                     int                  * value)
+{
+	return dpack_decode_int32_min(decoder, low, value);
+}
+
+static inline int
+dpack_decode_int_max(struct dpack_decoder * decoder,
+                     int                    high,
+                     int                  * value)
+{
+	return dpack_decode_int32_max(decoder, high, value);
+}
+
+static inline int
+dpack_decode_int_range(struct dpack_decoder * decoder,
+                       int                    low,
+                       int                    high,
+                       int                  * value)
+{
+	return dpack_decode_int32_range(decoder, low, high, value);
+}
 
 /******************************************************************************
  * 64 bits integers
