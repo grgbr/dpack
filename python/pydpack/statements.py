@@ -99,7 +99,8 @@ class Struct(object):
             'assert': getAssertFunction(node),
             'name_min': name_min,
             'name_max': name_max,
-            'struct': struct
+            'struct': struct,
+            'must': parseMust(self.ctx, self.node),
         }
 
         for t, n in struct:
@@ -220,6 +221,14 @@ if (err)
 #end if
     
 #end for
+#if $must
+#for $f in $must
+err = $(f)(value, ctx);
+if (err)
+	return err;
+
+#end for
+#end if
 return 0;
 '''
         addFunction(node, 

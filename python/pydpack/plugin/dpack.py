@@ -1,7 +1,7 @@
-from pyang import plugin, error
+from pyang import plugin, error, statements
 from pydpack.statements import Module
 import optparse
-from pydpack import templates 
+from pydpack import templates
 try:
     import importlib.resources as pkg_resources
 except ImportError:
@@ -22,6 +22,7 @@ class DpackPlugin(plugin.PyangPlugin):
 
     def setup_fmt(self, ctx):
         ctx.implicit_errors = True
+        statements.add_xpath_function('checker', ['string'], 'boolean')
 
     def add_opts(self, optparser):
         optlist = [

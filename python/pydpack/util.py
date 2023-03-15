@@ -1,3 +1,4 @@
+from pyang.error import err_add
 
 def toid(name):
      return name.replace('-','_').replace('.','_')
@@ -157,10 +158,29 @@ def range2liststr(ranges: list, type: str) -> list[str]:
     pad2 = max([len(x) for _, x in c])
     for i in range(len(t)):
         if c[i][1] != "":
-            comment = "/* " + " " * (pad1 - len(c[i][0])) + c[i][0] + " ... " + c[i][1] + " " * (pad2 - len(c[i][1])) + " */"
+            comment = "/* " + " " * (pad1 - len(c[i][0])) + c[i][0] + " ... " + " " * (pad2 - len(c[i][1])) + c[i][1] + " */"
         elif pad2 == 0:
             comment = "/* " + " " * (pad1 - len(c[i][0])) + c[i][0] + " */"
         else:
             comment = "/* " + " " * (pad1 - len(c[i][0])) + c[i][0] + "     " + " " * pad2 + " */"
         t[i] += " " * (pad0 - len(t[i])) + comment
     return t
+
+def parseMust(ctx, node):
+    musts = node.search("must")
+    if not musts:
+        return None
+    
+    ret = []
+    
+    for must in musts:
+        if (   must.i_xpath[0] != 'path_expr'
+            or must.i_xpath[1][0] != 'function_call'
+            or must.i_xpath[1][1] != 'checker'
+            or len(must.i_xpath[1][2]) != 1
+            or must.i_xpath[1][2][0][0] != 'path_expr'
+            or must.i_xpath[1][2][0][1][0] != 'literal'):
+            err_add(ctx.errors, node.pos,'BAD_VALUE', (must.arg, "checker('my_check')"))
+            return None
+        ret.append(must.i_xpath[1][2][0][1][1][1:-1])
+    return ret

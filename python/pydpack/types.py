@@ -5,7 +5,7 @@ from pydpack.util import *
 from Cheetah.Template import Template
 
 class BaseType(object):
-    def __init__(self, node, _type, _include, _encode, _decode, _min, _max) -> None:
+    def __init__(self, ctx, node, _type, _include, _encode, _decode, _min, _max) -> None:
         self.node = node
         self.type = _type
         self.include = _include
@@ -36,12 +36,30 @@ $(assert)($(struct_type)_check_$(name)(value) == 0);
 obj->$name = value;
 return 0;
 '''
-        self.check_attrs = {
-            "function": set(["__warn_result"]),
-            "value": set(["__unused"]),
-            "ctx": set(["__unused"]),
-        }
+        self.nameSpace['must'] = parseMust(ctx, self.node)
+        if self.nameSpace['must']:
+            self.check_attrs = {
+                "function": set(["__warn_result"]),
+                "value": set(),
+                "ctx": set(),
+            }
+        else:
+            self.check_attrs = {
+                "function": set(["__warn_result"]),
+                "value": set(["__unused"]),
+                "ctx": set(["__unused"]),
+            }
         self.check_template = '''\
+#if $must
+int err;
+
+#for $f in $must
+err = $(f)(value, ctx);
+if (err)
+	return err;
+
+#end for
+#end if
 return 0;
 '''
 
@@ -104,22 +122,26 @@ class scalarType(BaseType):
         'int32':  'INT',
         'int64':  'LLONG',
     }
-    def __init__(self, unit, node) -> None:
+    def __init__(self, unit, ctx, node) -> None:
         _type   = f"{unit}_t"
         _encode = f"dpack_encode_{unit}"
         _decode = f"dpack_decode_{unit}"
         _min    = f"DPACK_{todef(unit)}_SIZE_MIN"
         _max    = f"DPACK_{todef(unit)}_SIZE_MAX"
-        super().__init__(node, _type, 'dpack/scalar.h', _encode, _decode, _min, _max)
+        super().__init__(ctx, node, _type, 'dpack/scalar.h', _encode, _decode, _min, _max)
 
         self.nameSpace["ranges"] = \
             getattr(self.node.search_one("type").i_type_spec, 'ranges', [])
         if len(self.nameSpace["ranges"]) > 0:
             self.nameSpace["c_type"] = scalarType.unit2c[unit]
-            print(self.nameSpace["ranges"])
-            self.check_attrs["value"].remove("__unused")
+            if "__unused" in self.check_attrs["value"]:
+                self.check_attrs["value"].remove("__unused")
             self.check_template = '''\
 #from pydpack.util import range2liststr
+#if $must
+int err;
+
+#end if
 #set $t = "\\n".join(range2liststr($ranges, $c_type))
 switch (value) {
 default:
@@ -127,12 +149,22 @@ default:
 $t
 	break;
 }
+
+#if $must
+#for $f in $must
+err = $(f)(value, ctx);
+if (err)
+	return err;
+
+#end for
+#end if
 return 0;
 '''
 
 class bitmapType(BaseType):
-    def __init__(self, node) -> None:
-        super().__init__(node,
+    def __init__(self, ctx, node) -> None:
+        super().__init__(ctx,
+                         node,
                         'uint64_t',
                         'dpack/scalar.h',
                         'dpack_encode_uint64',
@@ -142,16 +174,15 @@ class bitmapType(BaseType):
 
     def getDecode(self, ctx_name: str, data_name: str) -> str:
         t = self.node.search_one("type").i_type_spec
-        # print(*[f"{x} -> {getattr(t, x, None)}" for x in dir(t) if not x.startswith("__")], sep="\n")
-        # print()
         v_max = 0
         for _, p in t.bits:
             v_max |= 1 << p
         return f"{self.decode}_max({ctx_name}, {hex(v_max)}, {data_name})"
 
 class boolType(BaseType):
-    def __init__(self, node) -> None:
-        super().__init__(node,
+    def __init__(self, ctx, node) -> None:
+        super().__init__(ctx,
+                         node,
                         'bool',
                         'dpack/scalar.h',
                         'dpack_encode_bool',
@@ -159,8 +190,9 @@ class boolType(BaseType):
                         'DPACK_BOOL_SIZE_MIN',
                         'DPACK_BOOL_SIZE_MAX')
 class stringType(BaseType):
-    def __init__(self, node) -> None:
-        super().__init__(node,
+    def __init__(self, ctx, node) -> None:
+        super().__init__(ctx,
+                         node,
                         'char *',
                         'dpack/string.h',
                         'dpack_encode_str',
@@ -215,7 +247,7 @@ class ExternTypedef(BaseType):
         if c_copy:
             self.copy = c_copy.arg
 
-        super().__init__(parent_node, _type, _include, _encode, _decode, _min, _max)
+        super().__init__(ctx, parent_node, _type, _include, _encode, _decode, _min, _max)
 
         self.nameSpace["copy_callback"] = self.copy
         self.getter_template = '''\
@@ -265,27 +297,27 @@ def dpack_Typedef_maker(ctx, node, name) -> None:
         (_type + " *", "value", set()),
     ], set()), value_unpack)
 
-    return lambda node: BaseType(node, _type, None, _encode, _decode, _min, _max)
+    return lambda ctx, node: BaseType(ctx, node, _type, None, _encode, _decode, _min, _max)
 
 TYPE_MAP = {
     'boolean': boolType,
-    'int8':    lambda node: scalarType('int8', node),
-    'int16':   lambda node: scalarType('int16', node),
-    'int32':   lambda node: scalarType('int32', node),
-    'int64':   lambda node: scalarType('int64', node),
-    'uint8':   lambda node: scalarType('uint8', node),
-    'uint16':  lambda node: scalarType('uint16', node),
-    'uint32':  lambda node: scalarType('uint32', node),
-    'uint64':  lambda node: scalarType('uint64', node),
+    'int8':    lambda ctx, node: scalarType('int8', ctx, node),
+    'int16':   lambda ctx, node: scalarType('int16', ctx, node),
+    'int32':   lambda ctx, node: scalarType('int32', ctx, node),
+    'int64':   lambda ctx, node: scalarType('int64', ctx, node),
+    'uint8':   lambda ctx, node: scalarType('uint8', ctx, node),
+    'uint16':  lambda ctx, node: scalarType('uint16', ctx, node),
+    'uint32':  lambda ctx, node: scalarType('uint32', ctx, node),
+    'uint64':  lambda ctx, node: scalarType('uint64', ctx, node),
     'bits':    bitmapType,
     'string':  stringType,
 }
 
 def dpack_BaseType_maker(c_type, c_include, c_pack, c_unpack, c_min, c_max):
-    return lambda node: BaseType(node, c_type, c_include, c_pack, c_unpack, c_min, c_max)
+    return lambda ctx, node: BaseType(ctx, node, c_type, c_include, c_pack, c_unpack, c_min, c_max)
 
 def dpack_ExternTypedef_maker(ctx, t, name):
-    return lambda node: ExternTypedef(ctx, t, name, node)
+    return lambda _, node: ExternTypedef(ctx, t, name, node)
 
 def getType(ctx, stmt):
     yangType = stmt.search_one('type').arg
@@ -347,5 +379,5 @@ def getType(ctx, stmt):
                 return
             else:
                 TYPE_MAP[map_name] = dpack_Typedef_maker(ctx, t, name)
-    return TYPE_MAP[map_name](stmt)
+    return TYPE_MAP[map_name](ctx, stmt)
 
