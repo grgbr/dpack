@@ -1,0 +1,61 @@
+module afl-fix{
+	yang-version 1.1;
+	namespace "urn:dpack:afl-fix";
+	prefix "afl";
+
+	organization "Test Inc.";
+	contact "joe@test.com";
+	description
+		"The module for entities implementing the fix sample.";
+
+	revision 2023-02-28 {
+		description "Initial revision.";
+		reference "";
+	}
+
+	container sample {
+		description "The sample main container";
+		leaf u8 {
+			type uint8;
+			description "Sample uint8 leaf";
+		}
+		leaf u16 {
+			type uint16;
+			description "Sample uint16 leaf";
+		}
+		leaf u34 {
+			type uint32 {
+				range "1..50 | 700";
+			}
+			description "Sample uint32 leaf";
+		}
+		leaf u64 {
+			type uint64;
+			description "Sample uint64 leaf";
+		}
+		leaf s8 {
+			type int8;
+			description "Sample int8 leaf";
+		}
+		leaf s16 {
+			type int16;
+			description "Sample int16 leaf";
+		}
+		leaf s34 {
+			type int32;
+			description "Sample int32 leaf";
+		}
+		leaf s64 {
+			type int64;
+			description "Sample int64 leaf";
+		}
+		leaf boolean {
+			type boolean;
+			description "Sample boolean leaf";
+		}
+		leaf string {
+			type string;
+			description "Sample boolean leaf";
+		}
+	}
+}
