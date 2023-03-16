@@ -14,9 +14,14 @@ class Module(object):
         self.includes = set([
             'stdlib.h',
             'errno.h',
-            'utils/cdefs.h'
         ])
-        self.defines = []
+        self.defines = [
+            ('__unused', ["__attribute__((unused))"]),
+            ('__warn_result', ["__attribute__((warn_unused_result))"]),
+            ('__nonull(_arg_index, ...)',
+                ["__attribute__((nonnull(_arg_index, ## __VA_ARGS__)))"]
+            ),
+        ]
         self.typedefs = []
         self.InlineFunctions = []
         self.functions = []
@@ -124,22 +129,38 @@ class Struct(object):
                 (f"struct {self.prefix}_{self.name} *", "data", set())
             ], set()),
             ["free(data);"])
+
+        init_data_attrs = set(["__unused"])
+        for t, _ in struct:
+            if t.getInit(''):
+                init_data_attrs.remove("__unused")
+                break
+        init_template = '''\
+#for $t, $n in $struct
+#set $init = $t.getInit('data->' + $n)
+#if $init
+$init;
+#end if
+#end for
+return 0;
+'''
         addFunction(node, 
             (f"int", f"{self.prefix}_{self.name}_init", [
-                (f"struct {self.prefix}_{self.name} *", "data", set(["__unused"]))
+                (f"struct {self.prefix}_{self.name} *", "data", init_data_attrs)
             ], set(["__warn_result", "__nonull(1)"])),
-            ["return 0;"])
+            str(Template(init_template, searchList=[nameSpace])).splitlines())
 
         fini_template = '''\
 #for $t, $n in $struct
-#if $t.mustFree()
-#echo $t.getFree('data->' + $n) + ';'
+#set $free = $t.getFree('data->' + $n)
+#if $free
+$free;
 #end if
 #end for
 '''
         fini_data_attrs = set(["__unused"])
         for t, _ in struct:
-            if t.mustFree():
+            if t.getFree(''):
                 fini_data_attrs.remove("__unused")
                 break
         addFunction(node, 
@@ -200,30 +221,29 @@ return 0;
 
         unpack_template = '''\
 $(assert)(decoder);
-$(assert)(data);
 $(assert)(dpack_decoder_data_left(decoder) >=
-#echo ' ' * (len($assert) + 1) + $name_max + ');'
+#echo ' ' * (len($assert) + 1) + $name_min + ');'
+
+$(assert)(data);
 
 
 int err;
 
 #for $t, $n in $struct
-#if $decode
 #echo 'err = ' + $t.getDecode('decoder', '&data->' + $n) + ';'
 
 if (err)
 	return err;
-#end if
 #if $check
-err = $(prefix)_$(name)_check_$(n)(data->$n, ctx);
+err = $(prefix)_$(name)_check_$(n)(data->$n);
 if (err)
 	return err;
 #end if
     
 #end for
-#if $must
+#if $check and $must
 #for $f in $must
-err = $(f)(value, ctx);
+err = $(f)(value);
 if (err)
 	return err;
 
@@ -235,20 +255,36 @@ return 0;
             (f"int", f"{self.prefix}_{self.name}_unpack", [
                 (f"struct dpack_decoder *", "decoder", set()),
                 (f"struct {self.prefix}_{self.name} *", "data", set()),
-                (f"void *", "ctx", set())
             ], set(["__warn_result", "__nonull(1,2)"])),
-            str(Template(unpack_template, searchList=[nameSpace, {'decode': True, 'check':True}])).splitlines())
+            str(Template(unpack_template, searchList=[nameSpace, {'check':True}])).splitlines())
         
         addFunction(node, 
             (f"int", f"{self.prefix}_{self.name}_unpack_no_check", [
                 (f"struct dpack_decoder *", "decoder", set()),
                 (f"struct {self.prefix}_{self.name} *", "data", set())
             ], set(["__warn_result", "__nonull(1,2)"])),
-            str(Template(unpack_template, searchList=[nameSpace, {'decode': True, 'check':False}])).splitlines())
-        
+            str(Template(unpack_template, searchList=[nameSpace, {'check':False}])).splitlines())
+
+        check_template = '''\
+$(assert)(data);
+#for $t, $n in $struct
+$(assert)(!$(prefix)_$(name)_check_$(n)(data->$n));
+#end for
+
+#if $must
+int err;
+
+#for $f in $must
+err = $(f)(data);
+if (err)
+	return err;
+
+#end for
+#end if
+return 0;
+'''
         addFunction(node, 
             (f"int", f"{self.prefix}_{self.name}_check", [
                 (f"struct {self.prefix}_{self.name} *", "data", set()),
-                (f"void *", "ctx", set())
             ], set(["__warn_result", "__nonull(1)"])),
-            str(Template(unpack_template, searchList=[nameSpace, {'decode': False, 'check':True}])).splitlines())
+            str(Template(check_template, searchList=[nameSpace])).splitlines())

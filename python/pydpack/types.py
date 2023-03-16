@@ -41,13 +41,11 @@ return 0;
             self.check_attrs = {
                 "function": set(["__warn_result"]),
                 "value": set(),
-                "ctx": set(),
             }
         else:
             self.check_attrs = {
                 "function": set(["__warn_result"]),
                 "value": set(["__unused"]),
-                "ctx": set(["__unused"]),
             }
         self.check_template = '''\
 #if $must
@@ -84,11 +82,11 @@ return 0;
     def getMax(self) -> str:
         return self.max
     
-    def mustFree(self) -> bool:
-        return False
-    
     def getFree(self, data_name: str) -> str:
-        return ""
+        return None
+    
+    def getInit(self, data_name: str) -> str:
+        return None
     
     def addFunctions(self, name: str, struct_type: str) -> None:
         self.nameSpace["assert"]      = getAssertFunction(self.node)
@@ -107,7 +105,6 @@ return 0;
         str(Template(self.setter_template, searchList=[self.nameSpace])).splitlines())
         addFunction(self.node, ("int", f"{struct_type}_check_{name}", [
             (self.type, "value", self.check_attrs.get("value", set())),
-            ("void *", "ctx", self.check_attrs.get("ctx", set())),
         ], self.check_attrs.get("function", set())),
         str(Template(self.check_template, searchList=[self.nameSpace])).splitlines())
 
@@ -187,8 +184,8 @@ class boolType(BaseType):
                         'dpack/scalar.h',
                         'dpack_encode_bool',
                         'dpack_decode_bool',
-                        'DPACK_BOOL_SIZE_MIN',
-                        'DPACK_BOOL_SIZE_MAX')
+                        'DPACK_BOOL_SIZE',
+                        'DPACK_BOOL_SIZE')
 class stringType(BaseType):
     def __init__(self, ctx, node) -> None:
         super().__init__(ctx,
@@ -197,14 +194,14 @@ class stringType(BaseType):
                         'dpack/string.h',
                         'dpack_encode_str',
                         'dpack_decode_strdup',
-                        'DPACK_STRLEN_MAX',
-                        'DPACK_STRLEN_MAX')
-        
-    def mustFree(self):
-        return True
+                        '(1)',
+                        '(DPACK_STRLEN_MAX + 5)')
     
     def getFree(self, data_name: str) -> str:
         return f"free({data_name})"
+    
+    def getInit(self, data_name: str) -> str:
+        return f"{data_name} = NULL"
 
 class ExternTypedef(BaseType):
     def __init__(self, ctx, node, name, parent_node) -> None:
@@ -284,7 +281,7 @@ def dpack_Typedef_maker(ctx, node, name) -> None:
     value_unpack.append(f"{getAssertFunction(node)}(decoder)")
     value_unpack.append(f"{getAssertFunction(node)}(value)")
     value_unpack.append(f"{getAssertFunction(node)}(dpack_decoder_data_left(decoder) >=")
-    value_unpack.append(f"{' ' * (len(getAssertFunction(node)) + 1)}{_max});")
+    value_unpack.append(f"{' ' * (len(getAssertFunction(node)) + 1)}{_min});")
     newline(value_unpack)
     value_unpack.append(f"return {dpType.getDecode('decoder', 'value')};")
 
