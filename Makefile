@@ -1,6 +1,6 @@
 BUILDDIR := $(CURDIR)/build
 
-DPACK_DEBUG := 1
+DPACK_DEBUG := 0
 
 ifeq ($(DPACK_DEBUG),1)
 DEBUG_CFLAGS    := -ggdb3 -DDPACK_DEBUG
@@ -55,7 +55,7 @@ clean:
 ################################################################################
 
 # Sample test binaries
-test_objs := test-fix_sample test-scalar_array_sample
+test_objs := test-fix_sample test-scalar_array_sample test-map_sample
 
 .PHONY: check
 check: $(addprefix $(BUILDDIR)/,$(test_objs))
@@ -70,7 +70,7 @@ $(BUILDDIR)/test.o: sample/test.c | $(BUILDDIR)
 	$(CC) -MD -Itest -fpie $(CFLAGS) -o $(@) -c $(<)
 
 # Sample libraries
-sample_apps := fix_sample scalar_array_sample
+sample_apps := fix_sample scalar_array_sample map_sample
 sample_libs := $(addsuffix .a,$(addprefix $(BUILDDIR)/lib,$(sample_apps)))
 sample_objs := $(addsuffix .o,$(addprefix $(BUILDDIR)/,$(sample_apps)))
 

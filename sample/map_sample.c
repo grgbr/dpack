@@ -1,47 +1,9 @@
-
 #include "map_sample.h"
 #include <dpack/codec.h>
 #include <assert.h>
 
-#define map_sample_assert(condition) \
-	assert(condition)
-
-enum map_sample_field {
-	MAP_SAMPLE_ASHORT_FLD  = 0,
-	MAP_SAMPLE_ASTRING_FLD = 1,
-	MAP_SAMPLE_ABOOL_FLD   = 2,
-	MAP_SAMPLE_ANUINT_FLD  = 3,
-	MAP_SAMPLE_FLD_NR
-};
-
-struct map_sample {
-	unsigned int filled;
-	int16_t      ashort;
-	const char * astring;
-	bool         abool;
-	uint32_t     anuint;
-};
-
-#define MAP_SAMPLE_VALID_FLD_MSK   ((1U << MAP_SAMPLE_FLD_NR) - 1)
-#define MAP_SAMPLE_MAND_FLD_MSK    (MAP_SAMPLE_ASHORT_FLD | \
-                                    MAP_SAMPLE_ABOOL_FLD)
-#define MAP_SAMPLE_MAND_FLD_NR     (2U)
-
-#define MAP_SAMPLE_ASHORT_MIN      (10U)
-#define MAP_SAMPLE_ASHORT_MAX      (200U)
-
-#define MAP_SAMPLE_ASTRING_LEN_MIN (4U)
-#define MAP_SAMPLE_ASTRING_LEN_MAX (63U)
-
-static inline int
-map_sample_check_anuint(uint32_t value)
-{
-	/* No particular invalid values... */
-	return 0;
-}
-
 int
-map_sample_check_ashort(uint16_t value)
+map_sample_check_ashort(int16_t value)
 {
 	if ((value < MAP_SAMPLE_ASHORT_MIN) || (value > MAP_SAMPLE_ASHORT_MAX))
 		return -EINVAL;
@@ -61,11 +23,11 @@ map_sample_unpack_ashort(struct dpack_decoder * decoder,
 	if (sample->filled & (1U << MAP_SAMPLE_ASHORT_FLD))
 		return -EEXIST;
 
-	err = dpack_decode_uint16(decoder, &data->ashort);
+	err = dpack_decode_int16(decoder, &sample->ashort);
 	if (err)
 		return err;
 
-	err = map_sample_check_ashort(data->ashort);
+	err = map_sample_check_ashort(sample->ashort);
 	if (err)
 		return err;
 
@@ -75,7 +37,7 @@ map_sample_unpack_ashort(struct dpack_decoder * decoder,
 }
 
 int
-map_sample_check_astring(const char * value, size_t len)
+map_sample_check_astring(const char * value __unused, size_t len)
 {
 	/* dpack does not unpack empty strings. */
 	map_sample_assert(value);
@@ -104,7 +66,7 @@ map_sample_unpack_astring(struct dpack_decoder * decoder,
 
 	int ret;
 
-	if (sample->filled & (1U << MAP_SAMPLE_ASTRING_FLD)) {
+	if (sample->filled & (1U << MAP_SAMPLE_ASTRING_FLD)) {
 		map_sample_assert(sample->astring);
 		return -EEXIST;
 	}
@@ -113,7 +75,7 @@ map_sample_unpack_astring(struct dpack_decoder * decoder,
 	if (ret)
 		return ret;
 
-	ret = map_sample_check_astring(data->astring, ret);
+	ret = map_sample_check_astring(sample->astring, ret);
 	if (ret)
 		goto free;
 
@@ -146,7 +108,7 @@ map_sample_unpack_abool(struct dpack_decoder * decoder,
 	if (sample->filled & (1U << MAP_SAMPLE_ABOOL_FLD))
 		return -EEXIST;
 
-	err = dpack_decode_bool(decoder, &data->abool);
+	err = dpack_decode_bool(decoder, &sample->abool);
 	if (err)
 		return err;
 
@@ -169,11 +131,11 @@ map_sample_unpack_anuint(struct dpack_decoder * decoder,
 	if (sample->filled & (1U << MAP_SAMPLE_ANUINT_FLD))
 		return -EEXIST;
 
-	err = dpack_decode_uint32(decoder, &data->anuint);
+	err = dpack_decode_uint32(decoder, &sample->anuint);
 	if (err)
 		return err;
 
-	err = map_sample_check_anuint(data->anuint);
+	err = map_sample_check_anuint(sample->anuint);
 	if (err)
 		return err;
 
@@ -183,11 +145,11 @@ map_sample_unpack_anuint(struct dpack_decoder * decoder,
 }
 
 int
-map_sample_check(struct map_sample * sample)
+map_sample_check(const struct map_sample * sample)
 {
 	/* Assert that sample has no invalid filled fields. */
 	map_sample_assert(sample);
-	map_sample_assert(!(map->filled & ~MAP_SAMPLE_VALID_FLD_MSK));
+	map_sample_assert(!(sample->filled & ~MAP_SAMPLE_VALID_FLD_MSK));
 
 	/* Now ensure all mandatory fields are set. */
 	if ((sample->filled & MAP_SAMPLE_MAND_FLD_MSK) !=
@@ -241,9 +203,9 @@ map_sample_pack(struct dpack_encoder    * encoder,
 	dpack_map_begin_encode(encoder, __builtin_popcount(sample->filled));
 
 	/* ashort field is mandatory. */
-	err = dpack_map_encode_uint16(encoder,
-	                              MAP_SAMPLE_ASHORT_FLD,
-	                              sample->ashort);
+	err = dpack_map_encode_int16(encoder,
+	                             MAP_SAMPLE_ASHORT_FLD,
+	                             sample->ashort);
 	if (err)
 		return err;
 
@@ -272,7 +234,7 @@ map_sample_pack(struct dpack_encoder    * encoder,
 			return err;
 	}
 
-	dpack_array_end_encode(encoder);
+	dpack_map_end_encode(encoder);
 
 	return 0;
 }
@@ -296,13 +258,14 @@ map_sample_unpack(struct dpack_decoder * decoder, struct map_sample * sample)
 	err = dpack_map_begin_decode_range(decoder,
 	                                   MAP_SAMPLE_MAND_FLD_NR,
 	                                   MAP_SAMPLE_FLD_NR,
-	                                   &nr)
+	                                   &nr);
 	if (err)
 		return err;
 
 	for (cnt = 0; cnt < nr; cnt++) {
 		/* Assert that fields marked as filled are valid. */
-		map_sample_assert(!(map->filled & ~MAP_SAMPLE_VALID_FLD_MSK))
+		map_sample_assert(!(sample->filled &
+		                    ~MAP_SAMPLE_VALID_FLD_MSK));
 
 		unsigned int fid;
 
@@ -339,5 +302,42 @@ map_sample_unpack(struct dpack_decoder * decoder, struct map_sample * sample)
 
 	dpack_map_end_decode(decoder);
 
-	return map_sample_check(data);
+	return map_sample_check(sample);
+}
+
+const struct map_sample map_sample_dflt = {
+	.filled = 0,
+	.astring = "default astring field string"
+};
+
+void
+map_sample_fini(struct map_sample * sample)
+{
+	map_sample_assert(sample);
+
+	if (sample->filled & (1U << MAP_SAMPLE_ASTRING_FLD))
+		free(sample->astring);
+}
+
+struct map_sample *
+map_sample_create(void)
+{
+	struct map_sample * spl;
+
+	spl = map_sample_alloc();
+	if (!spl)
+		return NULL;
+
+	map_sample_init(spl);
+
+	return spl;
+}
+
+void
+map_sample_destroy(struct map_sample * sample)
+{
+	map_sample_assert(sample);
+
+	map_sample_fini(sample);
+	map_sample_free(sample);
 }
