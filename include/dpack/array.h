@@ -22,7 +22,7 @@ struct dpack_decoder;
 
 /* Check DPACK_ARRAY_ELMNR_MAX definition is sensible. */
 #if DPACK_ARRAY_ELMNR_MAX > DPACK_ARRAY32_ELMNR_MAX
-#error msgpack cannot encode array which length is > UINT32_MAX !
+#error msgpack cannot encode arrays containing more that UINT32_MAX elements !
 #elif DPACK_ARRAY_ELMNR_MAX < 4U
 #error Huh ?!
 #endif
