@@ -37,10 +37,8 @@ struct map_sample {
 #define MAP_SAMPLE_ASTRING_LEN_MIN (4U)
 #define MAP_SAMPLE_ASTRING_LEN_MAX (63U)
 
-extern const struct map_sample map_sample_dflt;
-
 #define MAP_SAMPLE_INIT \
-	map_sample_dflt
+	{ .filled = 0 }
 
 #define MAP_SAMPLE_DECL(_name) \
 	struct map_sample _name = MAP_SAMPLE_INIT
@@ -102,10 +100,10 @@ map_sample_get_ashort(const struct map_sample * sample, int16_t * value)
 
 	/*
 	 * Despite being a mandatory field, we still want the caller to be able
-	 * to retrieve the current value. Tell him by returning -ENOENT.
+	 * to retrieve the current value. Tell him by returning -EPERM.
 	 */
 	if (!(sample->filled & (1U << MAP_SAMPLE_ASHORT_FLD)))
-		return -ENOENT;
+		return -EPERM;
 
 	map_sample_assert(!map_sample_check_ashort(sample->ashort));
 
@@ -140,10 +138,12 @@ map_sample_get_astring(const struct map_sample * sample, const char ** value)
 			        MAP_SAMPLE_ASTRING_LEN_MAX + 1)));
 
 	/* This field is optional with a default value. */
-	if (!(sample->filled & (1U << MAP_SAMPLE_ASTRING_FLD)))
-		*value = sample->astring;
+	if (!(sample->filled & (1U << MAP_SAMPLE_ASTRING_FLD))) {
+		extern const char * const map_sample_dflt_astring;
+		*value = map_sample_dflt_astring;
+	}
 	else
-		*value = map_sample_dflt.astring;
+		*value = sample->astring;
 
 	return 0;
 }
@@ -165,10 +165,10 @@ map_sample_get_abool(const struct map_sample * sample, bool * value)
 
 	/*
 	 * Despite being a mandatory field, we still want the caller to be able
-	 * to retrieve the current value. Tell him by returning -ENOENT.
+	 * to retrieve the current value. Tell him by returning -EPERM.
 	 */
 	if (!(sample->filled & (1U << MAP_SAMPLE_ABOOL_FLD)))
-		return -ENOENT;
+		return -EPERM;
 
 	*value = sample->abool;
 
@@ -192,7 +192,7 @@ map_sample_get_anuint(const struct map_sample * sample, unsigned int * value)
 	map_sample_assert(value);
 
 	if (!(sample->filled & (1U << MAP_SAMPLE_ANUINT_FLD)))
-		return -ENOENT;
+		return -EPERM;
 
 	map_sample_assert(!map_sample_check_anuint(sample->anuint));
 
@@ -206,7 +206,7 @@ map_sample_init(struct map_sample * sample)
 {
 	map_sample_assert(sample);
 
-	*sample = map_sample_dflt;
+	sample->filled = 0;
 }
 
 extern void

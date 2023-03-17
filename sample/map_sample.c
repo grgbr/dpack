@@ -154,7 +154,7 @@ map_sample_check(const struct map_sample * sample)
 	/* Now ensure all mandatory fields are set. */
 	if ((sample->filled & MAP_SAMPLE_MAND_FLD_MSK) !=
 	    MAP_SAMPLE_MAND_FLD_MSK)
-		return -ENOENT;
+		return -EPERM;
 
 	/*
 	 * If we are really paranoid, perform assertion checking for all
@@ -305,10 +305,7 @@ map_sample_unpack(struct dpack_decoder * decoder, struct map_sample * sample)
 	return map_sample_check(sample);
 }
 
-const struct map_sample map_sample_dflt = {
-	.filled = 0,
-	.astring = "default astring field string"
-};
+const char * const map_sample_dflt_astring = "default astring field string";
 
 void
 map_sample_fini(struct map_sample * sample)
