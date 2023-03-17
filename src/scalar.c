@@ -54,6 +54,7 @@ dpack_xtract_uint64_min(struct mpack_reader_t * reader,
                         uint64_t                low,
                         uint64_t              * value)
 {
+	dpack_assert(reader);
 	dpack_assert(mpack_reader_error(reader) == mpack_ok);
 	dpack_assert(low);
 	dpack_assert(value);
@@ -79,6 +80,7 @@ dpack_xtract_uint64_max(struct mpack_reader_t * reader,
                         uint64_t                high,
                         uint64_t              * value)
 {
+	dpack_assert(reader);
 	dpack_assert(mpack_reader_error(reader) == mpack_ok);
 	dpack_assert(high);
 	dpack_assert(high < UINT64_MAX);
@@ -106,6 +108,7 @@ dpack_xtract_uint64_range(struct mpack_reader_t * reader,
                           uint64_t                high,
                           uint64_t              * value)
 {
+	dpack_assert(reader);
 	dpack_assert(mpack_reader_error(reader) == mpack_ok);
 	dpack_assert(low);
 	dpack_assert(low < high);
@@ -234,6 +237,7 @@ dpack_xtract_int64_range(struct mpack_reader_t * reader,
                          int64_t                 high,
                          int64_t               * value)
 {
+	dpack_assert(reader);
 	dpack_assert(mpack_reader_error(reader) == mpack_ok);
 	dpack_assert(low > INT64_MIN);
 	dpack_assert(low < high);
@@ -243,11 +247,29 @@ dpack_xtract_int64_range(struct mpack_reader_t * reader,
 	struct mpack_tag_t tag;
 	int                err;
 
-	err = dpack_decode_tag(reader, mpack_type_int, &tag);
-	if (err)
-		return err;
+	tag = mpack_read_tag(reader);
+	err = mpack_reader_error(reader);
+	if (err != mpack_ok)
+		return dpack_errno_from_mpack(err);
 
-	*value = mpack_tag_int_value(&tag);
+	/*
+	 * Positive integers are encoded using mpack_type_uint type, negative
+	 * ones the mpack_type_int type. Check for both.
+	 */
+	switch (mpack_tag_type(&tag)) {
+	case mpack_type_int:
+		*value = mpack_tag_int_value(&tag);
+		break;
+
+	case mpack_type_uint:
+		*value = (int64_t)mpack_tag_uint_value(&tag);
+		break;
+
+	default:
+		mpack_reader_flag_error(reader, mpack_error_type);
+		return -ENOMSG;
+	}
+
 	if ((*value < low) || (*value > high)) {
 		mpack_reader_flag_error(reader, mpack_error_data);
 		return -ERANGE;
