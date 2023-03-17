@@ -1,6 +1,6 @@
 from pyang.error import err_add
 from pyang import util
-from pyang.statements import search_typedef
+from pyang.statements import search_typedef, is_mandatory_node
 from pydpack.util import *
 from Cheetah.Template import Template
 
@@ -127,6 +127,9 @@ return 0;
     
     def hasInit(self) -> bool:
         return False
+    
+    def isMandatory(self) -> bool:
+        return is_mandatory_node(self.node)
     
     def addFunctions(self, name: str, struct_type: str) -> None:
         self.nameSpace["assert"]      = getAssertFunction(self.node)

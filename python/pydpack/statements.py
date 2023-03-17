@@ -82,22 +82,26 @@ class Struct(object):
             name = toid(c.arg)
             if c.keyword in ['leaf', 'leaf-list']:
                 type = types.getType(ctx, c)
-            elif c.keyword in ['container', 'list']:
-                type = types.BaseType(
-                        f"struct {self.prefix}_{c.arg}",
-                        None,
-                        None,
-                        None,
-                        None,
-                        None
-                )
+            # elif c.keyword in ['container', 'list']:
+            #     type = types.BaseType(
+            #             f"struct {self.prefix}_{c.arg}",
+            #             None,
+            #             None,
+            #             None,
+            #             None,
+            #             None
+            #     )
             else:
-                raise BaseException(f"{c.pos} bad keyword {c.keyword}")
+                err_add(ctx.errors, c.pos,'TYPE_NOT_FOUND', (f"struct {self.prefix}_{c.arg}", "dpack types"))
+                return
             struct.append((type, name))
 
         name_struct = f"{self.prefix}_{self.name}"
         name_min = f"{todef(self.prefix)}_{todef(self.name)}_PACKED_SIZE_MIN"
         name_max = f"{todef(self.prefix)}_{todef(self.name)}_PACKED_SIZE_MAX"
+        name_validFld = f"{todef(self.prefix)}_{todef(self.name)}_VALID_FLD_MSK"
+        name_mandFld = f"{todef(self.prefix)}_{todef(self.name)}_MAND_FLD_MSK"
+        name_mandNR = f"{todef(self.prefix)}_{todef(self.name)}_MAND_FLD_NR"
         value_min = []
         value_max = []
         value_struct = []
@@ -108,23 +112,45 @@ class Struct(object):
             'assert': getAssertFunction(node),
             'name_min': name_min,
             'name_max': name_max,
+            'valid_fld': name_validFld,
+            'mand_fld': name_mandFld,
+            'mand_nr': name_mandNR,
             'struct': struct,
             'must': parseMust(self.ctx, self.node),
         }
 
+        mandFld = []
         enum_field = []
         for i, x in enumerate(struct):
             t, n = x
             t.addFunctions(n, name_struct)
-            enum_field.append((todef(f"{name_struct}_{n}_FLD"), i))
+            fld = todef(f"{name_struct}_{n}_FLD")
+            enum_field.append((fld, i))
             value_struct.append((t.getType(), n))
             value_min.append(f"{t.getMin()} +")
             value_max.append(f"{t.getMax()} +")
-        enum_field.append((todef(f"{name_struct}_FLD_NR"), None))
+            if t.isMandatory():
+                mandFld.append(f"{fld} |")
+        fld = todef(f"{name_struct}_FLD_NR")
+        enum_field.append((fld, None))
+
+        addDefine(node, name_mandNR, addBracket([f"{len(mandFld)}U"]))
+        addDefine(node, name_validFld, addBracket([f"(1U << {fld}) - 1"]))
+        if mandFld:
+            mandFld[-1] = mandFld[-1][:-2]
+        else:
+            mandFld = [0]
+        addDefine(node, name_mandFld, addBracket(mandFld))
 
         addEnum(node, f"{name_struct}_field", enum_field)
-        value_min[-1] = value_min[-1][:-2]
-        value_max[-1] = value_max[-1][:-2]
+        if value_min:
+            value_min[-1] = value_min[-1][:-2]
+        else:
+            value_min = [0]
+        if value_max:
+            value_max[-1] = value_max[-1][:-2]
+        else:
+            value_max = [0]
         addDefine(node, name_min, addBracket(value_min))
         addDefine(node, name_max, addBracket(value_max))
         addStructure(node, name_struct, value_struct)
@@ -264,13 +290,27 @@ return 0;
 
         check_template = '''\
 $(assert)(data);
-#for $t, $n in $struct
-$(assert)(!$(prefix)_$(name)_check_$(n)(data->$n));
-#end for
+$(assert)(!(data->filled & ~$valid_fld));
 
 #if $must
 int err;
 
+#end if
+if ((data->filled & $mand_fld) !=
+    $mand_fld)
+	return -ENOENT;
+
+#for $t, $n in $struct
+#if $t.isMandatory()
+$(assert)(!$(prefix)_$(name)_check_$(n)(data->$n));
+#else
+$(assert)(!$(prefix)_$(name)_has_$(n)(data) ||
+#echo " " * (len($assert) + 1)
+!$(prefix)_$(name)_check_$(n)(data->$n));
+#end if
+#end for
+
+#if $must
 #for $f in $must
 err = $(f)(data);
 if (err)

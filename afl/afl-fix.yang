@@ -14,6 +14,7 @@ module afl-fix{
 	}
 
 	container sample {
+		presence "keyword mandatory if mandatory leaf is present";
 		description "The sample main container";
 		leaf u8 {
 			type uint8;
@@ -23,7 +24,7 @@ module afl-fix{
 			type uint16;
 			description "Sample uint16 leaf";
 		}
-		leaf u34 {
+		leaf u32 {
 			type uint32 {
 				range "1..50 | 700";
 			}
@@ -41,12 +42,13 @@ module afl-fix{
 			type int16;
 			description "Sample int16 leaf";
 		}
-		leaf s34 {
+		leaf s32 {
 			type int32;
 			description "Sample int32 leaf";
 		}
 		leaf s64 {
 			type int64;
+			mandatory true;
 			description "Sample int64 leaf";
 		}
 		leaf boolean {

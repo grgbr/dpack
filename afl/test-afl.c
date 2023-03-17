@@ -63,6 +63,7 @@ pack_to_file(const char *path)
 	dpack_init_buffer_encoder(&enc, buff, AFL_SAMPLE_PACKED_SIZE_MAX);
 	err |= afl_sample_init(&spl);
 	afl_sample_set_string(&spl, string);
+	afl_sample_set_s64(&spl, -1);
 	err |= afl_sample_pack(&enc, &spl);
 	err |= save_to_file(path, buff, dpack_encoder_space_used(&enc));
 	dpack_exit_encoder(&enc);
