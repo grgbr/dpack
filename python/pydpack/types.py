@@ -14,7 +14,11 @@ class BaseType(object):
         self.min = _min
         self.max = _max
         addIncludes(node, self.include)
-        self.nameSpace = dict()
+        self.nameSpace = {
+            'encode': self.encode,
+            'decode': self.decode,
+            'check':ctx.opts.dpack_no_check,
+        }
 
         self.getter_attrs = {
             "function": set(["__warn_result", "__nonull(1,2)"])
@@ -23,18 +27,21 @@ class BaseType(object):
 $(assert)(obj);
 $(assert)(result);
 
+if (!$(struct_type)_has_$(name)(obj))
+	return -EPERM;
+
 *result = obj->$name;
 return 0;
 '''
         self.setter_attrs = {
-            "function": set(["__warn_result", "__nonull(1)"])
+            "function": set(["__nonull(1)"])
         }
         self.setter_template = '''\
 $(assert)(obj);
-$(assert)($(struct_type)_check_$(name)(value) == 0);
+$(assert)(!$(struct_type)_check_$(name)(value));
 
 obj->$name = value;
-return 0;
+obj->filled |= (1U << $field);
 '''
         self.nameSpace['must'] = parseMust(ctx, self.node)
         if self.nameSpace['must']:
@@ -60,6 +67,45 @@ if (err)
 #end if
 return 0;
 '''
+        self.pack_attrs = {
+            "function": set(["__warn_result"]),
+        }
+        self.pack_template = '''\
+$(assert)(encoder);
+$(assert)(data);
+
+const struct $struct_type *obj = (struct $(struct_type) *)data;
+int err;
+
+err = $(encode)(encoder, obj->$name);
+if (err)
+	return err;
+
+return 0;
+'''
+
+        self.unpack_attrs = {
+            "function": set(["__warn_result"]),
+        }
+        self.unpack_template = '''\
+$(assert)(decoder);
+$(assert)(data);
+
+int err;
+struct $struct_type *obj = (struct $(struct_type) *)data;
+
+err = $(decode)(decoder, &obj->$name);
+if (err)
+	return err;
+#if $check
+
+err = $(struct_type)_check_$(name)(obj->$name);
+if (err)
+	return err;
+#end if
+
+return 0;
+'''
 
     def updateName(self, name: str) -> str:
         return name
@@ -70,43 +116,58 @@ return 0;
     def getType(self) -> str:
         return self.type
 
-    def getEncode(self, ctx_name: str, data_name: str) -> str:
-        return f"{self.encode}({ctx_name}, {data_name})"
-
-    def getDecode(self, ctx_name: str, data_name: str) -> str:
-        return f"{self.decode}({ctx_name}, {data_name})"
-
     def getMin(self) -> str:
         return self.min
 
     def getMax(self) -> str:
         return self.max
     
-    def getFree(self, data_name: str) -> str:
-        return None
+    def hasFini(self) -> bool:
+        return False
     
-    def getInit(self, data_name: str) -> str:
-        return None
+    def hasInit(self) -> bool:
+        return False
     
     def addFunctions(self, name: str, struct_type: str) -> None:
         self.nameSpace["assert"]      = getAssertFunction(self.node)
         self.nameSpace["name"]        = name
         self.nameSpace["struct_type"] = struct_type
+        self.nameSpace["field"]       = todef(f"{struct_type}_{name}_FLD")
 
-        addFunction(self.node, ("int", f"{struct_type}_get_{name}", [
-            (f"struct {struct_type} *", "obj", self.getter_attrs.get("obj", set())),
+        addExternFunction(self.node, ("int", f"{struct_type}_get_{name}", [
+            (f"const struct {struct_type} *", "obj", self.getter_attrs.get("obj", set())),
             (f"{self.type} *", "result", self.getter_attrs.get("result", set())),
         ], self.getter_attrs.get("function", set())),
         str(Template(self.getter_template, searchList=[self.nameSpace])).splitlines())
-        addFunction(self.node, ("int", f"{struct_type}_set_{name}", [
+
+        addExternFunction(self.node, ("void", f"{struct_type}_set_{name}", [
             (f"struct {struct_type} *", "obj", self.setter_attrs.get("obj", set())),
             (self.type, "value", self.setter_attrs.get("value", set())),
         ], self.setter_attrs.get("function", set())),
         str(Template(self.setter_template, searchList=[self.nameSpace])).splitlines())
-        addFunction(self.node, ("int", f"{struct_type}_check_{name}", [
-            (self.type, "value", self.check_attrs.get("value", set())),
+
+        addExternFunction(self.node, ("int", f"{struct_type}_check_{name}", [
+            ("const " + self.type, "value", self.check_attrs.get("value", set())),
         ], self.check_attrs.get("function", set())),
         str(Template(self.check_template, searchList=[self.nameSpace])).splitlines())
+
+        addStaticFunction(self.node, ("int", f"{struct_type}_pack_{name}", [
+            ('struct dpack_encoder *', "encoder", self.pack_attrs.get("encoder", set())),
+            ('const void *', "data", self.pack_attrs.get("data", set())),
+        ], self.pack_attrs.get("function", set())),
+        str(Template(self.pack_template, searchList=[self.nameSpace])).splitlines())
+
+        addStaticFunction(self.node, ("int", f"{struct_type}_unpack_{name}", [
+            ('struct dpack_decoder *', "decoder", self.unpack_attrs.get("decoder", set())),
+            ('void *', "data", self.unpack_attrs.get("data", set())),
+        ], self.unpack_attrs.get("function", set())),
+        str(Template(self.unpack_template, searchList=[self.nameSpace])).splitlines())
+
+        addExternFunction(self.node,
+            ('bool', f"{struct_type}_has_{name}", [
+                (f"const struct {struct_type} *", "data", set()),
+            ], set(["__warn_result"])),
+            [f"return data->filled & (1U << {self.nameSpace['field']});"])
 
 class scalarType(BaseType):
     unit2c = {
@@ -196,12 +257,18 @@ class stringType(BaseType):
                         'dpack_decode_strdup',
                         '(1)',
                         '(DPACK_STRLEN_MAX + 5)')
+
+    def hasFini(self):
+        return True
     
-    def getFree(self, data_name: str) -> str:
-        return f"free({data_name})"
-    
-    def getInit(self, data_name: str) -> str:
-        return f"{data_name} = NULL"
+    def addFunctions(self, name, struct_type):
+        super().addFunctions(name, struct_type)
+        addStaticFunction(self.node, ("void", f"{struct_type}_fini_{name}", [
+            (self.type, "value", set()),
+        ], set()),
+        str(Template('''\
+free(value);
+''', searchList=[self.nameSpace])).splitlines())
 
 class ExternTypedef(BaseType):
     def __init__(self, ctx, node, name, parent_node) -> None:
@@ -285,11 +352,11 @@ def dpack_Typedef_maker(ctx, node, name) -> None:
     newline(value_unpack)
     value_unpack.append(f"return {dpType.getDecode('decoder', 'value')};")
 
-    addFunction(node, ("int", _encode, [
+    addExternFunction(node, ("int", _encode, [
         ("struct dpack_encoder *", "encoder", set()),
         (_type, "value", set()),
     ], set()), value_pack)
-    addFunction(node, ("int", _decode, [
+    addExternFunction(node, ("int", _decode, [
         ("struct dpack_decoder *", "decoder", set()),
         (_type + " *", "value", set()),
     ], set()), value_unpack)

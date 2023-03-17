@@ -23,8 +23,10 @@ class Module(object):
             ),
         ]
         self.typedefs = []
+        self.enums = []
         self.InlineFunctions = []
-        self.functions = []
+        self.ExternFunctions = []
+        self.StaticFunctions = []
         self.structures = []
         
         self.name = self.node.arg
@@ -43,10 +45,12 @@ class Module(object):
             "name":            self.name,
             "define":          self.define,
             "defines":         self.defines,
+            "enums":           self.enums,
             "includes":        self.includes,
             "typedefs":        self.typedefs,
             "InlineFunctions": self.InlineFunctions,
-            "functions":       self.functions,
+            "StaticFunctions": self.StaticFunctions,
+            "ExternFunctions": self.ExternFunctions,
             "structures":      self.structures,
         }
         chs = [ch for ch in self.node.i_children
@@ -108,62 +112,73 @@ class Struct(object):
             'must': parseMust(self.ctx, self.node),
         }
 
-        for t, n in struct:
+        enum_field = []
+        for i, x in enumerate(struct):
+            t, n = x
             t.addFunctions(n, name_struct)
-
+            enum_field.append((todef(f"{name_struct}_{n}_FLD"), i))
             value_struct.append((t.getType(), n))
-
             value_min.append(f"{t.getMin()} +")
             value_max.append(f"{t.getMax()} +")
+        enum_field.append((todef(f"{name_struct}_FLD_NR"), None))
 
+        addEnum(node, f"{name_struct}_field", enum_field)
         value_min[-1] = value_min[-1][:-2]
         value_max[-1] = value_max[-1][:-2]
         addDefine(node, name_min, addBracket(value_min))
         addDefine(node, name_max, addBracket(value_max))
         addStructure(node, name_struct, value_struct)
-        addFunction(node, 
+        addExternFunction(node, 
             (f"struct {self.prefix}_{self.name} *", f"{self.prefix}_{self.name}_alloc", [], set(["__warn_result"])),
             [f"return malloc(sizeof(struct {self.prefix}_{self.name}));"])
-        addFunction(node, 
+        addExternFunction(node, 
             (f"void", f"{self.prefix}_{self.name}_free", [
                 (f"struct {self.prefix}_{self.name} *", "data", set())
             ], set()),
             ["free(data);"])
 
-        init_data_attrs = set(["__unused"])
+        nameSpace['hasInit'] = False
         for t, _ in struct:
-            if t.getInit(''):
-                init_data_attrs.remove("__unused")
+            if t.hasInit():
+                nameSpace['hasInit'] = True
                 break
         init_template = '''\
+#if $hasInit
+int err;
+
+#end if
 #for $t, $n in $struct
-#set $init = $t.getInit('data->' + $n)
-#if $init
-$init;
+#if $t.hasInit()
+err = $(prefix)_$(name)_init_$(n)(&data->$n);
+if (err)
+	return err;
+
 #end if
 #end for
+data->filled = 0;
 return 0;
 '''
-        addFunction(node, 
+        addExternFunction(node, 
             (f"int", f"{self.prefix}_{self.name}_init", [
-                (f"struct {self.prefix}_{self.name} *", "data", init_data_attrs)
+                (f"struct {self.prefix}_{self.name} *", "data", set())
             ], set(["__warn_result", "__nonull(1)"])),
             str(Template(init_template, searchList=[nameSpace])).splitlines())
 
         fini_template = '''\
+#from pydpack.util import todef
 #for $t, $n in $struct
-#set $free = $t.getFree('data->' + $n)
-#if $free
-$free;
+#if $t.hasFini()
+if (!$(prefix)_$(name)_has_$(n)(data))
+	$(prefix)_$(name)_fini_$(n)(data->$n);
 #end if
 #end for
 '''
         fini_data_attrs = set(["__unused"])
         for t, _ in struct:
-            if t.getFree(''):
+            if t.hasFini():
                 fini_data_attrs.remove("__unused")
                 break
-        addFunction(node, 
+        addExternFunction(node, 
             (f"void", f"{self.prefix}_{self.name}_fini", [
                 (f"struct {self.prefix}_{self.name} *", "data", fini_data_attrs)
             ], set(["__nonull(1)"])),
@@ -176,15 +191,22 @@ data = $(prefix)_$(name)_alloc();
 if (data == NULL)
 	return NULL;
 
-if ($(prefix)_$(name)_init(data) == 0)
+if (!$(prefix)_$(name)_init(data))
 	return data;
 
 $(prefix)_$(name)_free(data);
 return NULL;
 '''
-        addFunction(node, 
+        addExternFunction(node, 
             (f"struct {self.prefix}_{self.name} *", f"{self.prefix}_{self.name}_create", [], set(["__warn_result"])),
             str(Template(create_template, searchList=[nameSpace])).splitlines())
+
+        addExternFunction(node, 
+            (f"void", f"{self.prefix}_{self.name}_destroy", [
+                (f"struct {self.prefix}_{self.name} *", "data", set())
+            ], set(["__nonull(1)"])),
+            [f"{self.prefix}_{self.name}_fini(data);",
+             f"{self.prefix}_{self.name}_free(data);"])
 
         pack_template = '''\
 $(assert)(encoder);
@@ -192,27 +214,19 @@ $(assert)(data);
 $(assert)(dpack_encoder_space_left(encoder) >=
 #echo ' ' * (len($assert) + 1) + $name_min + ');'
 
+$(assert)($(prefix)_$(name)_check(data));
 
 int err;
 
 #for $t, $n in $struct
-#echo 'err = ' + $t.getEncode('encoder', 'data->' + $n) + ';'
-
+err = $(prefix)_$(name)_pack_$(n)(encoder, data);
 if (err)
 	return err;
 
 #end for
 return 0;
 '''
-
-        addFunction(node, 
-            (f"void", f"{self.prefix}_{self.name}_destroy", [
-                (f"struct {self.prefix}_{self.name} *", "data", set())
-            ], set(["__nonull(1)"])),
-            [f"{self.prefix}_{self.name}_fini(data);",
-             f"{self.prefix}_{self.name}_free(data);"])
-
-        addFunction(node, 
+        addExternFunction(node, 
             (f"int", f"{self.prefix}_{self.name}_pack", [
                 (f"struct dpack_encoder *", "encoder", set()),
                 (f"const struct {self.prefix}_{self.name} *", "data", set())
@@ -230,40 +244,23 @@ $(assert)(data);
 int err;
 
 #for $t, $n in $struct
-#echo 'err = ' + $t.getDecode('decoder', '&data->' + $n) + ';'
-
+err = $(prefix)_$(name)_unpack_$(n)(decoder, data);
 if (err)
 	return err;
+
+#end for
 #if $check
-err = $(prefix)_$(name)_check_$(n)(data->$n);
-if (err)
-	return err;
-#end if
-    
-#end for
-#if $check and $must
-#for $f in $must
-err = $(f)(value);
-if (err)
-	return err;
-
-#end for
-#end if
+return $(prefix)_$(name)_check(data);
+#else
 return 0;
+#end if
 '''
-        addFunction(node, 
+        addExternFunction(node, 
             (f"int", f"{self.prefix}_{self.name}_unpack", [
                 (f"struct dpack_decoder *", "decoder", set()),
                 (f"struct {self.prefix}_{self.name} *", "data", set()),
             ], set(["__warn_result", "__nonull(1,2)"])),
-            str(Template(unpack_template, searchList=[nameSpace, {'check':True}])).splitlines())
-        
-        addFunction(node, 
-            (f"int", f"{self.prefix}_{self.name}_unpack_no_check", [
-                (f"struct dpack_decoder *", "decoder", set()),
-                (f"struct {self.prefix}_{self.name} *", "data", set())
-            ], set(["__warn_result", "__nonull(1,2)"])),
-            str(Template(unpack_template, searchList=[nameSpace, {'check':False}])).splitlines())
+            str(Template(unpack_template, searchList=[nameSpace, {'check':ctx.opts.dpack_no_check}])).splitlines())
 
         check_template = '''\
 $(assert)(data);
@@ -283,8 +280,8 @@ if (err)
 #end if
 return 0;
 '''
-        addFunction(node, 
+        addExternFunction(node, 
             (f"int", f"{self.prefix}_{self.name}_check", [
-                (f"struct {self.prefix}_{self.name} *", "data", set()),
+                (f"const struct {self.prefix}_{self.name} *", "data", set()),
             ], set(["__warn_result", "__nonull(1)"])),
             str(Template(check_template, searchList=[nameSpace])).splitlines())

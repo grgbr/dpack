@@ -18,14 +18,20 @@ def addIncludes(node, file: str):
 def addDefine(node, name: str, data: list[str]):
     node.top.dpack_module.defines.append((name, data))
 
+def addEnum(node, name: str, data: list[tuple[str,int | None]]):
+    node.top.dpack_module.enums.append((name, data))
+
 def addTypeDef(node, type: str, name: str):
     node.top.dpack_module.typedefs.append((type, name))
 
 def addInlineFunction(node, declaration: tuple[str, str, list[tuple[str, str, set[str]]], set[str]], content: list[str]):
     node.top.dpack_module.InlineFunctions.append((declaration, content))
 
-def addFunction(node, declaration: tuple[str, str, list[tuple[str, str, set[str]]], set[str]], content: list[str]):
-    node.top.dpack_module.functions.append((declaration, content))
+def addExternFunction(node, declaration: tuple[str, str, list[tuple[str, str, set[str]]], set[str]], content: list[str]):
+    node.top.dpack_module.ExternFunctions.append((declaration, content))
+
+def addStaticFunction(node, declaration: tuple[str, str, list[tuple[str, str, set[str]]], set[str]], content: list[str]):
+    node.top.dpack_module.StaticFunctions.append((declaration, content))
 
 def addStructure(node, name: str, content: list[tuple[str, str]]):
     node.top.dpack_module.structures.append((name, content))
@@ -41,9 +47,9 @@ def removeStart(data: str) -> tuple[str, int]:
         data = str.strip(data[:-1])
     return data, c
 
-def findAlign(data: list[str]) -> int:
+def findAlign(data: list[str], minimum = 0) -> int:
     c = 0
-    m = 0
+    m = minimum
     for x in data:
         d, t = removeStart(x)
         c = max([c, t])
@@ -170,11 +176,11 @@ def parseMust(ctx, node):
     musts = node.search("must")
     if not musts:
         return None
-    
+
     ret = []
-    
     for must in musts:
-        if (   must.i_xpath[0] != 'path_expr'
+        if (   not hasattr(must, 'i_xpath')
+            or must.i_xpath[0] != 'path_expr'
             or must.i_xpath[1][0] != 'function_call'
             or must.i_xpath[1][1] != 'checker'
             or len(must.i_xpath[1][2]) != 1

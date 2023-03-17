@@ -20,8 +20,11 @@ class DpackPlugin(plugin.PyangPlugin):
         self.multiple_modules = True
         fmts['dpack'] = self
 
+
+
     def setup_fmt(self, ctx):
         ctx.implicit_errors = True
+        ctx.strict = False
         statements.add_xpath_function('checker', ['string'], 'boolean')
 
     def add_opts(self, optparser):
@@ -32,6 +35,13 @@ class DpackPlugin(plugin.PyangPlugin):
                 dest="dpack_output_dir",
                 help="""Split the code output into
                     multiple directories""",
+            ),
+            optparse.make_option(
+                "--dpack-no-check",
+                dest="dpack_no_check",
+                action="store_false",
+                default=True,
+                help="""don't call checkers function in unpack process""",
             )
         ]
         option_group = optparse.OptionGroup(optparser, "dpack output specific options")

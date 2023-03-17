@@ -17,7 +17,7 @@ $(BUILDDIR)/test-afl: $(TOPDIR)/afl/test-afl.c \
                       $(BUILDDIR)/afl-fix.c \
                       $(addprefix $(TOPDIR)/src/,$(addsuffix .c,string array scalar codec common)) \
                       $(MPACK_SRC)/mpack.c
-	@$(CC) -include $(TOPDIR)/mpack-config.h \
+	@$(CC) -Wall -include $(TOPDIR)/mpack-config.h \
 	       -I$(TOPDIR)/include \
 	       -I$(TOPDIR) \
 	       -I$(MPACK_SRC) \

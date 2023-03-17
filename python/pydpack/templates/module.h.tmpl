@@ -37,9 +37,22 @@ typedef @t @p@n;
 %end for
 
 %end if
+%for @n, @d in @enums
+%set @al  = max([len(x[0]) for x in @d]) + 1
+enum @n {
+%for @v, @num in @d
+%set @p = " " * (@al - len(@v))
+%set @idx = @p + "= " + str(@num) + "," if @num != None else ","
+	@v@idx
+%end for
+};
+
+%end for
 %for @n, @c in @structures
 struct @n {
-%set @al  = findAlign([x[0] for x in @c])
+%set @al  = findAlign([x[0] for x in @c], minimum = len("uint64_t"))
+%set @p = " " * (@al - len("uint64_t"))
+	uint64_t@(p)filled;
 %for @t, @v in @c
 %set @t, @c = removeStart(@t)
 %set @p = " " * (@al - len(@t) - @c) + "*" * @c
@@ -48,8 +61,8 @@ struct @n {
 };
 
 %end for
-%if len(@functions) > 0
-%for @d, _ in @functions
+%if len(@ExternFunctions) > 0
+%for @d, _ in @ExternFunctions
 %if len(@d[3]) > 0
 %set @attr = " " + " ".join(list(@d[3]))
 %else
@@ -66,8 +79,8 @@ extern @d[0]
 %end if
 %for @f, @d in @InlineFunctions
 %set @r = functionAlign(@f)
-%if len(@d[3]) > 0
-%set @attr = " " + " ".join(list(@d[3]))
+%if len(@f[3]) > 0
+%set @attr = " " + " ".join(list(@f[3]))
 %else
 %set @attr = ""
 %end if

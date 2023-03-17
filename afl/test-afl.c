@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #include <afl-fix.h>
 #include <dpack/codec.h>
 #include <stdlib.h>
@@ -15,26 +16,20 @@ save_to_file(const char *path, const char *buffer, size_t size)
 	assert(size);
 
 	FILE       *out;
-	const char *msg;
 	int         err = 0;
 
 	out = fopen(path, "w");
 	if (!out) {
-		msg = "opening output file failed";
 		err = errno;
 		goto err;
 	}
 
-	if (fwrite(buffer, size, 1, out) != 1) {
-		msg = "saving data failed";
+	if (fwrite(buffer, size, 1, out) != 1)
 		err = errno;
-	}
 
 	if (fclose(out)) {
-		if (!err) {
-			msg = "closing output file failed";
+		if (!err)
 			err = errno;
-		}
 	}
 
 	if (!err)
@@ -49,7 +44,7 @@ pack_to_file(const char *path)
 {
 	char                  *buff;
 	struct dpack_encoder   enc;
-	int                    err;
+	int                    err = 0;
 	struct afl_sample      spl;
 	char                  *string;
 
@@ -67,7 +62,7 @@ pack_to_file(const char *path)
 
 	dpack_init_buffer_encoder(&enc, buff, AFL_SAMPLE_PACKED_SIZE_MAX);
 	err |= afl_sample_init(&spl);
-	err |= afl_sample_set_string(&spl, string);
+	afl_sample_set_string(&spl, string);
 	err |= afl_sample_pack(&enc, &spl);
 	err |= save_to_file(path, buff, dpack_encoder_space_used(&enc));
 	dpack_exit_encoder(&enc);
