@@ -118,6 +118,12 @@ dpack_xtract_strdup(struct mpack_reader_t * reader, char ** value, uint32_t len)
 
 	*value = str;
 
+	/*
+	 * Give mpack a chance to track bytes read. This is not required in case
+	 * of reader error since no more operations may be performed with it.
+	 */
+	mpack_done_str(reader);
+
 	return (ssize_t)len;
 }
 
@@ -246,6 +252,12 @@ dpack_xtract_strcpy(struct mpack_reader_t * reader,
 	}
 
 	value[len] = '\0';
+
+	/*
+	 * Give mpack a chance to track bytes read. This is not required in case
+	 * of reader error since no more operations may be performed with it.
+	 */
+	mpack_done_str(reader);
 
 	return (ssize_t)len;
 
