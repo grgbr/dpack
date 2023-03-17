@@ -31,8 +31,8 @@ struct map_sample {
 #define MAP_SAMPLE_MAND_FLD_MSK    (MAP_SAMPLE_ASHORT_FLD | \
                                     MAP_SAMPLE_ABOOL_FLD)
 
-#define MAP_SAMPLE_ASHORT_MIN      (-10)
-#define MAP_SAMPLE_ASHORT_MAX      (200)
+#define MAP_SAMPLE_ASHORT_MIN      (INT16_MIN + 2)
+#define MAP_SAMPLE_ASHORT_MAX      (INT16_MAX - 2)
 
 #define MAP_SAMPLE_ASTRING_LEN_MIN (4U)
 #define MAP_SAMPLE_ASTRING_LEN_MAX (63U)

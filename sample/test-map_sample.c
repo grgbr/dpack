@@ -17,8 +17,8 @@ pack(struct dpack_encoder * encoder)
 	 */
 	map_sample_set_astring(&spl, str);
 
-	map_sample_set_ashort(&spl, 100U);
-	map_sample_set_abool(&spl, false);
+	map_sample_set_ashort(&spl, INT16_MIN + 2);
+	map_sample_set_abool(&spl, true);
 
 	ret = map_sample_pack(encoder, &spl);
 
@@ -40,7 +40,7 @@ dump(const struct map_sample * sample)
 	 * successfully.
 	 */
 	map_sample_get_ashort(sample, &ashort);
-	printf("ashort : %hu\n", ashort);
+	printf("ashort : %hd\n", ashort);
 
 	/* astring field is optional with a default value. */
 	map_sample_get_astring(sample, &astring);
