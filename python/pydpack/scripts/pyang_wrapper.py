@@ -33,7 +33,7 @@ def run():
             fix_path = None
     if fix_path:
         sys.argv.append(
-            f'--path="{fix_path}"'
+            f'--path={fix_path}'
         )
     sys.argv.extend([
             "-f", "dpack"

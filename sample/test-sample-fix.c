@@ -15,17 +15,13 @@ pack(struct dpack_encoder *encoder)
 	if (err)
 		goto error_pack;
 
-	err = fix_sample_set_eight(spl, 2);
-	if (err)
-		goto error_pack;
+	fix_sample_set_eight(spl, 2);
 
 	err = fix_sample_check_sixteen(3);
 	if (err)
 		goto error_pack;
 
-	err = fix_sample_set_sixteen(spl, 3);
-	if (err)
-		goto error_pack;
+	fix_sample_set_sixteen(spl, 3);
 
 	/* try invalid range */
 	err = fix_sample_check_thirty_two(4000);
@@ -36,9 +32,7 @@ pack(struct dpack_encoder *encoder)
 	if (err)
 		goto error_pack;
 
-	err = fix_sample_set_thirty_two(spl, 4);
-	if (err)
-		goto error_pack;
+	fix_sample_set_thirty_two(spl, 4);
 
 	err = fix_sample_pack(encoder, spl);
 

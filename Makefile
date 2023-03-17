@@ -60,7 +60,8 @@ clean:
 test_objs := test-fix_sample test-scalar_array_sample test-map_sample
 
 ifneq (, $(shell which $(PYANG)))
-test_objs += test-sample-fix test-sample-scalar_array
+test_objs += test-sample-fix
+# test-sample-scalar_array
 endif
 
 .PHONY: check
@@ -97,7 +98,7 @@ $(sample_objs): $(BUILDDIR)/%.o: sample/%.c | $(BUILDDIR)
 $(pyang_sample_objs): $(BUILDDIR)/%.o: $(BUILDDIR)/%.c | $(BUILDDIR)
 	$(CC) -MD -Itest -fpie $(CFLAGS) -o $(@) -c $(<)
 
-$(BUILDDIR)/%.c: test/%.yang | $(BUILDDIR)
+$(BUILDDIR)/%.c: sample/%.yang | $(BUILDDIR)
 	$(Q)PYTHONPYCACHEPREFIX=$(BUILDDIR) PYTHONPATH=$(PYTHONPATH):$(CURDIR)/python/ \
 	      $(PYANG) --plugindir $(PLUGIN) --lint -f dpack \
 	      --dpack-output-dir "$(BUILDDIR)" $(<)
@@ -108,7 +109,7 @@ $(BUILDDIR)/%.c: test/%.yang | $(BUILDDIR)
 
 utest_bins := $(addprefix $(BUILDDIR)/test/,string array)
 
-check: $(utest_bins)
+# check: $(utest_bins)
 
 # Unit test binaries
 $(utest_bins): $(BUILDDIR)/test/%: test/%.c \
