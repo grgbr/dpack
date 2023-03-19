@@ -102,7 +102,7 @@ dpack_xtract_strdup(struct mpack_reader_t * reader, char ** value, uint32_t len)
 
 	char * str;
 
-	str = mpack_read_bytes_alloc(reader, len);
+	str = mpack_read_bytes_alloc_impl(reader, len, true);
 	if (!str)
 		return dpack_decoder_error_state(reader);
 
