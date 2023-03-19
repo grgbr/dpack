@@ -2,11 +2,9 @@
 #define _DPACK_MAP_H
 
 #include <dpack/cdefs.h>
+#include <dpack/codec.h>
 #include <dpack/scalar.h>
 #include <dpack/string.h>
-
-struct dpack_encoder;
-struct dpack_decoder;
 
 /* Maximum number of fields of a dpack map */
 #define DPACK_MAP_FLDNR_MAX    (32U)
@@ -20,9 +18,15 @@ struct dpack_decoder;
 /* Maximum number of elements a 32 bits msgpack map may encode */
 #define DPACK_MAP32_FLDNR_MAX  UINT32_MAX
 
-/* Check DPACK_MAP_FLDNR_MAX definition is sensible. */
-#if DPACK_MAP_FLDNR_MAX > DPACK_MAP32_FLDNR_MAX
-#error msgpack cannot encode maps containing more than UINT32_MAX fields !
+/*
+ * Check DPACK_MAP_FLDNR_MAX definition is sensible.
+ *
+ * Only allow half of the highest msgpack capacity since we need to multiply
+ * this number by 2 when handling map discard operations.
+ * DO NOT TOUCH THIS UPPER LIMIT.
+ */
+#if DPACK_MAP_FLDNR_MAX > (DPACK_MAP32_FLDNR_MAX / 2)
+#error dpack cannot encode maps containing more than (UINT32_MAX / 2) fields !
 #elif DPACK_MAP_FLDNR_MAX < 4U
 #error Huh ?!
 #endif
@@ -116,7 +120,7 @@ struct dpack_decoder;
 	             "constant map length expected")
 
 /******************************************************************************
- * Iterating over map fields
+ * Map encoding
  ******************************************************************************/
 
 extern void
@@ -126,35 +130,8 @@ dpack_map_begin_encode(struct dpack_encoder * encoder,
 extern void
 dpack_map_end_encode(struct dpack_encoder * encoder) __dpack_export;
 
-extern int
-dpack_map_begin_decode(struct dpack_decoder * decoder,
-                       unsigned int *         nr) __dpack_export;
-
-extern int
-dpack_map_begin_decode_equ(struct dpack_decoder * decoder,
-                           unsigned int           nr) __dpack_export;
-
-extern int
-dpack_map_begin_decode_min(struct dpack_decoder * decoder,
-                           unsigned int           min_nr,
-                           unsigned int         * nr) __dpack_export;
-
-extern int
-dpack_map_begin_decode_max(struct dpack_decoder * decoder,
-                           unsigned int           max_nr,
-                           unsigned int         * nr) __dpack_export;
-
-extern int
-dpack_map_begin_decode_range(struct dpack_decoder * decoder,
-                             unsigned int           min_nr,
-                             unsigned int           max_nr,
-                             unsigned int         * nr) __dpack_export;
-
-extern void
-dpack_map_end_decode(struct dpack_decoder * decoder) __dpack_export;
-
 /******************************************************************************
- * Map field identifier
+ * Map field identifiers encoding
  ******************************************************************************/
 
 #define DPACK_MAP_FLDID_MAX      (1024U)
@@ -176,7 +153,7 @@ dpack_map_decode_fldid(struct dpack_decoder * decoder, unsigned int * id)
 }
 
 /******************************************************************************
- * Boolean
+ * Map boolean encoding
  ******************************************************************************/
 
 #define DPACK_MAP_BOOL_SIZE_MIN \
@@ -190,7 +167,7 @@ dpack_map_encode_bool(struct dpack_encoder * encoder,
                       bool                   value) __dpack_export;
 
 /******************************************************************************
- * 8 bits integers
+ * Map 8 bits integers encoding
  ******************************************************************************/
 
 #define DPACK_MAP_UINT8_SIZE_MIN \
@@ -214,7 +191,7 @@ dpack_map_encode_int8(struct dpack_encoder * encoder,
                       int8_t                 value) __dpack_export;
 
 /******************************************************************************
- * 16 bits integers
+ * Map 16 bits integers encoding
  ******************************************************************************/
 
 #define DPACK_MAP_UINT16_SIZE_MIN \
@@ -238,7 +215,7 @@ dpack_map_encode_int16(struct dpack_encoder * encoder,
                        int16_t                value) __dpack_export;
 
 /******************************************************************************
- * 32 bits integers
+ * Map 32 bits integers encoding
  ******************************************************************************/
 
 #define DPACK_MAP_UINT32_SIZE_MIN \
@@ -262,7 +239,7 @@ dpack_map_encode_int32(struct dpack_encoder * encoder,
                        int32_t                value) __dpack_export;
 
 /******************************************************************************
- * 64 bits integers
+ * Map 64 bits integers encoding
  ******************************************************************************/
 
 #define DPACK_MAP_UINT64_SIZE_MIN \
@@ -286,7 +263,7 @@ dpack_map_encode_int64(struct dpack_encoder * encoder,
                        int64_t                value) __dpack_export;
 
 /******************************************************************************
- * Strings
+ * Map strings encoding
  ******************************************************************************/
 
 #define DPACK_MAP_STR_SIZE_MIN(_len) \
@@ -304,5 +281,69 @@ dpack_map_encode_str_fix(struct dpack_encoder * encoder,
                          uint16_t               id,
                          const char           * value,
                          size_t                 len) __dpack_export;
+
+/******************************************************************************
+ * Map decoding
+ ******************************************************************************/
+
+extern int
+dpack_map_decode_equ(struct dpack_decoder * decoder,
+                     unsigned int           nr,
+                     dpack_decode_item_fn * decode,
+                     void                 * data) __dpack_export;
+
+extern int
+dpack_map_decode_range(struct dpack_decoder * decoder,
+                       unsigned int           min_nr,
+                       unsigned int           max_nr,
+                       dpack_decode_item_fn * decode,
+                       void                 * data) __dpack_export;
+
+static inline int
+dpack_map_decode(struct dpack_decoder * decoder,
+                 dpack_decode_item_fn * decode,
+                 void                 * data)
+{
+	dpack_assert(decoder);
+	dpack_assert(decode);
+
+	return dpack_map_decode_range(decoder,
+	                              1,
+	                              DPACK_MAP_FLDNR_MAX,
+	                              decode,
+	                              data);
+}
+
+static inline int
+dpack_map_decode_min(struct dpack_decoder * decoder,
+                     unsigned int           min_nr,
+                     dpack_decode_item_fn * decode,
+                     void                 * data)
+{
+	dpack_assert(decoder);
+	dpack_assert(min_nr);
+	dpack_assert(min_nr < DPACK_MAP_FLDNR_MAX);
+	dpack_assert(decode);
+
+	return dpack_map_decode_range(decoder,
+	                              min_nr,
+	                              DPACK_MAP_FLDNR_MAX,
+	                              decode,
+	                              data);
+}
+
+static inline int
+dpack_map_decode_max(struct dpack_decoder * decoder,
+                     unsigned int           max_nr,
+                     dpack_decode_item_fn * decode,
+                     void                 * data)
+{
+	dpack_assert(decoder);
+	dpack_assert(max_nr);
+	dpack_assert(max_nr <= DPACK_MAP_FLDNR_MAX);
+	dpack_assert(decode);
+
+	return dpack_map_decode_range(decoder, 1, max_nr, decode, data);
+}
 
 #endif /* _DPACK_MAP_H */

@@ -67,10 +67,8 @@ dpack_xtract_uint64_min(struct mpack_reader_t * reader,
 		return err;
 
 	*value = mpack_tag_uint_value(&tag);
-	if (*value < low) {
-		mpack_reader_flag_error(reader, mpack_error_data);
+	if (*value < low)
 		return -ERANGE;
-	}
 
 	return 0;
 }
@@ -94,10 +92,8 @@ dpack_xtract_uint64_max(struct mpack_reader_t * reader,
 		return err;
 
 	*value = mpack_tag_uint_value(&tag);
-	if (*value > high) {
-		mpack_reader_flag_error(reader, mpack_error_data);
+	if (*value > high)
 		return -ERANGE;
-	}
 
 	return 0;
 }
@@ -123,10 +119,8 @@ dpack_xtract_uint64_range(struct mpack_reader_t * reader,
 		return err;
 
 	*value = mpack_tag_uint_value(&tag);
-	if ((*value < low) || (*value > high)) {
-		mpack_reader_flag_error(reader, mpack_error_data);
+	if ((*value < low) || (*value > high))
 		return -ERANGE;
-	}
 
 	return 0;
 }
@@ -270,10 +264,8 @@ dpack_xtract_int64_range(struct mpack_reader_t * reader,
 		return -ENOMSG;
 	}
 
-	if ((*value < low) || (*value > high)) {
-		mpack_reader_flag_error(reader, mpack_error_data);
+	if ((*value < low) || (*value > high))
 		return -ERANGE;
-	}
 
 	return 0;
 }
@@ -558,10 +550,8 @@ dpack_decode_int64_min(struct dpack_decoder * decoder,
 	if (err)
 		return err;
 
-	if (*value < low) {
-		mpack_reader_flag_error(&decoder->mpack, mpack_error_data);
+	if (*value < low)
 		return -ERANGE;
-	}
 
 	return 0;
 }
@@ -582,10 +572,8 @@ dpack_decode_int64_max(struct dpack_decoder * decoder,
 	if (err)
 		return err;
 
-	if (*value > high) {
-		mpack_reader_flag_error(&decoder->mpack, mpack_error_data);
+	if (*value > high)
 		return -ERANGE;
-	}
 
 	return 0;
 }

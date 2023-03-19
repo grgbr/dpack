@@ -1,12 +1,9 @@
 Features
 ========
 
-* add size handling for string array
-* signed integer: sample code
 * enum
-* maps / integer key
 * float
-* length-value strings ??
+* length-value strings
 * default values
 * bins
 * vectors

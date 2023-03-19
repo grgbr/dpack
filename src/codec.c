@@ -5,6 +5,20 @@
  * Encoder / packer
  ******************************************************************************/
 
+int
+dpack_encoder_error_state(struct mpack_writer_t * writer)
+{
+	dpack_assert(writer);
+
+	enum mpack_error_t err;
+
+	err = mpack_writer_error(writer);
+	if (err != mpack_ok)
+		return dpack_errno_from_mpack(err);
+
+	return 0;
+}
+
 size_t
 dpack_encoder_space_used(struct dpack_encoder * encoder)
 {
@@ -22,7 +36,7 @@ dpack_encoder_space_left(struct dpack_encoder * encoder)
 }
 
 void
-dpack_init_buffer_encoder(struct dpack_encoder * encoder,
+dpack_encoder_init_buffer(struct dpack_encoder * encoder,
                           char *                 buffer,
                           size_t                 size)
 {
@@ -34,7 +48,7 @@ dpack_init_buffer_encoder(struct dpack_encoder * encoder,
 }
 
 void
-dpack_exit_encoder(struct dpack_encoder * encoder)
+dpack_encoder_fini(struct dpack_encoder * encoder)
 {
 	dpack_assert(encoder);
 
@@ -43,13 +57,50 @@ dpack_exit_encoder(struct dpack_encoder * encoder)
 	 * any unclosed compound types will assert in tracking mode.
 	 * Flag an error before destruction to prevent from asserting.
 	 */
-	mpack_writer_flag_error(&encoder->mpack, mpack_error_invalid);
 	mpack_writer_destroy(&encoder->mpack);
 }
 
 /******************************************************************************
  * Decoder / unpacker
  ******************************************************************************/
+
+int
+dpack_decoder_error_state(struct mpack_reader_t * reader)
+{
+	dpack_assert(reader);
+
+	enum mpack_error_t err;
+
+	err = mpack_reader_error(reader);
+	if (err != mpack_ok)
+		return dpack_errno_from_mpack(err);
+
+	return 0;
+}
+
+int
+dpack_decode_tag(struct mpack_reader_t * reader,
+                 enum mpack_type_t       type,
+                 struct mpack_tag_t    * tag)
+{
+	dpack_assert(reader);
+	dpack_assert(tag);
+	dpack_assert(mpack_reader_error(reader) == mpack_ok);
+
+	enum mpack_error_t err;
+
+	*tag = mpack_read_tag(reader);
+	err = mpack_reader_error(reader);
+	if (err != mpack_ok)
+		return dpack_errno_from_mpack(err);
+
+	if (mpack_tag_type(tag) != type) {
+		mpack_reader_flag_error(reader, mpack_error_type);
+		return -ENOMSG;
+	}
+
+	return 0;
+}
 
 size_t
 dpack_decoder_data_left(struct dpack_decoder * decoder)
@@ -59,8 +110,47 @@ dpack_decoder_data_left(struct dpack_decoder * decoder)
 	return mpack_reader_remaining(&decoder->mpack, NULL);
 }
 
+static void
+dpack_decoder_skip(struct dpack_decoder * decoder,
+                   enum mpack_type_t      type,
+                   unsigned int           nr)
+{
+	dpack_assert(decoder);
+
+	if (dpack_decoder_error_state(&decoder->mpack))
+		return;
+
+	while (nr--)
+		mpack_discard(&decoder->mpack);
+
+	mpack_done_type(&decoder->mpack, type);
+}
+
 void
-dpack_init_buffer_decoder(struct dpack_decoder * decoder,
+dpack_decoder_init_skip_buffer(struct dpack_decoder * decoder,
+                               const char *           buffer,
+                               size_t                 size)
+{
+	dpack_assert(decoder);
+	dpack_assert(buffer);
+	dpack_assert(size);
+
+	mpack_reader_init_data(&decoder->mpack, buffer, size);
+	decoder->intr = dpack_decoder_skip;
+}
+
+static void
+dpack_decoder_abort(struct dpack_decoder * decoder,
+                    enum mpack_type_t      type __unused,
+                    unsigned int           nr __unused)
+{
+	dpack_assert(decoder);
+
+	mpack_reader_flag_error(&decoder->mpack, mpack_error_data);
+}
+
+void
+dpack_decoder_init_buffer(struct dpack_decoder * decoder,
                           const char *           buffer,
                           size_t                 size)
 {
@@ -69,10 +159,11 @@ dpack_init_buffer_decoder(struct dpack_decoder * decoder,
 	dpack_assert(size);
 
 	mpack_reader_init_data(&decoder->mpack, buffer, size);
+	decoder->intr = dpack_decoder_abort;
 }
 
 void
-dpack_exit_decoder(struct dpack_decoder * decoder)
+dpack_decoder_fini(struct dpack_decoder * decoder)
 {
 	dpack_assert(decoder);
 

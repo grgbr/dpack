@@ -55,7 +55,7 @@ pack_to_file(const char * path, const struct test_ops * ops)
 		return EXIT_FAILURE;
 	}
 
-	dpack_init_buffer_encoder(&enc, buff, ops->max_size);
+	dpack_encoder_init_buffer(&enc, buff, ops->max_size);
 
 	err = ops->pack(&enc);
 	if (err)
@@ -65,7 +65,7 @@ pack_to_file(const char * path, const struct test_ops * ops)
 	else
 		err = save_to_file(path, buff, dpack_encoder_space_used(&enc));
 
-	dpack_exit_encoder(&enc);
+	dpack_encoder_fini(&enc);
 
 	free(buff);
 
@@ -136,9 +136,9 @@ unpack_from_file(const char * path, const struct test_ops * ops)
 		goto free;
 	}
 
-	dpack_init_buffer_decoder(&dec, buff, (size_t)ret);
+	dpack_decoder_init_buffer(&dec, buff, (size_t)ret);
 	ret = ops->unpack(&dec);
-	dpack_exit_decoder(&dec);
+	dpack_decoder_fini(&dec);
 
 	if (ret) {
 		test_show_error("unpacking failed: %s (%d).\n",

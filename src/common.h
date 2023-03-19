@@ -2,6 +2,7 @@
 #define _DPACK_COMMON_H
 
 #include "dpack/cdefs.h"
+#include "dpack/codec.h"
 #include <mpack.h>
 #include <errno.h>
 
@@ -34,12 +35,11 @@ dpack_errno_from_mpack(enum mpack_error_t err)
 		return -EMSGSIZE;
 	case mpack_error_memory:
 		return -ENOMEM;
-	case mpack_error_bug:
-		dpack_assert(0);
 	case mpack_error_data:
 		return -EBADMSG;
 	case mpack_error_eof:
 		return -ENODATA;
+	case mpack_error_bug:
 	default:
 		dpack_assert(0);
 	}
@@ -57,5 +57,16 @@ extern int
 dpack_decode_tag(struct mpack_reader_t * reader,
                  enum mpack_type_t       type,
                  struct mpack_tag_t    * tag);
+
+static inline void
+dpack_decoder_intr(struct dpack_decoder * decoder,
+                   enum mpack_type_t      type,
+                   unsigned int           nr)
+{
+	dpack_assert(decoder);
+	dpack_assert(decoder->intr);
+
+	decoder->intr(decoder, type, nr);
+}
 
 #endif /* _DPACK_COMMON_H */

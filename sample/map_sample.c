@@ -72,7 +72,7 @@ map_sample_unpack_astring(struct dpack_decoder * decoder,
 	}
 
 	ret = dpack_decode_strdup(decoder, &sample->astring);
-	if (ret)
+	if (ret < 0)
 		return ret;
 
 	ret = map_sample_check_astring(sample->astring, ret);
@@ -239,6 +239,31 @@ map_sample_pack(struct dpack_encoder    * encoder,
 	return 0;
 }
 
+static int
+map_sample_unpack_field(struct dpack_decoder * decoder,
+                        unsigned int           fid,
+                        void                 * data)
+{
+	struct map_sample * spl = data;
+
+	map_sample_assert(decoder);
+	map_sample_assert(spl);
+	map_sample_assert(!(spl->filled & ~MAP_SAMPLE_VALID_FLD_MSK));
+
+	switch (fid) {
+	case MAP_SAMPLE_ASHORT_FLD:
+		return map_sample_unpack_ashort(decoder, spl);
+	case MAP_SAMPLE_ASTRING_FLD:
+		return map_sample_unpack_astring(decoder, spl);
+	case MAP_SAMPLE_ABOOL_FLD:
+		return map_sample_unpack_abool(decoder, spl);
+	case MAP_SAMPLE_ANUINT_FLD:
+		return map_sample_unpack_anuint(decoder, spl);
+	default:
+		return -EBADMSG;
+	}
+}
+
 int
 map_sample_unpack(struct dpack_decoder * decoder, struct map_sample * sample)
 {
@@ -251,56 +276,15 @@ map_sample_unpack(struct dpack_decoder * decoder, struct map_sample * sample)
 	map_sample_assert(sample);
 	map_sample_assert(!sample->filled);
 
-	unsigned int nr;
-	unsigned int cnt;
-	int          err;
+	int err;
 
-	err = dpack_map_begin_decode_range(decoder,
-	                                   MAP_SAMPLE_MAND_FLD_NR,
-	                                   MAP_SAMPLE_FLD_NR,
-	                                   &nr);
+	err = dpack_map_decode_range(decoder,
+	                             MAP_SAMPLE_MAND_FLD_NR,
+	                             MAP_SAMPLE_FLD_NR,
+	                             map_sample_unpack_field,
+	                             sample);
 	if (err)
 		return err;
-
-	for (cnt = 0; cnt < nr; cnt++) {
-		/* Assert that fields marked as filled are valid. */
-		map_sample_assert(!(sample->filled &
-		                    ~MAP_SAMPLE_VALID_FLD_MSK));
-
-		unsigned int fid;
-
-		err = dpack_map_decode_fldid(decoder, &fid);
-		if (err)
-			return err;
-
-		switch (fid) {
-		case MAP_SAMPLE_ASHORT_FLD:
-			err = map_sample_unpack_ashort(decoder, sample);
-			break;
-		case MAP_SAMPLE_ASTRING_FLD:
-			err = map_sample_unpack_astring(decoder, sample);
-			break;
-		case MAP_SAMPLE_ABOOL_FLD:
-			err = map_sample_unpack_abool(decoder, sample);
-			break;
-		case MAP_SAMPLE_ANUINT_FLD:
-			err = map_sample_unpack_anuint(decoder, sample);
-			break;
-		default:
-			err = -EBADMSG;
-			break;
-		}
-
-		if (err)
-			/*
-			 * Just return to give caller a way to skip / discard
-			 * fields which have not yet been unpacked if the
-			 * decoder is not in a failing state.
-			 */
-			return err;
-	}
-
-	dpack_map_end_decode(decoder);
 
 	return map_sample_check(sample);
 }
