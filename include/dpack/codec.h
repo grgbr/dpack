@@ -49,6 +49,9 @@ extern size_t
 dpack_decoder_data_left(struct dpack_decoder * decoder) __dpack_export;
 
 extern void
+dpack_decoder_skip(struct dpack_decoder * decoder) __dpack_export;
+
+extern void
 dpack_decoder_init_buffer(struct dpack_decoder * decoder,
                           const char *           buffer,
                           size_t                 size) __dpack_export;

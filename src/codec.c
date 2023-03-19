@@ -111,9 +111,9 @@ dpack_decoder_data_left(struct dpack_decoder * decoder)
 }
 
 static void
-dpack_decoder_skip(struct dpack_decoder * decoder,
-                   enum mpack_type_t      type,
-                   unsigned int           nr)
+dpack_decoder_discard(struct dpack_decoder * decoder,
+                      enum mpack_type_t      type,
+                      unsigned int           nr)
 {
 	dpack_assert(decoder);
 
@@ -127,6 +127,18 @@ dpack_decoder_skip(struct dpack_decoder * decoder,
 }
 
 void
+dpack_decoder_skip(struct dpack_decoder * decoder)
+{
+	/*
+	 * Decoder MUST NOT be in error state since this interface is primarily
+	 * meant for skipping deprecated / unwanted content.
+	 */
+	dpack_assert_decoder(decoder);
+
+	mpack_discard(&decoder->mpack);
+}
+
+void
 dpack_decoder_init_skip_buffer(struct dpack_decoder * decoder,
                                const char *           buffer,
                                size_t                 size)
@@ -136,7 +148,7 @@ dpack_decoder_init_skip_buffer(struct dpack_decoder * decoder,
 	dpack_assert(size);
 
 	mpack_reader_init_data(&decoder->mpack, buffer, size);
-	decoder->intr = dpack_decoder_skip;
+	decoder->intr = dpack_decoder_discard;
 }
 
 static void

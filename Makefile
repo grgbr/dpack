@@ -1,6 +1,6 @@
 BUILDDIR := $(CURDIR)/build
 
-DPACK_DEBUG := 1
+DPACK_DEBUG := 0
 
 ifeq ($(DPACK_DEBUG),1)
 DEBUG_CFLAGS    := -ggdb3 -DDPACK_DEBUG
