@@ -14,9 +14,9 @@ class Module(object):
         self.includes = set([
             'stdlib.h',
             'errno.h',
+            'dpack/map.h'
         ])
         self.defines = [
-            ('__unused', ["__attribute__((unused))"]),
             ('__warn_result', ["__attribute__((warn_unused_result))"]),
             ('__nonull(_arg_index, ...)',
                 ["__attribute__((nonnull(_arg_index, ## __VA_ARGS__)))"]
@@ -92,8 +92,12 @@ class Struct(object):
             #             None
             #     )
             else:
-                err_add(ctx.errors, c.pos,'TYPE_NOT_FOUND', (f"struct {self.prefix}_{c.arg}", "dpack types"))
+                err_add(ctx.errors, c.pos,'BAD_TARGET_NODE', (self.prefix, c.arg, c.keyword))
                 return
+
+            if not type:
+                return
+
             struct.append((type, name))
 
         name_struct = f"{self.prefix}_{self.name}"
@@ -102,8 +106,9 @@ class Struct(object):
         name_validFld = f"{todef(self.prefix)}_{todef(self.name)}_VALID_FLD_MSK"
         name_mandFld = f"{todef(self.prefix)}_{todef(self.name)}_MAND_FLD_MSK"
         name_mandNR = f"{todef(self.prefix)}_{todef(self.name)}_MAND_FLD_NR"
-        value_min = []
-        value_max = []
+        fld_nr = todef(f"{name_struct}_FLD_NR")
+        value_min = [f"DPACK_MAP_HEAD_SIZE({name_mandNR}) + "]
+        value_max = [f"DPACK_MAP_HEAD_SIZE({fld_nr}) + "]
         value_struct = []
 
         nameSpace = {
@@ -115,6 +120,7 @@ class Struct(object):
             'valid_fld': name_validFld,
             'mand_fld': name_mandFld,
             'mand_nr': name_mandNR,
+            'fld_nr': fld_nr,
             'struct': struct,
             'must': parseMust(self.ctx, self.node),
         }
@@ -127,17 +133,19 @@ class Struct(object):
             fld = todef(f"{name_struct}_{n}_FLD")
             enum_field.append((fld, i))
             value_struct.append((t.getType(), n))
-            value_min.append(f"{t.getMin()} +")
             value_max.append(f"{t.getMax()} +")
             if t.isMandatory():
-                mandFld.append(f"{fld} |")
-        fld = todef(f"{name_struct}_FLD_NR")
-        enum_field.append((fld, None))
+                value_min.append(f"{t.getMin()} +")
+                mandFld.append(f"(1U << {fld}) |")
+        
+        enum_field.append((fld_nr, None))
 
         addDefine(node, name_mandNR, addBracket([f"{len(mandFld)}U"]))
-        addDefine(node, name_validFld, addBracket([f"(1U << {fld}) - 1"]))
+        addDefine(node, name_validFld, addBracket([f"(1U << {fld_nr}) - 1"]))
         if mandFld:
             mandFld[-1] = mandFld[-1][:-2]
+            if len(mandFld) == 1:
+                mandFld[0] = mandFld[0][1:-1]
         else:
             mandFld = [0]
         addDefine(node, name_mandFld, addBracket(mandFld))
@@ -194,7 +202,7 @@ return 0;
 #from pydpack.util import todef
 #for $t, $n in $struct
 #if $t.hasFini()
-if (!$(prefix)_$(name)_has_$(n)(data))
+if ($(prefix)_$(name)_has_$(n)(data))
 	$(prefix)_$(name)_fini_$(n)(data->$n);
 #end if
 #end for
@@ -240,9 +248,11 @@ $(assert)(data);
 $(assert)(dpack_encoder_space_left(encoder) >=
 #echo ' ' * (len($assert) + 1) + $name_min + ');'
 
-$(assert)($(prefix)_$(name)_check(data));
+$(assert)(!$(prefix)_$(name)_check(data));
 
 int err;
+
+dpack_map_begin_encode(encoder, __builtin_popcount(data->filled));
 
 #for $t, $n in $struct
 err = $(prefix)_$(name)_pack_$(n)(encoder, data);
@@ -250,6 +260,8 @@ if (err)
 	return err;
 
 #end for
+dpack_map_end_encode(encoder);
+
 return 0;
 '''
         addExternFunction(node, 
@@ -260,21 +272,52 @@ return 0;
             str(Template(pack_template, searchList=[nameSpace])).splitlines())
 
         unpack_template = '''\
+#from pydpack.util import todef
 $(assert)(decoder);
 $(assert)(dpack_decoder_data_left(decoder) >=
 #echo ' ' * (len($assert) + 1) + $name_min + ');'
 
 $(assert)(data);
+$(assert)(!data->filled);
 
+unsigned int nr;
+unsigned int cnt;
+int          err;
 
-int err;
-
-#for $t, $n in $struct
-err = $(prefix)_$(name)_unpack_$(n)(decoder, data);
+err = dpack_map_begin_decode_range(decoder,
+                                   $mand_nr,
+                                   $fld_nr,
+                                   &nr);
 if (err)
 	return err;
 
+for (cnt = 0; cnt < nr; cnt++) {
+	$(assert)(!(data->filled & ~$valid_fld));
+
+	unsigned int fid;
+
+	err = dpack_map_decode_fldid(decoder, &fid);
+	if (err)
+		return err;
+
+	switch (fid) {
+#for $t, $n in $struct
+#set $fld = todef($prefix + "_" + $name + "_" + $n + "_FLD")
+	case $fld:
+		err = $(prefix)_$(name)_unpack_$(n)(decoder, data);
+		break;
 #end for
+	default:
+		err = -EBADMSG;
+		break;
+	}
+
+	if (err)
+		return err;
+}
+
+dpack_map_end_decode(decoder);
+
 #if $check
 return $(prefix)_$(name)_check(data);
 #else

@@ -71,13 +71,20 @@ return 0;
             "function": set(["__warn_result"]),
         }
         self.pack_template = '''\
+#from pydpack.util import todef
 $(assert)(encoder);
 $(assert)(data);
 
 const struct $struct_type *obj = (struct $(struct_type) *)data;
 int err;
 
-err = $(encode)(encoder, obj->$name);
+if (!$(struct_type)_has_$(name)(data))
+	return 0;
+
+#set $p = " " * (len($encode) + 7)
+err = $(encode)(encoder,
+$(p)$field,
+$(p)obj->$name);
 if (err)
 	return err;
 
@@ -91,19 +98,24 @@ return 0;
 $(assert)(decoder);
 $(assert)(data);
 
-int err;
+int ret;
 struct $struct_type *obj = (struct $(struct_type) *)data;
 
-err = $(decode)(decoder, &obj->$name);
-if (err)
-	return err;
+if ($(struct_type)_has_$(name)(obj))
+	return -EEXIST;
+
+ret = $(decode)(decoder, &obj->$name);
+if (ret < 0)
+	return ret;
+
+obj->filled |= (1U << $field);
+
 #if $check
+ret = $(struct_type)_check_$(name)(obj->$name);
+if (ret)
+	return ret;
 
-err = $(struct_type)_check_$(name)(obj->$name);
-if (err)
-	return err;
 #end if
-
 return 0;
 '''
 
@@ -170,7 +182,8 @@ return 0;
             ('bool', f"{struct_type}_has_{name}", [
                 (f"const struct {struct_type} *", "data", set()),
             ], set(["__warn_result"])),
-            [f"return data->filled & (1U << {self.nameSpace['field']});"])
+            [f"return ((data->filled & (1U << {self.nameSpace['field']})) ==",
+             f"        (1U << {self.nameSpace['field']}));"])
 
 class scalarType(BaseType):
     unit2c = {
@@ -185,10 +198,10 @@ class scalarType(BaseType):
     }
     def __init__(self, unit, ctx, node) -> None:
         _type   = f"{unit}_t"
-        _encode = f"dpack_encode_{unit}"
+        _encode = f"dpack_map_encode_{unit}"
         _decode = f"dpack_decode_{unit}"
-        _min    = f"DPACK_{todef(unit)}_SIZE_MIN"
-        _max    = f"DPACK_{todef(unit)}_SIZE_MAX"
+        _min    = f"DPACK_MAP_{todef(unit)}_SIZE_MIN"
+        _max    = f"DPACK_MAP_{todef(unit)}_SIZE_MAX"
         super().__init__(ctx, node, _type, 'dpack/scalar.h', _encode, _decode, _min, _max)
 
         self.nameSpace["ranges"] = \
@@ -222,23 +235,23 @@ if (err)
 return 0;
 '''
 
-class bitmapType(BaseType):
-    def __init__(self, ctx, node) -> None:
-        super().__init__(ctx,
-                         node,
-                        'uint64_t',
-                        'dpack/scalar.h',
-                        'dpack_encode_uint64',
-                        'dpack_decode_uint64',
-                        'DPACK_UINT64_SIZE_MIN',
-                        'DPACK_UINT64_SIZE_MAX')
+# class bitmapType(BaseType):
+#     def __init__(self, ctx, node) -> None:
+#         super().__init__(ctx,
+#                          node,
+#                         'uint64_t',
+#                         'dpack/scalar.h',
+#                         'dpack_encode_uint64',
+#                         'dpack_decode_uint64',
+#                         'DPACK_UINT64_SIZE_MIN',
+#                         'DPACK_UINT64_SIZE_MAX')
 
-    def getDecode(self, ctx_name: str, data_name: str) -> str:
-        t = self.node.search_one("type").i_type_spec
-        v_max = 0
-        for _, p in t.bits:
-            v_max |= 1 << p
-        return f"{self.decode}_max({ctx_name}, {hex(v_max)}, {data_name})"
+#     def getDecode(self, ctx_name: str, data_name: str) -> str:
+#         t = self.node.search_one("type").i_type_spec
+#         v_max = 0
+#         for _, p in t.bits:
+#             v_max |= 1 << p
+#         return f"{self.decode}_max({ctx_name}, {hex(v_max)}, {data_name})"
 
 class boolType(BaseType):
     def __init__(self, ctx, node) -> None:
@@ -246,20 +259,20 @@ class boolType(BaseType):
                          node,
                         'bool',
                         'dpack/scalar.h',
-                        'dpack_encode_bool',
+                        'dpack_map_encode_bool',
                         'dpack_decode_bool',
-                        'DPACK_BOOL_SIZE',
-                        'DPACK_BOOL_SIZE')
+                        'DPACK_MAP_BOOL_SIZE_MIN',
+                        'DPACK_MAP_BOOL_SIZE_MAX')
 class stringType(BaseType):
     def __init__(self, ctx, node) -> None:
         super().__init__(ctx,
                          node,
                         'char *',
                         'dpack/string.h',
-                        'dpack_encode_str',
+                        'dpack_map_encode_str',
                         'dpack_decode_strdup',
-                        '(1)',
-                        '(DPACK_STRLEN_MAX + 5)')
+                        '(DPACK_MAP_FLDID_SIZE_MIN + 1)',
+                        '(DPACK_MAP_FLDID_SIZE_MAX + DPACK_STRLEN_MAX + 5)')
 
     def hasFini(self):
         return True
@@ -273,98 +286,98 @@ class stringType(BaseType):
 free(value);
 ''', searchList=[self.nameSpace])).splitlines())
 
-class ExternTypedef(BaseType):
-    def __init__(self, ctx, node, name, parent_node) -> None:
-        self.ctx = ctx
-        self.node = node
-        _type =     toid(name)
-        _include =  f"{node.top.arg}.h"
-        _encode =   toid(f"{node.top.arg}_encode_{name}")
-        _decode =   toid(f"{node.top.arg}_decode_{name}")
-        _min =      todef(f"{node.top.arg}_{name}_SIZE_MIN")
-        _max =      todef(f"{node.top.arg}_{name}_SIZE_MAX")
-        self.copy = toid(f"{node.top.arg}_copy_{name}")
+# class ExternTypedef(BaseType):
+#     def __init__(self, ctx, node, name, parent_node) -> None:
+#         self.ctx = ctx
+#         self.node = node
+#         _type =     toid(name)
+#         _include =  f"{node.top.arg}.h"
+#         _encode =   toid(f"{node.top.arg}_encode_{name}")
+#         _decode =   toid(f"{node.top.arg}_decode_{name}")
+#         _min =      todef(f"{node.top.arg}_{name}_SIZE_MIN")
+#         _max =      todef(f"{node.top.arg}_{name}_SIZE_MAX")
+#         self.copy = toid(f"{node.top.arg}_copy_{name}")
 
-        c_include = node.search_one(('pydpack-extension', 'c-include'))
-        c_type    = node.search_one(('pydpack-extension', 'c-type'))
-        c_pack    = node.search_one(('pydpack-extension', 'c-pack'))
-        c_unpack  = node.search_one(('pydpack-extension', 'c-unpack'))
-        c_min     = node.search_one(('pydpack-extension', 'c-min'))
-        c_max     = node.search_one(('pydpack-extension', 'c-max'))
-        c_copy    = node.search_one(('pydpack-extension', 'c-copy'))
+#         c_include = node.search_one(('pydpack-extension', 'c-include'))
+#         c_type    = node.search_one(('pydpack-extension', 'c-type'))
+#         c_pack    = node.search_one(('pydpack-extension', 'c-pack'))
+#         c_unpack  = node.search_one(('pydpack-extension', 'c-unpack'))
+#         c_min     = node.search_one(('pydpack-extension', 'c-min'))
+#         c_max     = node.search_one(('pydpack-extension', 'c-max'))
+#         c_copy    = node.search_one(('pydpack-extension', 'c-copy'))
 
-        if c_include:
-            _include = c_include.arg
+#         if c_include:
+#             _include = c_include.arg
         
-        if c_type:
-            _type = c_type.arg
+#         if c_type:
+#             _type = c_type.arg
         
-        if c_pack:
-            _encode = c_pack.arg
+#         if c_pack:
+#             _encode = c_pack.arg
 
-        if c_unpack:
-            _decode = c_unpack.arg
+#         if c_unpack:
+#             _decode = c_unpack.arg
 
-        if c_min:
-            _min = c_min.arg
+#         if c_min:
+#             _min = c_min.arg
 
-        if c_max:
-            _max = c_max.arg
+#         if c_max:
+#             _max = c_max.arg
 
-        if c_copy:
-            self.copy = c_copy.arg
+#         if c_copy:
+#             self.copy = c_copy.arg
 
-        super().__init__(ctx, parent_node, _type, _include, _encode, _decode, _min, _max)
+#         super().__init__(ctx, parent_node, _type, _include, _encode, _decode, _min, _max)
 
-        self.nameSpace["copy_callback"] = self.copy
-        self.getter_template = '''\
-$(assert)(obj);
-$(assert)(result);
+#         self.nameSpace["copy_callback"] = self.copy
+#         self.getter_template = '''\
+# $(assert)(obj);
+# $(assert)(result);
 
-return $(copy_callback)(result, obj->$name);
-'''
-        self.setter_template = '''\
-$(assert)(obj);
+# return $(copy_callback)(result, obj->$name);
+# '''
+#         self.setter_template = '''\
+# $(assert)(obj);
 
-return $(copy_callback)(&obj->$name, result);
-'''
+# return $(copy_callback)(&obj->$name, result);
+# '''
 
-def dpack_Typedef_maker(ctx, node, name) -> None:
-    _type =   toid(f"{node.top.arg}_{name}")
-    _encode = toid(f"{node.top.arg}_encode_{name}")
-    _decode = toid(f"{node.top.arg}_decode_{name}")
-    _min =    todef(f"{node.top.arg}_{name}_SIZE_MIN")
-    _max =    todef(f"{node.top.arg}_{name}_SIZE_MAX")
-    dpType = getType(ctx, node)
-    addTypeDef(node, dpType.getType(), _type)
-    addDefine(node, _min, [dpType.getMin()])
-    addDefine(node, _max, [dpType.getMax()])
+# def dpack_Typedef_maker(ctx, node, name) -> None:
+#     _type =   toid(f"{node.top.arg}_{name}")
+#     _encode = toid(f"{node.top.arg}_encode_{name}")
+#     _decode = toid(f"{node.top.arg}_decode_{name}")
+#     _min =    todef(f"{node.top.arg}_{name}_SIZE_MIN")
+#     _max =    todef(f"{node.top.arg}_{name}_SIZE_MAX")
+#     dpType = getType(ctx, node)
+#     addTypeDef(node, dpType.getType(), _type)
+#     addDefine(node, _min, [dpType.getMin()])
+#     addDefine(node, _max, [dpType.getMax()])
 
-    value_pack = []
-    value_pack.append(f"{getAssertFunction(node)}(encoder);")
-    value_pack.append(f"{getAssertFunction(node)}(dpack_encoder_space_left(encoder) >=")
-    value_pack.append(f"{' ' * (len(getAssertFunction(node)) + 1)}{_min});")
-    newline(value_pack)
-    value_pack.append(f"return {dpType.getEncode('encoder', 'value')};")
+#     value_pack = []
+#     value_pack.append(f"{getAssertFunction(node)}(encoder);")
+#     value_pack.append(f"{getAssertFunction(node)}(dpack_encoder_space_left(encoder) >=")
+#     value_pack.append(f"{' ' * (len(getAssertFunction(node)) + 1)}{_min});")
+#     newline(value_pack)
+#     value_pack.append(f"return {dpType.getEncode('encoder', 'value')};")
 
-    value_unpack = []
-    value_unpack.append(f"{getAssertFunction(node)}(decoder)")
-    value_unpack.append(f"{getAssertFunction(node)}(value)")
-    value_unpack.append(f"{getAssertFunction(node)}(dpack_decoder_data_left(decoder) >=")
-    value_unpack.append(f"{' ' * (len(getAssertFunction(node)) + 1)}{_min});")
-    newline(value_unpack)
-    value_unpack.append(f"return {dpType.getDecode('decoder', 'value')};")
+#     value_unpack = []
+#     value_unpack.append(f"{getAssertFunction(node)}(decoder)")
+#     value_unpack.append(f"{getAssertFunction(node)}(value)")
+#     value_unpack.append(f"{getAssertFunction(node)}(dpack_decoder_data_left(decoder) >=")
+#     value_unpack.append(f"{' ' * (len(getAssertFunction(node)) + 1)}{_min});")
+#     newline(value_unpack)
+#     value_unpack.append(f"return {dpType.getDecode('decoder', 'value')};")
 
-    addExternFunction(node, ("int", _encode, [
-        ("struct dpack_encoder *", "encoder", set()),
-        (_type, "value", set()),
-    ], set()), value_pack)
-    addExternFunction(node, ("int", _decode, [
-        ("struct dpack_decoder *", "decoder", set()),
-        (_type + " *", "value", set()),
-    ], set()), value_unpack)
+#     addExternFunction(node, ("int", _encode, [
+#         ("struct dpack_encoder *", "encoder", set()),
+#         (_type, "value", set()),
+#     ], set()), value_pack)
+#     addExternFunction(node, ("int", _decode, [
+#         ("struct dpack_decoder *", "decoder", set()),
+#         (_type + " *", "value", set()),
+#     ], set()), value_unpack)
 
-    return lambda ctx, node: BaseType(ctx, node, _type, None, _encode, _decode, _min, _max)
+#     return lambda ctx, node: BaseType(ctx, node, _type, None, _encode, _decode, _min, _max)
 
 TYPE_MAP = {
     'boolean': boolType,
@@ -376,15 +389,15 @@ TYPE_MAP = {
     'uint16':  lambda ctx, node: scalarType('uint16', ctx, node),
     'uint32':  lambda ctx, node: scalarType('uint32', ctx, node),
     'uint64':  lambda ctx, node: scalarType('uint64', ctx, node),
-    'bits':    bitmapType,
+    'bits':    lambda ctx, node: scalarType('uint64', ctx, node),
     'string':  stringType,
 }
 
-def dpack_BaseType_maker(c_type, c_include, c_pack, c_unpack, c_min, c_max):
-    return lambda ctx, node: BaseType(ctx, node, c_type, c_include, c_pack, c_unpack, c_min, c_max)
+# def dpack_BaseType_maker(c_type, c_include, c_pack, c_unpack, c_min, c_max):
+#     return lambda ctx, node: BaseType(ctx, node, c_type, c_include, c_pack, c_unpack, c_min, c_max)
 
-def dpack_ExternTypedef_maker(ctx, t, name):
-    return lambda _, node: ExternTypedef(ctx, t, name, node)
+# def dpack_ExternTypedef_maker(ctx, t, name):
+#     return lambda _, node: ExternTypedef(ctx, t, name, node)
 
 def getType(ctx, stmt):
     yangType = stmt.search_one('type').arg
@@ -406,7 +419,9 @@ def getType(ctx, stmt):
                 return
 
         if prefix:
-            TYPE_MAP[map_name] = dpack_ExternTypedef_maker(ctx, t, name)    
+            err_add(ctx.errors, stmt.pos,'TYPE_NOT_FOUND', (yangType, "dpack types"))
+            return
+            # TYPE_MAP[map_name] = dpack_ExternTypedef_maker(ctx, t, name)
         elif t.search_one(('pydpack-extension', 'py-module')):
             modname = t.search_one(('pydpack-extension', 'py-module')).arg
             pluginmod = __import__(modname)
@@ -423,12 +438,14 @@ def getType(ctx, stmt):
             c_min     = t.search_one(('pydpack-extension', 'c-min'))
             c_max     = t.search_one(('pydpack-extension', 'c-max'))
             if c_include and c_type and c_pack and c_unpack and c_min and c_max:
-                TYPE_MAP[map_name] = dpack_BaseType_maker(c_type.arg,
-                                                          c_include.arg,
-                                                          c_pack.arg,
-                                                          c_unpack.arg,
-                                                          c_min.arg,
-                                                          c_max.arg)
+                err_add(ctx.errors, stmt.pos,'TYPE_NOT_FOUND', (yangType, "dpack types"))
+                return
+                # TYPE_MAP[map_name] = dpack_BaseType_maker(c_type.arg,
+                #                                           c_include.arg,
+                #                                           c_pack.arg,
+                #                                           c_unpack.arg,
+                #                                           c_min.arg,
+                #                                           c_max.arg)
             elif c_include or c_type or c_pack or c_unpack or c_min or c_max:
                 if not c_include:
                     attr = 'c-include'
@@ -445,6 +462,8 @@ def getType(ctx, stmt):
                 err_add(ctx.errors, t.pos,'MISSING_ARGUMENT_ATTRIBUTE', (attr, t))
                 return
             else:
-                TYPE_MAP[map_name] = dpack_Typedef_maker(ctx, t, name)
+                err_add(ctx.errors, stmt.pos,'TYPE_NOT_FOUND', (yangType, "dpack types"))
+                return
+                # TYPE_MAP[map_name] = dpack_Typedef_maker(ctx, t, name)
     return TYPE_MAP[map_name](ctx, stmt)
 

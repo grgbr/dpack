@@ -113,11 +113,11 @@ int main(int argc, char * const argv[])
 		ret = afl_sample_unpack(&dec, &spl);
 		if (!ret)
 			ret = afl_sample_pack(&enc, &spl);
+		dpack_exit_decoder(&dec);
 	}
 
-	dpack_exit_decoder(&dec);
 	dpack_exit_encoder(&enc);
 	afl_sample_fini(&spl);
-
+	free(out);
 	return 0;
 }

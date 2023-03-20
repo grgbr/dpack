@@ -10,6 +10,7 @@ rm -rf $input
 
 mkdir -p $input
 $test_afl $input/sample
+cat $input/sample | valgrind --leak-check=full --error-exitcode=1 $test_afl
 
 # export AFL_DEBUG=1
 
