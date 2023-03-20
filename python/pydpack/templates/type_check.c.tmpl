@@ -1,0 +1,11 @@
+#if $must
+int err;
+
+#for $f in $must
+err = $(f)(value, ctx);
+if (err)
+	return err;
+
+#end for
+#end if
+return 0;

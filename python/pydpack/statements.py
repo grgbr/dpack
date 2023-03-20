@@ -1,6 +1,12 @@
 from pydpack.util import *
 from pydpack import types
 from Cheetah.Template import Template
+from pydpack import templates
+try:
+    import importlib.resources as pkg_resources
+except ImportError:
+    # Try backported to PY<37 `importlib_resources`.
+    import importlib_resources as pkg_resources
 
 CHILDREN_STRUCTURE_MASK = ['container', 'list']
 
@@ -112,6 +118,7 @@ class Struct(object):
         value_struct = []
 
         nameSpace = {
+            'struct_name': name_struct,
             'prefix': self.prefix,
             'name': self.name,
             'assert': getAssertFunction(node),
@@ -176,37 +183,14 @@ class Struct(object):
             if t.hasInit():
                 nameSpace['hasInit'] = True
                 break
-        init_template = '''\
-#if $hasInit
-int err;
-
-#end if
-#for $t, $n in $struct
-#if $t.hasInit()
-err = $(prefix)_$(name)_init_$(n)(&data->$n);
-if (err)
-	return err;
-
-#end if
-#end for
-data->filled = 0;
-return 0;
-'''
+        init_template = pkg_resources.read_text(templates, 'struct_init.c.tmpl')
         addExternFunction(node, 
             (f"int", f"{self.prefix}_{self.name}_init", [
                 (f"struct {self.prefix}_{self.name} *", "data", set())
             ], set(["__warn_result", "__nonull(1)"])),
             str(Template(init_template, searchList=[nameSpace])).splitlines())
 
-        fini_template = '''\
-#from pydpack.util import todef
-#for $t, $n in $struct
-#if $t.hasFini()
-if ($(prefix)_$(name)_has_$(n)(data))
-	$(prefix)_$(name)_fini_$(n)(data->$n);
-#end if
-#end for
-'''
+        fini_template =pkg_resources.read_text(templates, 'struct_fini.c.tmpl')
         fini_data_attrs = set(["__unused"])
         for t, _ in struct:
             if t.hasFini():
@@ -218,19 +202,7 @@ if ($(prefix)_$(name)_has_$(n)(data))
             ], set(["__nonull(1)"])),
             str(Template(fini_template, searchList=[nameSpace])).splitlines())
 
-        create_template = '''\
-struct $(prefix)_$(name) *data;
-
-data = $(prefix)_$(name)_alloc();
-if (data == NULL)
-	return NULL;
-
-if (!$(prefix)_$(name)_init(data))
-	return data;
-
-$(prefix)_$(name)_free(data);
-return NULL;
-'''
+        create_template = pkg_resources.read_text(templates, 'struct_create.c.tmpl')
         addExternFunction(node, 
             (f"struct {self.prefix}_{self.name} *", f"{self.prefix}_{self.name}_create", [], set(["__warn_result"])),
             str(Template(create_template, searchList=[nameSpace])).splitlines())
@@ -242,28 +214,7 @@ return NULL;
             [f"{self.prefix}_{self.name}_fini(data);",
              f"{self.prefix}_{self.name}_free(data);"])
 
-        pack_template = '''\
-$(assert)(encoder);
-$(assert)(data);
-$(assert)(dpack_encoder_space_left(encoder) >=
-#echo ' ' * (len($assert) + 1) + $name_min + ');'
-
-$(assert)(!$(prefix)_$(name)_check(data));
-
-int err;
-
-dpack_map_begin_encode(encoder, __builtin_popcount(data->filled));
-
-#for $t, $n in $struct
-err = $(prefix)_$(name)_pack_$(n)(encoder, data);
-if (err)
-	return err;
-
-#end for
-dpack_map_end_encode(encoder);
-
-return 0;
-'''
+        pack_template = pkg_resources.read_text(templates, 'struct_pack.c.tmpl')
         addExternFunction(node, 
             (f"int", f"{self.prefix}_{self.name}_pack", [
                 (f"struct dpack_encoder *", "encoder", set()),
@@ -271,98 +222,24 @@ return 0;
             ], set(["__warn_result", "__nonull(1,2)"])),
             str(Template(pack_template, searchList=[nameSpace])).splitlines())
 
-        unpack_template = '''\
-#from pydpack.util import todef
-$(assert)(decoder);
-$(assert)(dpack_decoder_data_left(decoder) >=
-#echo ' ' * (len($assert) + 1) + $name_min + ');'
-
-$(assert)(data);
-$(assert)(!data->filled);
-
-unsigned int nr;
-unsigned int cnt;
-int          err;
-
-err = dpack_map_begin_decode_range(decoder,
-                                   $mand_nr,
-                                   $fld_nr,
-                                   &nr);
-if (err)
-	return err;
-
-for (cnt = 0; cnt < nr; cnt++) {
-	$(assert)(!(data->filled & ~$valid_fld));
-
-	unsigned int fid;
-
-	err = dpack_map_decode_fldid(decoder, &fid);
-	if (err)
-		return err;
-
-	switch (fid) {
-#for $t, $n in $struct
-#set $fld = todef($prefix + "_" + $name + "_" + $n + "_FLD")
-	case $fld:
-		err = $(prefix)_$(name)_unpack_$(n)(decoder, data);
-		break;
-#end for
-	default:
-		err = -EBADMSG;
-		break;
-	}
-
-	if (err)
-		return err;
-}
-
-dpack_map_end_decode(decoder);
-
-#if $check
-return $(prefix)_$(name)_check(data);
-#else
-return 0;
-#end if
-'''
+        unpack_template = pkg_resources.read_text(templates, 'struct_unpack.c.tmpl')
         addExternFunction(node, 
             (f"int", f"{self.prefix}_{self.name}_unpack", [
                 (f"struct dpack_decoder *", "decoder", set()),
                 (f"struct {self.prefix}_{self.name} *", "data", set()),
             ], set(["__warn_result", "__nonull(1,2)"])),
             str(Template(unpack_template, searchList=[nameSpace, {'check':ctx.opts.dpack_no_check}])).splitlines())
+        
+        dispatch_template = pkg_resources.read_text(templates, 'struct_dispatch.c.tmpl')
+        addStaticFunction(node, 
+            (f"int", f"{self.prefix}_{self.name}_dispatch_field", [
+                (f"struct dpack_decoder *", "decoder", set()),
+                (f"unsigned int", "fid", set()),
+                (f"void *", "data", set()),
+            ], set(["__warn_result", "__nonull(1,3)"])),
+            str(Template(dispatch_template, searchList=[nameSpace])).splitlines())
 
-        check_template = '''\
-$(assert)(data);
-$(assert)(!(data->filled & ~$valid_fld));
-
-#if $must
-int err;
-
-#end if
-if ((data->filled & $mand_fld) !=
-    $mand_fld)
-	return -ENOENT;
-
-#for $t, $n in $struct
-#if $t.isMandatory()
-$(assert)(!$(prefix)_$(name)_check_$(n)(data->$n));
-#else
-$(assert)(!$(prefix)_$(name)_has_$(n)(data) ||
-#echo " " * (len($assert) + 1)
-!$(prefix)_$(name)_check_$(n)(data->$n));
-#end if
-#end for
-
-#if $must
-#for $f in $must
-err = $(f)(data);
-if (err)
-	return err;
-
-#end for
-#end if
-return 0;
-'''
+        check_template = pkg_resources.read_text(templates, 'struct_check.c.tmpl')
         addExternFunction(node, 
             (f"int", f"{self.prefix}_{self.name}_check", [
                 (f"const struct {self.prefix}_{self.name} *", "data", set()),

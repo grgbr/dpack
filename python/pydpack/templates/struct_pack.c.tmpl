@@ -1,0 +1,20 @@
+$(assert)(encoder);
+$(assert)(data);
+$(assert)(dpack_encoder_space_left(encoder) >=
+#echo ' ' * (len($assert) + 1) + $name_min + ');'
+
+$(assert)(!$(struct_name)_check(data));
+
+int err;
+
+dpack_map_begin_encode(encoder, __builtin_popcount(data->filled));
+
+#for $t, $n in $struct
+err = $(struct_name)_pack_$(n)(encoder, data);
+if (err)
+	return err;
+
+#end for
+dpack_map_end_encode(encoder);
+
+return 0;

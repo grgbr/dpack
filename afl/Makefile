@@ -23,6 +23,7 @@ $(BUILDDIR)/test-afl: $(TOPDIR)/afl/test-afl.c \
 	       -I$(TOPDIR) \
 	       -I$(MPACK_SRC) \
 	       -I$(BUILDDIR) \
+	       -DDPACK_DEBUG -D_GNU_SOURCE \
 	       -o $(@) $(filter %.c %.a %.o %.so,$(^))
 
 $(BUILDDIR):

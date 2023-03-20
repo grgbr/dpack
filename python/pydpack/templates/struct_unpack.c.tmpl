@@ -1,0 +1,23 @@
+#from pydpack.util import todef
+$(assert)(decoder);
+$(assert)(dpack_decoder_data_left(decoder) >=
+#echo ' ' * (len($assert) + 1) + $name_min + ');'
+
+$(assert)(data);
+$(assert)(!data->filled);
+
+int err;
+
+err = dpack_map_decode_range(decoder,
+                             $mand_nr,
+                             $fld_nr,
+                             $(struct_name)_dispatch_field,
+                             data);
+if (err)
+	return err;
+
+#if $check
+return $(struct_name)_check(data);
+#else
+return 0;
+#end if

@@ -1,0 +1,21 @@
+## static int
+## struct_dispatch_field(struct dpack_decoder * decoder,
+##                       unsigned int           fid,
+##                       void                 * data)
+#from pydpack.util import todef
+
+struct $(struct_name) *obj = data; 
+
+$(assert)(decoder);
+$(assert)(obj);
+$(assert)(!(obj->filled & ~$valid_fld));
+
+switch (fid) {
+#for $t, $n in $struct
+#set $fld = todef($struct_name + "_" + $n + "_FLD")
+case $fld:
+	return $(struct_name)_unpack_$(n)(decoder, obj);
+#end for
+default:
+	return -EBADMSG;
+}

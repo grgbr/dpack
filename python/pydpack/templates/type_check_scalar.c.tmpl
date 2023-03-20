@@ -1,0 +1,22 @@
+#from pydpack.util import range2liststr
+#if $must
+int err;
+
+#end if
+#set $t = "\n".join(range2liststr($ranges, $c_type))
+switch (value) {
+default:
+	return -ERANGE;
+$t
+	break;
+}
+
+#if $must
+#for $f in $must
+err = $(f)(value, ctx);
+if (err)
+	return err;
+
+#end for
+#end if
+return 0;

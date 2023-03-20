@@ -5,12 +5,14 @@ test_afl=${topdir}/build/test-afl
 input=${topdir}/build/input
 output=${topdir}/build/afl
 
+rm -rf ${topdir}/build/default
 rm -rf $output
 rm -rf $input
 
 mkdir -p $input
 $test_afl $input/sample
-cat $input/sample | valgrind --leak-check=full --error-exitcode=1 $test_afl
+cat $input/sample | valgrind -v --leak-check=full --error-exitcode=1 $test_afl
+AFL_DEBUG=1 afl-fuzz -V 1 -i $input -o ${topdir}/build $test_afl
 
 # export AFL_DEBUG=1
 

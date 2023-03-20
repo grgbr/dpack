@@ -1,0 +1,18 @@
+#from pydpack.util import todef
+$(assert)(encoder);
+$(assert)(data);
+
+const struct $struct_type *obj = (struct $(struct_type) *)data;
+int err;
+
+if (!$(struct_type)_has_$(name)(data))
+	return 0;
+
+#set $p = " " * (len($encode) + 7)
+err = $(encode)(encoder,
+$(p)$field,
+$(p)obj->$name);
+if (err)
+	return err;
+
+return 0;

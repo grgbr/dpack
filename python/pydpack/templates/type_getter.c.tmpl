@@ -1,0 +1,8 @@
+$(assert)(obj);
+$(assert)(result);
+
+if (!$(struct_type)_has_$(name)(obj))
+	return -EPERM;
+
+*result = obj->$name;
+return 0;

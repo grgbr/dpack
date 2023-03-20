@@ -3,6 +3,12 @@ from pyang import util
 from pyang.statements import search_typedef, is_mandatory_node
 from pydpack.util import *
 from Cheetah.Template import Template
+from pydpack import templates
+try:
+    import importlib.resources as pkg_resources
+except ImportError:
+    # Try backported to PY<37 `importlib_resources`.
+    import importlib_resources as pkg_resources
 
 class BaseType(object):
     def __init__(self, ctx, node, _type, _include, _encode, _decode, _min, _max) -> None:
@@ -23,26 +29,13 @@ class BaseType(object):
         self.getter_attrs = {
             "function": set(["__warn_result", "__nonull(1,2)"])
         }
-        self.getter_template = '''\
-$(assert)(obj);
-$(assert)(result);
+        self.getter_template = pkg_resources.read_text(templates, 'type_getter.c.tmpl')
 
-if (!$(struct_type)_has_$(name)(obj))
-	return -EPERM;
-
-*result = obj->$name;
-return 0;
-'''
         self.setter_attrs = {
             "function": set(["__nonull(1)"])
         }
-        self.setter_template = '''\
-$(assert)(obj);
-$(assert)(!$(struct_type)_check_$(name)(value));
+        self.setter_template = pkg_resources.read_text(templates, 'type_setter.c.tmpl')
 
-obj->$name = value;
-obj->filled |= (1U << $field);
-'''
         self.nameSpace['must'] = parseMust(ctx, self.node)
         if self.nameSpace['must']:
             self.check_attrs = {
@@ -54,70 +47,17 @@ obj->filled |= (1U << $field);
                 "function": set(["__warn_result"]),
                 "value": set(["__unused"]),
             }
-        self.check_template = '''\
-#if $must
-int err;
+        self.check_template = pkg_resources.read_text(templates, 'type_check.c.tmpl')
 
-#for $f in $must
-err = $(f)(value, ctx);
-if (err)
-	return err;
-
-#end for
-#end if
-return 0;
-'''
         self.pack_attrs = {
             "function": set(["__warn_result"]),
         }
-        self.pack_template = '''\
-#from pydpack.util import todef
-$(assert)(encoder);
-$(assert)(data);
-
-const struct $struct_type *obj = (struct $(struct_type) *)data;
-int err;
-
-if (!$(struct_type)_has_$(name)(data))
-	return 0;
-
-#set $p = " " * (len($encode) + 7)
-err = $(encode)(encoder,
-$(p)$field,
-$(p)obj->$name);
-if (err)
-	return err;
-
-return 0;
-'''
+        self.pack_template = pkg_resources.read_text(templates, 'type_pack.c.tmpl')
 
         self.unpack_attrs = {
             "function": set(["__warn_result"]),
         }
-        self.unpack_template = '''\
-$(assert)(decoder);
-$(assert)(data);
-
-int ret;
-struct $struct_type *obj = (struct $(struct_type) *)data;
-
-if ($(struct_type)_has_$(name)(obj))
-	return -EEXIST;
-
-ret = $(decode)(decoder, &obj->$name);
-if (ret < 0)
-	return ret;
-
-obj->filled |= (1U << $field);
-
-#if $check
-ret = $(struct_type)_check_$(name)(obj->$name);
-if (ret)
-	return ret;
-
-#end if
-return 0;
-'''
+        self.unpack_template = pkg_resources.read_text(templates, 'type_unpack.c.tmpl')
 
     def updateName(self, name: str) -> str:
         return name
@@ -210,30 +150,7 @@ class scalarType(BaseType):
             self.nameSpace["c_type"] = scalarType.unit2c[unit]
             if "__unused" in self.check_attrs["value"]:
                 self.check_attrs["value"].remove("__unused")
-            self.check_template = '''\
-#from pydpack.util import range2liststr
-#if $must
-int err;
-
-#end if
-#set $t = "\\n".join(range2liststr($ranges, $c_type))
-switch (value) {
-default:
-	return -ERANGE;
-$t
-	break;
-}
-
-#if $must
-#for $f in $must
-err = $(f)(value, ctx);
-if (err)
-	return err;
-
-#end for
-#end if
-return 0;
-'''
+            self.check_template = pkg_resources.read_text(templates, 'type_check_scalar.c.tmpl')
 
 # class bitmapType(BaseType):
 #     def __init__(self, ctx, node) -> None:
@@ -273,6 +190,7 @@ class stringType(BaseType):
                         'dpack_decode_strdup',
                         '(DPACK_MAP_FLDID_SIZE_MIN + 1)',
                         '(DPACK_MAP_FLDID_SIZE_MAX + DPACK_STRLEN_MAX + 5)')
+        self.fini_template = pkg_resources.read_text(templates, 'type_fini_string.c.tmpl')
 
     def hasFini(self):
         return True
@@ -282,9 +200,7 @@ class stringType(BaseType):
         addStaticFunction(self.node, ("void", f"{struct_type}_fini_{name}", [
             (self.type, "value", set()),
         ], set()),
-        str(Template('''\
-free(value);
-''', searchList=[self.nameSpace])).splitlines())
+        str(Template(self.fini_template, searchList=[self.nameSpace])).splitlines())
 
 # class ExternTypedef(BaseType):
 #     def __init__(self, ctx, node, name, parent_node) -> None:

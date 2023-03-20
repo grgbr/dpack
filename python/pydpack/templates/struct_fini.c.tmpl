@@ -1,0 +1,7 @@
+#from pydpack.util import todef
+#for $t, $n in $struct
+#if $t.hasFini()
+if ($(struct_name)_has_$(n)(data))
+	$(struct_name)_fini_$(n)(data->$n);
+#end if
+#end for

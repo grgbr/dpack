@@ -1,0 +1,5 @@
+$(assert)(obj);
+$(assert)(!$(struct_type)_check_$(name)(value));
+
+obj->$name = value;
+obj->filled |= (1U << $field);

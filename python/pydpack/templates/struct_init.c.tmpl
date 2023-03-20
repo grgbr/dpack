@@ -1,0 +1,14 @@
+#if $hasInit
+int err;
+
+#end if
+#for $t, $n in $struct
+#if $t.hasInit()
+err = $(struct_name)_init_$(n)(&data->$n);
+if (err)
+	return err;
+
+#end if
+#end for
+data->filled = 0;
+return 0;

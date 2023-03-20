@@ -1,0 +1,22 @@
+$(assert)(decoder);
+$(assert)(data);
+
+int ret;
+struct $struct_type *obj = (struct $(struct_type) *)data;
+
+if ($(struct_type)_has_$(name)(obj))
+	return -EEXIST;
+
+ret = $(decode)(decoder, &obj->$name);
+if (ret < 0)
+	return ret;
+
+obj->filled |= (1U << $field);
+
+#if $check
+ret = $(struct_type)_check_$(name)(obj->$name);
+if (ret)
+	return ret;
+
+#end if
+return 0;

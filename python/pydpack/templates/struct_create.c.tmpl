@@ -1,0 +1,11 @@
+struct $(struct_name) *data;
+
+data = $(struct_name)_alloc();
+if (data == NULL)
+	return NULL;
+
+if (!$(struct_name)_init(data))
+	return data;
+
+$(struct_name)_free(data);
+return NULL;

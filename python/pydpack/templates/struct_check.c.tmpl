@@ -1,0 +1,30 @@
+$(assert)(data);
+$(assert)(!(data->filled & ~$valid_fld));
+
+#if $must
+int err;
+
+#end if
+if ((data->filled & $mand_fld) !=
+    $mand_fld)
+	return -ENOENT;
+
+#for $t, $n in $struct
+#if $t.isMandatory()
+$(assert)(!$(struct_name)_check_$(n)(data->$n));
+#else
+$(assert)(!$(struct_name)_has_$(n)(data) ||
+#echo " " * (len($assert) + 1)
+!$(struct_name)_check_$(n)(data->$n));
+#end if
+#end for
+
+#if $must
+#for $f in $must
+err = $(f)(data);
+if (err)
+	return err;
+
+#end for
+#end if
+return 0;
