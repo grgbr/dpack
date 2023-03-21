@@ -90,6 +90,7 @@ int main(int argc, char * const argv[])
 	if (!out)
 		return EXIT_FAILURE;
 
+	ret = EXIT_SUCCESS;
 
 #ifdef __AFL_HAVE_MANUAL_CONTROL
 	__AFL_INIT();
@@ -116,5 +117,5 @@ int main(int argc, char * const argv[])
 		afl_sample_fini(&spl);
 	}
 	free(out);
-	return 0;
+	return ret;
 }

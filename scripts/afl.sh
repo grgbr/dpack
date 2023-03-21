@@ -10,11 +10,26 @@ rm -rf $output
 rm -rf $input
 
 mkdir -p $input
-valgrind -v --leak-check=full --error-exitcode=1 $test_afl $input/sample
-cat $input/sample | valgrind -v --leak-check=full --error-exitcode=1 $test_afl
-AFL_DEBUG=1 afl-fuzz -V 1 -i $input -o ${topdir}/build $test_afl
+
+if ! out=$(valgrind -v --leak-check=full --error-exitcode=1 $test_afl $input/sample 2>&1); then
+        echo -e "\n${out}"
+        return 1
+fi
+
+if ! out=$(cat $input/sample | valgrind -v --leak-check=full --error-exitcode=1 $test_afl 2>&1); then
+        echo -e "\n${out}"
+        return 1
+fi
+
+if ! out=$(AFL_DEBUG=1 afl-fuzz -V 1 -i $input -o ${topdir}/build $test_afl 2>&1); then
+        echo -e "\n${out}"
+        return 1
+fi
 
 if [ $(ls build/default/crashes/ | wc -l) -ne 0 ]; then
+        echo ~~~~~~~~~~~~~~~~~~
+        echo ~   Crash found  ~
+        echo ~~~~~~~~~~~~~~~~~~
         exit 1
 fi
 
