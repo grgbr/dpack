@@ -2,6 +2,16 @@
 // SPDX-License-Identifier: MIT
 \#include "$(name).h"
 \#include <dpack/codec.h>
+#for $t, $n, $v in $constVariables
+
+static const $t $n = $v[0];
+#if len($v) > 1
+#for $l in $v[1:-1]
+	$l
+#end for
+$v[-1];
+#end if
+#end for
 #for $f, $d in $StaticFunctions
 #set $r = functionAlign($f)
 

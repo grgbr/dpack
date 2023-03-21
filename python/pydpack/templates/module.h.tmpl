@@ -40,12 +40,14 @@ enum $n {
 };
 
 #end for
-#for $n, $c in $structures
+#for $n, $c, $ex in $structures
 struct $n {
 #set $al  = findAlign([x[0] for x in $c], minimum = len("uint64_t"))
 #set $p = " " * ($al - len("uint64_t"))
-	uint64_t$(p)filled;
-	uint64_t$(p)obsolete;
+	uint64_t$(p)dp_filled;
+#if $ex.get('hasObsolete', False)
+	uint64_t$(p)dp_obsolete;
+#end if
 #for $t, $v in $c
 #set $t, $c = removeStart($t)
 #set $p = " " * ($al - len($t) - $c) + "*" * $c

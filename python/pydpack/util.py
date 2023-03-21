@@ -15,6 +15,9 @@ def addIncludes(node, file: str):
         return
     node.top.dpack_module.includes.add(file)
 
+def addConstVariable(node , type: str, name: str, value: list[str]):
+    node.top.dpack_module.ConstVariables.append((type, name, value))
+
 def addDefine(node, name: str, data: list[str]):
     node.top.dpack_module.defines.append((name, data))
 
@@ -33,8 +36,8 @@ def addExternFunction(node, declaration: tuple[str, str, list[tuple[str, str, se
 def addStaticFunction(node, declaration: tuple[str, str, list[tuple[str, str, set[str]]], set[str]], content: list[str]):
     node.top.dpack_module.StaticFunctions.append((declaration, content))
 
-def addStructure(node, name: str, content: list[tuple[str, str]]):
-    node.top.dpack_module.structures.append((name, content))
+def addStructure(node, name: str, content: list[tuple[str, str]], extra: dict):
+    node.top.dpack_module.structures.append((name, content, extra))
 
 def getAssertFunction(node):
     return node.top.dpack_module.assertFunction
@@ -131,8 +134,9 @@ def addBracket(l: list[str]):
     elif len(l) == 1:
         return [f"({l[0]})"]
     else:
-        ret.append(f"({l.pop(0)}")
-        ret.extend(l)
+        c = l[:]
+        ret.append(f"({c.pop(0)}")
+        ret.extend(c)
         ret[-1] += ")"
         return ret
 

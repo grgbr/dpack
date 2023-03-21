@@ -3,12 +3,11 @@
 ##                       unsigned int           fid,
 ##                       void                 * data)
 #from pydpack.util import todef
-
-struct $(struct_name) *obj = data; 
+struct $(struct_name) *obj = data;
 
 $(assert)(decoder);
 $(assert)(obj);
-$(assert)(!(obj->filled & ~$valid_fld));
+$(assert)(!(obj->dp_filled & ~$valid_fld));
 
 switch (fid) {
 #for $t, $n in $struct

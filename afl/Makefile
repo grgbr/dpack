@@ -10,7 +10,7 @@ dpack_objs := map array string scalar codec common
 all: $(BUILDDIR)/test-afl | $(BUILDDIR)
 
 $(BUILDDIR)/afl-fix.c: | $(BUILDDIR)
-	$(Q)PYTHONPYCACHEPREFIX=$(BUILDDIR) PYTHONPATH=$(PYTHONPATH):$(TOPDIR)/python/ \
+	@PYTHONPYCACHEPREFIX=$(BUILDDIR) PYTHONPATH=$(PYTHONPATH):$(TOPDIR)/python/ \
 	      $(PYANG) --plugindir $(PLUGIN) --lint -f dpack \
 	      --dpack-output-dir "$(BUILDDIR)" $(TOPDIR)/afl/afl-fix.yang
 

@@ -40,7 +40,8 @@ module afl-fix{
 		}
 		leaf s16 {
 			type int16;
-			description "Sample int16 leaf";
+			default 16;
+			description "Sample int16 leaf with default value";
 		}
 		leaf s32 {
 			type int32;
@@ -68,6 +69,17 @@ module afl-fix{
 		}
 		leaf string {
 			type string;
+			description "Sample boolean leaf";
+		}
+		leaf stringobamd {
+			type string;
+			mandatory true;
+			status obsolete;
+			description "Sample boolean leaf";
+		}
+		leaf stringdflt {
+			type string;
+			default "this is default value for test";
 			description "Sample boolean leaf";
 		}
 	}

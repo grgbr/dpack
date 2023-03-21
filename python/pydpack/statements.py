@@ -35,6 +35,7 @@ class Module(object):
         self.ExternFunctions = []
         self.StaticFunctions = []
         self.structures = []
+        self.ConstVariables = []
         
         self.name = self.node.arg
         self.define = f"_{todef(self.name)}_H"
@@ -59,6 +60,7 @@ class Module(object):
             "StaticFunctions": self.StaticFunctions,
             "ExternFunctions": self.ExternFunctions,
             "structures":      self.structures,
+            "constVariables":  self.ConstVariables,
         }
         chs = [ch for ch in self.node.i_children
             if ch.keyword in CHILDREN_STRUCTURE_MASK]
@@ -138,12 +140,14 @@ class Struct(object):
         mandFld = []
         obslFld = []
         enum_field = []
+        hasObsolete = False
         for i, x in enumerate(struct):
             t, n = x
             t.addFunctions(n, name_struct)
             fld = todef(f"{name_struct}_{n}_FLD")
             enum_field.append((fld, i))
             if t.isObsolete():
+                hasObsolete = True
                 if t.isMandatory():
                     obslFld.append(f"(1U << {fld}) |")
             else:
@@ -167,16 +171,14 @@ class Struct(object):
         addDefine(node, name_mandFld, addBracket(mandFld))
 
         validFld = [f"(1U << {fld_nr}) - 1"]
-        if obslFld:
+        if hasObsolete:
             obslFld[-1] = obslFld[-1][:-2]
             if len(obslFld) == 1:
                 obslFld[0] = obslFld[0][1:-1]
             validFld = addBracket(validFld)
             validFld[-1] += " ^"
             validFld.extend(addBracket(obslFld))
-        else:
-            obslFld = [0]
-        addDefine(node, name_obslFld, addBracket(obslFld))
+            addDefine(node, name_obslFld, addBracket(obslFld))
         addDefine(node, name_validFld, addBracket(validFld))
 
         addEnum(node, f"{name_struct}_field", enum_field)
@@ -190,7 +192,7 @@ class Struct(object):
             value_max = [0]
         addDefine(node, name_min, addBracket(value_min))
         addDefine(node, name_max, addBracket(value_max))
-        addStructure(node, name_struct, value_struct)
+        addStructure(node, name_struct, value_struct, {"hasObsolete": hasObsolete})
         addExternFunction(node, 
             (f"struct {self.prefix}_{self.name} *", f"{self.prefix}_{self.name}_alloc", [], set(["__warn_result"])),
             [f"return malloc(sizeof(struct {self.prefix}_{self.name}));"])

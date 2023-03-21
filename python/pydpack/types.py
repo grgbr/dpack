@@ -19,6 +19,7 @@ class BaseType(object):
         self.decode = _decode
         self.min = _min
         self.max = _max
+        self.default = node.search_one("default")
         s = node.search_one('status')
         if s:
             self.status = s.arg
@@ -32,6 +33,7 @@ class BaseType(object):
             'check':     ctx.opts.dpack_no_check,
             'status':    self.status,
             'mandatory': self.isMandatory(),
+            'default':   self.default.arg if self.default else None
         }
 
         self.getter_attrs = {
@@ -54,6 +56,12 @@ class BaseType(object):
         else:
             self.check_attrs["value"] = set(["__unused"])
         self.check_template = pkg_resources.read_text(templates, 'type_check.c.tmpl')
+
+        self.has_attrs = {
+            "function": set(["__warn_result"]),
+            "data": set(),
+        }
+        self.has_template = pkg_resources.read_text(templates, 'type_has.c.tmpl')
 
         self.pack_attrs = {
             "function": set(["__warn_result"]),
@@ -112,7 +120,7 @@ class BaseType(object):
         self.nameSpace["struct_type"] = struct_type
         self.nameSpace["field"]       = todef(f"{struct_type}_{name}_FLD")
 
-        if (self.status != 'obsolete'):
+        if self.status != 'obsolete':
 
             addExternFunction(self.node, ("int", f"{struct_type}_get_{name}", [
                 (f"const struct {struct_type} *", "obj", self.getter_attrs.get("obj", set())),
@@ -133,16 +141,16 @@ class BaseType(object):
 
             addExternFunction(self.node,
                 ('bool', f"{struct_type}_has_{name}", [
-                    (f"const struct {struct_type} *", "data", set()),
-                ], set(["__warn_result"])),
-                [f"return ((data->filled & (1U << {self.nameSpace['field']})) ==",
-                f"        (1U << {self.nameSpace['field']}));"])
+                    (f"const struct {struct_type} *", "data", self.has_attrs.get("data", set())),
+                ], self.has_attrs.get("function", set())),
+                str(Template(self.has_template, searchList=[self.nameSpace])).splitlines())
 
-        addStaticFunction(self.node, ("int", f"{struct_type}_pack_{name}", [
-            ('struct dpack_encoder *', "encoder", self.pack_attrs.get("encoder", set())),
-            ('const void *', "data", self.pack_attrs.get("data", set())),
-        ], self.pack_attrs.get("function", set())),
-        str(Template(self.pack_template, searchList=[self.nameSpace])).splitlines())
+        if self.status != 'obsolete' or is_mandatory_node(self.node):
+            addStaticFunction(self.node, ("int", f"{struct_type}_pack_{name}", [
+                ('struct dpack_encoder *', "encoder", self.pack_attrs.get("encoder", set())),
+                ('const void *', "data", self.pack_attrs.get("data", set())),
+            ], self.pack_attrs.get("function", set())),
+            str(Template(self.pack_template, searchList=[self.nameSpace])).splitlines())
 
         addStaticFunction(self.node, ("int", f"{struct_type}_unpack_{name}", [
             ('struct dpack_decoder *', "decoder", self.unpack_attrs.get("decoder", set())),
@@ -221,14 +229,22 @@ class stringType(BaseType):
         self.nameSpace['obsolete_value'] = '" "'
 
     def hasFini(self):
+        if self.isObsolete():
+            return False
         return True
     
     def addFunctions(self, name, struct_type):
+        if self.default:
+            const_name = f"{struct_type}_dflt_{name}"
+            addConstVariable(self.node, "char * const", const_name, [f'"{self.default.arg}"'])
+            self.nameSpace['default'] = f"(char *){const_name}"
         super().addFunctions(name, struct_type)
-        addStaticFunction(self.node, ("void", f"{struct_type}_fini_{name}", [
-            (self.type, "value", set()),
-        ], set()),
-        str(Template(self.fini_template, searchList=[self.nameSpace])).splitlines())
+
+        if not self.isObsolete():
+            addStaticFunction(self.node, ("void", f"{struct_type}_fini_{name}", [
+                (self.type, "value", set()),
+            ], set()),
+            str(Template(self.fini_template, searchList=[self.nameSpace])).splitlines())
 
 # class ExternTypedef(BaseType):
 #     def __init__(self, ctx, node, name, parent_node) -> None:

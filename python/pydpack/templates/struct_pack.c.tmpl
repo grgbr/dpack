@@ -7,15 +7,21 @@ $(assert)(!$(struct_name)_check(data));
 
 int err;
 
+#if [1 for $t, _ in $struct if $t.isObsolete()]
 dpack_map_begin_encode(encoder,
-                       __builtin_popcountll(data->filled) +
+                       __builtin_popcountll(data->dp_filled) +
                        __builtin_popcountll($obsl_fld));
+#else
+dpack_map_begin_encode(encoder, __builtin_popcountll(data->dp_filled));
+#end if
 
 #for $t, $n in $struct
+#if not $t.isObsolete() or $t.isMandatory()
 err = $(struct_name)_pack_$(n)(encoder, data);
 if (err)
 	return err;
 
+#end if
 #end for
 dpack_map_end_encode(encoder);
 

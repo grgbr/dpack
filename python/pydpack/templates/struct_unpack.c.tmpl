@@ -4,7 +4,7 @@ $(assert)(dpack_decoder_data_left(decoder) >=
 #echo ' ' * (len($assert) + 1) + $name_min + ');'
 
 $(assert)(data);
-$(assert)(!data->filled);
+$(assert)(!data->dp_filled);
 
 int err;
 

@@ -1,11 +1,11 @@
 $(assert)(data);
-$(assert)(!(data->filled & ~$valid_fld));
+$(assert)(!(data->dp_filled & ~$valid_fld));
 
 #if $must
 int err;
 
 #end if
-if ((data->filled & $mand_fld) !=
+if ((data->dp_filled & $mand_fld) !=
     $mand_fld)
 	return -ENOENT;
 

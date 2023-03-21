@@ -1,8 +1,15 @@
 $(assert)(obj);
 $(assert)(result);
 
+#if $default
+if (!$(struct_type)_has_$(name)(obj)) {
+	*result = $default;
+	return 0;
+}
+#else
 if (!$(struct_type)_has_$(name)(obj))
 	return -EPERM;
+#end if
 
 *result = obj->$name;
 return 0;

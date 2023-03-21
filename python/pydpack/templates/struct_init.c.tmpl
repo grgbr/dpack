@@ -10,6 +10,8 @@ if (err)
 
 #end if
 #end for
-data->filled = 0;
-data->obsolete = 0;
+data->dp_filled = 0;
+#if [1 for $t, _ in $struct if $t.isObsolete()]
+data->dp_obsolete = 0;
+#end if
 return 0;

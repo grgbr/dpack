@@ -7,7 +7,7 @@ $(assert)(data);
 int err;
 struct $struct_type *obj = (struct $(struct_type) *)data;
 
-if ((obj->obsolete & (1U << $field)) ==
+if ((obj->dp_obsolete & (1U << $field)) ==
     (1U << $field))
 	return -EEXIST;
 
@@ -15,7 +15,7 @@ err = dpack_decoder_skip(decoder);
 if (err)
 	return err;
 
-obj->obsolete |= (1U << $field);
+obj->dp_obsolete |= (1U << $field);
 
 return 0;
 #else
@@ -29,7 +29,7 @@ ret = $(decode)(decoder, &obj->$name);
 if (ret < 0)
 	return ret;
 
-obj->filled |= (1U << $field);
+obj->dp_filled |= (1U << $field);
 
 #if $check
 ret = $(struct_type)_check_$(name)(obj->$name);
