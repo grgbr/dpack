@@ -23,6 +23,7 @@ class Module(object):
             'dpack/map.h'
         ])
         self.defines = [
+            ('__deprecated', ["__attribute__((deprecated))"]),
             ('__warn_result', ["__attribute__((warn_unused_result))"]),
             ('__nonull(_arg_index, ...)',
                 ["__attribute__((nonnull(_arg_index, ## __VA_ARGS__)))"]
@@ -111,6 +112,7 @@ class Struct(object):
         name_max = f"{todef(self.prefix)}_{todef(self.name)}_PACKED_SIZE_MAX"
         name_validFld = f"{todef(self.prefix)}_{todef(self.name)}_VALID_FLD_MSK"
         name_mandFld = f"{todef(self.prefix)}_{todef(self.name)}_MAND_FLD_MSK"
+        name_obslFld = f"{todef(self.prefix)}_{todef(self.name)}_OBSL_FLD_MSK"
         name_mandNR = f"{todef(self.prefix)}_{todef(self.name)}_MAND_FLD_NR"
         fld_nr = todef(f"{name_struct}_FLD_NR")
         value_min = [f"DPACK_MAP_HEAD_SIZE({name_mandNR}) + "]
@@ -126,6 +128,7 @@ class Struct(object):
             'name_max': name_max,
             'valid_fld': name_validFld,
             'mand_fld': name_mandFld,
+            'obsl_fld': name_obslFld,
             'mand_nr': name_mandNR,
             'fld_nr': fld_nr,
             'struct': struct,
@@ -133,22 +136,28 @@ class Struct(object):
         }
 
         mandFld = []
+        obslFld = []
         enum_field = []
         for i, x in enumerate(struct):
             t, n = x
             t.addFunctions(n, name_struct)
             fld = todef(f"{name_struct}_{n}_FLD")
             enum_field.append((fld, i))
-            value_struct.append((t.getType(), n))
-            value_max.append(f"{t.getMax()} +")
+            if t.isObsolete():
+                if t.isMandatory():
+                    obslFld.append(f"(1U << {fld}) |")
+            else:
+                value_struct.append((t.getType(), n))
+                if t.isMandatory():
+                    mandFld.append(f"(1U << {fld}) |")
+
             if t.isMandatory():
                 value_min.append(f"{t.getMin()} +")
-                mandFld.append(f"(1U << {fld}) |")
+            value_max.append(f"{t.getMax()} +")
         
         enum_field.append((fld_nr, None))
 
         addDefine(node, name_mandNR, addBracket([f"{len(mandFld)}U"]))
-        addDefine(node, name_validFld, addBracket([f"(1U << {fld_nr}) - 1"]))
         if mandFld:
             mandFld[-1] = mandFld[-1][:-2]
             if len(mandFld) == 1:
@@ -156,6 +165,19 @@ class Struct(object):
         else:
             mandFld = [0]
         addDefine(node, name_mandFld, addBracket(mandFld))
+
+        validFld = [f"(1U << {fld_nr}) - 1"]
+        if obslFld:
+            obslFld[-1] = obslFld[-1][:-2]
+            if len(obslFld) == 1:
+                obslFld[0] = obslFld[0][1:-1]
+            validFld = addBracket(validFld)
+            validFld[-1] += " ^"
+            validFld.extend(addBracket(obslFld))
+        else:
+            obslFld = [0]
+        addDefine(node, name_obslFld, addBracket(obslFld))
+        addDefine(node, name_validFld, addBracket(validFld))
 
         addEnum(node, f"{name_struct}_field", enum_field)
         if value_min:

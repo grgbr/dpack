@@ -1,6 +1,24 @@
+## static int
+## struct_unpack_name(struct dpack_decoder *decoder, void *data)
 $(assert)(decoder);
 $(assert)(data);
 
+#if $status == 'obsolete'
+int err;
+struct $struct_type *obj = (struct $(struct_type) *)data;
+
+if ((obj->obsolete & (1U << $field)) ==
+    (1U << $field))
+	return -EEXIST;
+
+err = dpack_decoder_skip(decoder);
+if (err)
+	return err;
+
+obj->obsolete |= (1U << $field);
+
+return 0;
+#else
 int ret;
 struct $struct_type *obj = (struct $(struct_type) *)data;
 
@@ -20,3 +38,4 @@ if (ret)
 
 #end if
 return 0;
+#end if

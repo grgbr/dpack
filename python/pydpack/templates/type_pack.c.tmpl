@@ -1,7 +1,25 @@
+## static int
+## struct_pack_name(struct dpack_encoder *encoder, const void *data)
 #from pydpack.util import todef
 $(assert)(encoder);
 $(assert)(data);
 
+#if $status == 'obsolete'
+#if $mandatory
+#set $p = " " * (len($encode) + 7)
+int err;
+
+err = $(encode)(encoder,
+$(p)$field,
+$(p)$obsolete_value);
+if (err)
+	return err;
+
+return 0;
+#else
+return 0;
+#end if
+#else
 const struct $struct_type *obj = (struct $(struct_type) *)data;
 int err;
 
@@ -16,3 +34,4 @@ if (err)
 	return err;
 
 return 0;
+#end if

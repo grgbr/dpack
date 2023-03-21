@@ -19,11 +19,19 @@ class BaseType(object):
         self.decode = _decode
         self.min = _min
         self.max = _max
+        s = node.search_one('status')
+        if s:
+            self.status = s.arg
+        else:
+            self.status = None
+
         addIncludes(node, self.include)
         self.nameSpace = {
-            'encode': self.encode,
-            'decode': self.decode,
-            'check':ctx.opts.dpack_no_check,
+            'encode':    self.encode,
+            'decode':    self.decode,
+            'check':     ctx.opts.dpack_no_check,
+            'status':    self.status,
+            'mandatory': self.isMandatory(),
         }
 
         self.getter_attrs = {
@@ -37,27 +45,39 @@ class BaseType(object):
         self.setter_template = pkg_resources.read_text(templates, 'type_setter.c.tmpl')
 
         self.nameSpace['must'] = parseMust(ctx, self.node)
+        self.check_attrs = {
+            "function": set(["__warn_result"]),
+        }
+
         if self.nameSpace['must']:
-            self.check_attrs = {
-                "function": set(["__warn_result"]),
-                "value": set(),
-            }
+            self.check_attrs["value"] = set()
         else:
-            self.check_attrs = {
-                "function": set(["__warn_result"]),
-                "value": set(["__unused"]),
-            }
+            self.check_attrs["value"] = set(["__unused"])
         self.check_template = pkg_resources.read_text(templates, 'type_check.c.tmpl')
 
         self.pack_attrs = {
             "function": set(["__warn_result"]),
+            "data": set(),
+            "encoder": set(),
         }
         self.pack_template = pkg_resources.read_text(templates, 'type_pack.c.tmpl')
 
         self.unpack_attrs = {
             "function": set(["__warn_result"]),
+            "data": set(),
+            "decoder": set(),
         }
         self.unpack_template = pkg_resources.read_text(templates, 'type_unpack.c.tmpl')
+
+        if (self.status == 'deprecated'):
+            self.getter_attrs["function"].add("__deprecated")
+            self.setter_attrs["function"].add("__deprecated")
+            self.check_attrs["function"].add("__deprecated")
+        elif (self.status == 'obsolete'):
+            self.unpack_attrs["data"].add("__unused")
+            self.pack_attrs["data"].add("__unused")
+            if not self.isMandatory():
+                self.pack_attrs["encoder"].add("__unused")
 
     def updateName(self, name: str) -> str:
         return name
@@ -83,28 +103,40 @@ class BaseType(object):
     def isMandatory(self) -> bool:
         return is_mandatory_node(self.node)
     
+    def isObsolete(self) -> bool:
+        return self.status == 'obsolete'
+    
     def addFunctions(self, name: str, struct_type: str) -> None:
         self.nameSpace["assert"]      = getAssertFunction(self.node)
         self.nameSpace["name"]        = name
         self.nameSpace["struct_type"] = struct_type
         self.nameSpace["field"]       = todef(f"{struct_type}_{name}_FLD")
 
-        addExternFunction(self.node, ("int", f"{struct_type}_get_{name}", [
-            (f"const struct {struct_type} *", "obj", self.getter_attrs.get("obj", set())),
-            (f"{self.type} *", "result", self.getter_attrs.get("result", set())),
-        ], self.getter_attrs.get("function", set())),
-        str(Template(self.getter_template, searchList=[self.nameSpace])).splitlines())
+        if (self.status != 'obsolete'):
 
-        addExternFunction(self.node, ("void", f"{struct_type}_set_{name}", [
-            (f"struct {struct_type} *", "obj", self.setter_attrs.get("obj", set())),
-            (self.type, "value", self.setter_attrs.get("value", set())),
-        ], self.setter_attrs.get("function", set())),
-        str(Template(self.setter_template, searchList=[self.nameSpace])).splitlines())
+            addExternFunction(self.node, ("int", f"{struct_type}_get_{name}", [
+                (f"const struct {struct_type} *", "obj", self.getter_attrs.get("obj", set())),
+                (f"{self.type} *", "result", self.getter_attrs.get("result", set())),
+            ], self.getter_attrs.get("function", set())),
+            str(Template(self.getter_template, searchList=[self.nameSpace])).splitlines())
 
-        addExternFunction(self.node, ("int", f"{struct_type}_check_{name}", [
-            ("const " + self.type, "value", self.check_attrs.get("value", set())),
-        ], self.check_attrs.get("function", set())),
-        str(Template(self.check_template, searchList=[self.nameSpace])).splitlines())
+            addExternFunction(self.node, ("void", f"{struct_type}_set_{name}", [
+                (f"struct {struct_type} *", "obj", self.setter_attrs.get("obj", set())),
+                (self.type, "value", self.setter_attrs.get("value", set())),
+            ], self.setter_attrs.get("function", set())),
+            str(Template(self.setter_template, searchList=[self.nameSpace])).splitlines())
+
+            addExternFunction(self.node, ("int", f"{struct_type}_check_{name}", [
+                ("const " + self.type, "value", self.check_attrs.get("value", set())),
+            ], self.check_attrs.get("function", set())),
+            str(Template(self.check_template, searchList=[self.nameSpace])).splitlines())
+
+            addExternFunction(self.node,
+                ('bool', f"{struct_type}_has_{name}", [
+                    (f"const struct {struct_type} *", "data", set()),
+                ], set(["__warn_result"])),
+                [f"return ((data->filled & (1U << {self.nameSpace['field']})) ==",
+                f"        (1U << {self.nameSpace['field']}));"])
 
         addStaticFunction(self.node, ("int", f"{struct_type}_pack_{name}", [
             ('struct dpack_encoder *', "encoder", self.pack_attrs.get("encoder", set())),
@@ -118,12 +150,6 @@ class BaseType(object):
         ], self.unpack_attrs.get("function", set())),
         str(Template(self.unpack_template, searchList=[self.nameSpace])).splitlines())
 
-        addExternFunction(self.node,
-            ('bool', f"{struct_type}_has_{name}", [
-                (f"const struct {struct_type} *", "data", set()),
-            ], set(["__warn_result"])),
-            [f"return ((data->filled & (1U << {self.nameSpace['field']})) ==",
-             f"        (1U << {self.nameSpace['field']}));"])
 
 class scalarType(BaseType):
     unit2c = {
@@ -143,6 +169,7 @@ class scalarType(BaseType):
         _min    = f"DPACK_MAP_{todef(unit)}_SIZE_MIN"
         _max    = f"DPACK_MAP_{todef(unit)}_SIZE_MAX"
         super().__init__(ctx, node, _type, 'dpack/scalar.h', _encode, _decode, _min, _max)
+        self.nameSpace['obsolete_value'] = 0
 
         self.nameSpace["ranges"] = \
             getattr(self.node.search_one("type").i_type_spec, 'ranges', [])
@@ -191,6 +218,7 @@ class stringType(BaseType):
                         '(DPACK_MAP_FLDID_SIZE_MIN + 1)',
                         '(DPACK_MAP_FLDID_SIZE_MAX + DPACK_STRLEN_MAX + 5)')
         self.fini_template = pkg_resources.read_text(templates, 'type_fini_string.c.tmpl')
+        self.nameSpace['obsolete_value'] = '" "'
 
     def hasFini(self):
         return True

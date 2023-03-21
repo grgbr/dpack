@@ -10,11 +10,13 @@ rm -rf $output
 rm -rf $input
 
 mkdir -p $input
-$test_afl $input/sample
+valgrind -v --leak-check=full --error-exitcode=1 $test_afl $input/sample
 cat $input/sample | valgrind -v --leak-check=full --error-exitcode=1 $test_afl
 AFL_DEBUG=1 afl-fuzz -V 1 -i $input -o ${topdir}/build $test_afl
 
-# export AFL_DEBUG=1
+if [ $(ls build/default/crashes/ | wc -l) -ne 0 ]; then
+        exit 1
+fi
 
 tmux new-session -d -s real
 

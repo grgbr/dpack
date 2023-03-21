@@ -51,6 +51,17 @@ module afl-fix{
 			mandatory true;
 			description "Sample int64 leaf";
 		}
+		leaf u32ob {
+			type uint32;
+			status obsolete;
+			description "Sample uint32 leaf obsolete";
+		}
+		leaf u32obmand {
+			type uint32;
+			mandatory true;
+			status obsolete;
+			description "Sample uint32 leaf mandatory obsolete";
+		}
 		leaf boolean {
 			type boolean;
 			description "Sample boolean leaf";

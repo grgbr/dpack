@@ -1,46 +1,38 @@
-## Setup Cheetah compiler placeholder delimiter to '@' instead of the default
-## '$' to prevent from conflicting with shell syntax.
-#compiler-settings
-commentStartToken = ####
-directiveStartToken = %%
-cheetahVarStartToken = @
-#end compiler-settings
-%from pydpack.util import functionAlign
-#### Lines up to (and including) this one will get discarded from final output.
+#from pydpack.util import functionAlign
 // SPDX-License-Identifier: MIT
-#include "@(name).h"
-#include <dpack/codec.h>
-%for @f, @d in @StaticFunctions
-%set @r = functionAlign(@f)
+\#include "$(name).h"
+\#include <dpack/codec.h>
+#for $f, $d in $StaticFunctions
+#set $r = functionAlign($f)
 
-static @f[0]
-%for @x in @r
-@x
-%end for
+static $f[0]
+#for $x in $r
+$x
+#end for
 {
-%for @x in @d
-%if len(@x) > 0
-	@x
-%else
-@x
-%end if
-%end for
+#for $x in $d
+#if len($x) > 0
+	$x
+#else
+$x
+#end if
+#end for
 }
-%end for
-%for @f, @d in @ExternFunctions
-%set @r = functionAlign(@f)
+#end for
+#for $f, $d in $ExternFunctions
+#set $r = functionAlign($f)
 
-@f[0]
-%for @x in @r
-@x
-%end for
+$f[0]
+#for $x in $r
+$x
+#end for
 {
-%for @x in @d
-%if len(@x) > 0
-	@x
-%else
-@x
-%end if
-%end for
+#for $x in $d
+#if len($x) > 0
+	$x
+#else
+$x
+#end if
+#end for
 }
-%end for
+#end for

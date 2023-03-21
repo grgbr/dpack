@@ -1,102 +1,95 @@
-## Setup Cheetah compiler placeholder delimiter to '@' instead of the default
-## '$' to prevent from conflicting with shell syntax.
-#compiler-settings
-commentStartToken = #@#@
-directiveStartToken = %%
-cheetahVarStartToken = @
-#end compiler-settings
-%from pydpack.util import defAlign, functionAlign, findAlign, removeStart
-#@#@ Lines up to (and including) this one will get discarded from final output.
-#ifndef @(define)
-#define @(define)
+#from pydpack.util import defAlign, functionAlign, findAlign, removeStart
+\#ifndef $(define)
+\#define $(define)
 
-%for @n in @includes
-#include <@n>
-%end for
+#for $n in $includes
+\#include <$n>
+#end for
 
-%if len(@defines) > 0
-%set @al = findAlign([x for x, y in @defines if len(y) > 0]) + len("#define ")
-%for @n, @d in @defines
-%set @r = defAlign(@al, @n, @d)
-%if len(@r) > 1
-%for @x in @r
-@x
-%end for
+#if len($defines) > 0
+#set $al = findAlign([x for x, y in $defines if len(y) > 0]) + len("#define ")
+#for $n, $d in $defines
+#set $r = defAlign($al, $n, $d)
+#if len($r) > 1
+#for $x in $r
+$x
+#end for
 
-%else
-@r[0]
-%end if
-%end for
+#else
+$r[0]
+#end if
+#end for
 
-%end if
-%if len(@typedefs) > 0
-%set @al  = max([len(x[0]) for x in @typedefs]) + len("typedef ") + 1
-%for @t, @n in @typedefs
-%set @p = " " * (@al - len("typedef ") - 1 - len(@t))
-typedef @t @p@n;
-%end for
+#end if
+#if len($typedefs) > 0
+#set $al  = max([len(x[0]) for x in $typedefs]) + len("typedef ") + 1
+#for $t, $n in $typedefs
+#set $p = " " * ($al - len("typedef ") - 1 - len($t))
+typedef $t $p$n;
+#end for
 
-%end if
-%for @n, @d in @enums
-%set @al  = max([len(x[0]) for x in @d]) + 1
-enum @n {
-%for @v, @num in @d
-%set @p = " " * (@al - len(@v))
-%set @idx = @p + "= " + str(@num) + "," if @num != None else ","
-	@v@idx
-%end for
+#end if
+#for $n, $d in $enums
+#set $al  = max([len(x[0]) for x in $d]) + 1
+enum $n {
+#for $v, $num in $d
+#set $p = " " * ($al - len($v))
+#set $idx = $p + "= " + str($num) + "," if $num != None else ","
+	$v$idx
+#end for
 };
 
-%end for
-%for @n, @c in @structures
-struct @n {
-%set @al  = findAlign([x[0] for x in @c], minimum = len("uint64_t"))
-%set @p = " " * (@al - len("uint64_t"))
-	uint64_t@(p)filled;
-%for @t, @v in @c
-%set @t, @c = removeStart(@t)
-%set @p = " " * (@al - len(@t) - @c) + "*" * @c
-	@t@p@v;
-%end for
+#end for
+#for $n, $c in $structures
+struct $n {
+#set $al  = findAlign([x[0] for x in $c], minimum = len("uint64_t"))
+#set $p = " " * ($al - len("uint64_t"))
+	uint64_t$(p)filled;
+	uint64_t$(p)obsolete;
+#for $t, $v in $c
+#set $t, $c = removeStart($t)
+#set $p = " " * ($al - len($t) - $c) + "*" * $c
+	$t$p$v;
+#end for
 };
 
-%end for
-%if len(@ExternFunctions) > 0
-%for @d, _ in @ExternFunctions
-%if len(@d[3]) > 0
-%set @attr = " " + " ".join(list(@d[3]))
-%else
-%set @attr = ""
-%end if
-%set @r = functionAlign(@d, endline = @attr + ";")
-extern @d[0]
-%for @x in @r
-@x
-%end for
+#end for
+#if len($ExternFunctions) > 0
+#for $d, _ in $ExternFunctions
+#if len($d[3]) > 0
+#set $attr = " " + " ".join(list($d[3]))
+#else
+#set $attr = ""
+#end if
+#set $r = functionAlign($d, endline = $attr + ";")
+extern $d[0]
+#for $x in $r
+$x
+#end for
 
-%end for
+#end for
 
-%end if
-%for @f, @d in @InlineFunctions
-%set @r = functionAlign(@f)
-%if len(@f[3]) > 0
-%set @attr = " " + " ".join(list(@f[3]))
-%else
-%set @attr = ""
-%end if
-static inline @f[0]@attr
-%for @x in @r
-@x
-%end for
+#end if
+#for $f, $d in $InlineFunctions
+#set $r = functionAlign($f)
+#if len($f[3]) > 0
+#set $attr = " " + " ".join(list($f[3]))
+#else
+#set $attr = ""
+#end if
+static inline $f[0]$attr
+#for $x in $r
+$x
+#end for
 {
-%for @x in @d
-%if len(@x) > 0
-	@x
-%else
-@x
-%end if
-%end for
+#for $x in $d
+#if len($x) > 0
+	$x
+#else
+$x
+#end if
+#end for
 }
 
-%end for
-#endif /* @(define) */
+#end for
+\#endif /* $(define) */

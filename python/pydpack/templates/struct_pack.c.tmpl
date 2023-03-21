@@ -7,7 +7,9 @@ $(assert)(!$(struct_name)_check(data));
 
 int err;
 
-dpack_map_begin_encode(encoder, __builtin_popcount(data->filled));
+dpack_map_begin_encode(encoder,
+                       __builtin_popcountll(data->filled) +
+                       __builtin_popcountll($obsl_fld));
 
 #for $t, $n in $struct
 err = $(struct_name)_pack_$(n)(encoder, data);
