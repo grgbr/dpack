@@ -126,7 +126,7 @@ dpack_decoder_discard(struct dpack_decoder * decoder,
 	mpack_done_type(&decoder->mpack, type);
 }
 
-void
+int
 dpack_decoder_skip(struct dpack_decoder * decoder)
 {
 	/*
@@ -136,6 +136,8 @@ dpack_decoder_skip(struct dpack_decoder * decoder)
 	dpack_assert_decoder(decoder);
 
 	mpack_discard(&decoder->mpack);
+
+	return dpack_decoder_error_state(&decoder->mpack);
 }
 
 void
