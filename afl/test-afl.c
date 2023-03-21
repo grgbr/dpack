@@ -48,15 +48,15 @@ pack_to_file(const char *path)
 	struct afl_sample      spl;
 	char                  *string;
 
-
-
 	buff = malloc(AFL_SAMPLE_PACKED_SIZE_MAX);
 	if (!buff)
 		return EXIT_FAILURE;
 
 	string = malloc(sizeof(STRING_VALUE));
-	if (!string)
+	if (!string) {
+		free(buff);
 		return EXIT_FAILURE;
+	}
 
 	strncpy(string, STRING_VALUE, sizeof(STRING_VALUE));
 
@@ -70,7 +70,6 @@ pack_to_file(const char *path)
 	afl_sample_fini(&spl);
 
 	free(buff);
-
 	return err ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 

@@ -1,3 +1,5 @@
+## int
+## struct_check_int(const int value)
 #from pydpack.util import range2liststr
 #if $must
 int err;
@@ -13,7 +15,7 @@ $t
 
 #if $must
 #for $f in $must
-err = $(f)(value, ctx);
+err = $(f)(value);
 if (err)
 	return err;
 

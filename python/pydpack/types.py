@@ -228,6 +228,14 @@ class stringType(BaseType):
         self.fini_template = pkg_resources.read_text(templates, 'type_fini_string.c.tmpl')
         self.nameSpace['obsolete_value'] = '" "'
 
+        self.nameSpace["pattern"] = []
+        for p in self.node.search_one("type").search('pattern'):
+            self.nameSpace["pattern"].append((p.arg.replace("\\", "\\\\"),
+                                              p.search_one("modifier", arg="invert-match") != None))
+        if len(self.nameSpace["pattern"]) > 0:
+            addIncludes(node, 'pcre2.h')
+            self.check_template = pkg_resources.read_text(templates, 'type_check_string.c.tmpl')
+
     def hasFini(self):
         if self.isObsolete():
             return False

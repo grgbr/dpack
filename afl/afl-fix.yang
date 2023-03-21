@@ -68,7 +68,13 @@ module afl-fix{
 			description "Sample boolean leaf";
 		}
 		leaf string {
-			type string;
+			type string {
+				pattern "test.*";
+				pattern ".*string";
+				pattern ".*afl.*" {
+					modifier "invert-match";
+				}
+			}
 			description "Sample boolean leaf";
 		}
 		leaf stringobamd {

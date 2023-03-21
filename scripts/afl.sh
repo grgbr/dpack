@@ -13,17 +13,17 @@ mkdir -p $input
 
 if ! out=$(valgrind -v --leak-check=full --error-exitcode=1 $test_afl $input/sample 2>&1); then
         echo -e "\n${out}"
-        return 1
+        exit 1
 fi
 
 if ! out=$(cat $input/sample | valgrind -v --leak-check=full --error-exitcode=1 $test_afl 2>&1); then
         echo -e "\n${out}"
-        return 1
+        exit 1
 fi
 
 if ! out=$(AFL_DEBUG=1 afl-fuzz -V 1 -i $input -o ${topdir}/build $test_afl 2>&1); then
         echo -e "\n${out}"
-        return 1
+        exit 1
 fi
 
 if [ $(ls build/default/crashes/ | wc -l) -ne 0 ]; then

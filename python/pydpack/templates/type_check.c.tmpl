@@ -1,8 +1,10 @@
+## int
+## struct_check_type(const type value)
 #if $must
 int err;
 
 #for $f in $must
-err = $(f)(value, ctx);
+err = $(f)(value);
 if (err)
 	return err;
 
