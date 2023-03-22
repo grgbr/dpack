@@ -33,15 +33,22 @@ class DpackPlugin(plugin.PyangPlugin):
                 "--dpack-output-dir",
                 metavar="DIR",
                 dest="dpack_output_dir",
-                help="""Split the code output into
-                    multiple directories""",
+                help="Split the code output into multiple directories.",
             ),
             optparse.make_option(
                 "--dpack-no-check",
                 dest="dpack_no_check",
                 action="store_false",
                 default=True,
-                help="""don't call checkers function in unpack process""",
+                help="don't call checkers function in unpack process.",
+            ),
+            optparse.make_option(
+                "--dpack-pattern-match",
+                dest="dpack_pattern",
+                default="pcre",
+                choices=["pcre", "pcre2", "custom"],
+                help="Select pattern match implementation: pcre, pcre2"
+                     "or custom implementation [default: %default].",
             )
         ]
         option_group = optparse.OptionGroup(optparser, "dpack output specific options")

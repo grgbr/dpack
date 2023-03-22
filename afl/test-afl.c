@@ -3,6 +3,8 @@
 #include <dpack/codec.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
+#include <unistd.h>
 
 __AFL_FUZZ_INIT();
 
@@ -58,6 +60,18 @@ pack_to_file(const char *path)
 		return EXIT_FAILURE;
 	}
 
+	assert(!afl_sample_check_string("test string"));
+	assert(afl_sample_check_string("test string toto"));
+	assert(afl_sample_check_string("toto test string"));
+	assert(afl_sample_check_string("test afl string"));
+	assert(afl_sample_check_string("test"));
+	assert(afl_sample_check_string("string"));
+	assert(afl_sample_check_string("afl"));
+	assert(afl_sample_check_string("string test"));
+	assert(afl_sample_check_string(""));
+	assert(afl_sample_check_string("test string\nnewline"));
+	assert(afl_sample_check_string("newline\ntest string"));
+
 	strncpy(string, STRING_VALUE, sizeof(STRING_VALUE));
 
 	dpack_encoder_init_buffer(&enc, buff, AFL_SAMPLE_PACKED_SIZE_MAX);
@@ -79,7 +93,7 @@ int main(int argc, char * const argv[])
 	struct dpack_encoder   enc;
 	struct afl_sample      spl;
 	char                  *out;
-	int                    ret;
+	int                    ret = EXIT_FAILURE;
 
 
 	if (argc == 2)
@@ -88,8 +102,6 @@ int main(int argc, char * const argv[])
 	out = malloc(AFL_SAMPLE_PACKED_SIZE_MAX);
 	if (!out)
 		return EXIT_FAILURE;
-
-	ret = EXIT_SUCCESS;
 
 #ifdef __AFL_HAVE_MANUAL_CONTROL
 	__AFL_INIT();
@@ -105,12 +117,12 @@ int main(int argc, char * const argv[])
 		if (len > AFL_SAMPLE_PACKED_SIZE_MAX)
 			continue;
 
-		ret = afl_sample_init(&spl);
+		assert(!afl_sample_init(&spl));
 		dpack_decoder_init_buffer(&dec, (const char *)buf, len);
 		dpack_encoder_init_buffer(&enc, out, AFL_SAMPLE_PACKED_SIZE_MAX);
-		ret |= afl_sample_unpack(&dec, &spl);
+		ret = afl_sample_unpack(&dec, &spl);
 		if (!ret)
-			ret = afl_sample_pack(&enc, &spl);
+			assert(!afl_sample_pack(&enc, &spl));
 		dpack_encoder_fini(&enc);
 		dpack_decoder_fini(&dec);
 		afl_sample_fini(&spl);

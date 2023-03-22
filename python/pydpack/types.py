@@ -37,7 +37,7 @@ class BaseType(object):
         }
 
         self.getter_attrs = {
-            "function": set(["__warn_result", "__nonull(1,2)"])
+            "function": set(["__warn_result", "__nonull(1, 2)"])
         }
         self.getter_template = pkg_resources.read_text(templates, 'type_getter.c.tmpl')
 
@@ -64,14 +64,14 @@ class BaseType(object):
         self.has_template = pkg_resources.read_text(templates, 'type_has.c.tmpl')
 
         self.pack_attrs = {
-            "function": set(["__warn_result"]),
+            "function": set(["__warn_result", "__nonull(1, 2)"]),
             "data": set(),
             "encoder": set(),
         }
         self.pack_template = pkg_resources.read_text(templates, 'type_pack.c.tmpl')
 
         self.unpack_attrs = {
-            "function": set(["__warn_result"]),
+            "function": set(["__warn_result", "__nonull(1, 2)"]),
             "data": set(),
             "decoder": set(),
         }
@@ -233,7 +233,7 @@ class stringType(BaseType):
             self.nameSpace["pattern"].append((p.arg.replace("\\", "\\\\"),
                                               p.search_one("modifier", arg="invert-match") != None))
         if len(self.nameSpace["pattern"]) > 0:
-            addIncludes(node, 'pcre2.h')
+            node.top.dpack_module.nameSpace['pattern'] = ctx.opts.dpack_pattern
             self.check_template = pkg_resources.read_text(templates, 'type_check_string.c.tmpl')
 
     def hasFini(self):
@@ -246,6 +246,7 @@ class stringType(BaseType):
             const_name = f"{struct_type}_dflt_{name}"
             addConstVariable(self.node, "char * const", const_name, [f'"{self.default.arg}"'])
             self.nameSpace['default'] = f"(char *){const_name}"
+
         super().addFunctions(name, struct_type)
 
         if not self.isObsolete():

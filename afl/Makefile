@@ -24,7 +24,7 @@ $(BUILDDIR)/test-afl: $(TOPDIR)/afl/test-afl.c \
 	       -I$(MPACK_SRC) \
 	       -I$(BUILDDIR) \
 	       -DDPACK_DEBUG -D_GNU_SOURCE \
-	       -o $(@) $(filter %.c %.a %.o %.so,$(^)) -lpcre2-8
+	       -o $(@) $(filter %.c %.a %.o %.so,$(^)) -lpcre
 
 $(BUILDDIR):
 	@mkdir -p $(@)

@@ -61,6 +61,8 @@ class Module(object):
             "ExternFunctions": self.ExternFunctions,
             "structures":      self.structures,
             "constVariables":  self.ConstVariables,
+            'assert':          self.assertFunction,
+            'pattern':         None,
         }
         chs = [ch for ch in self.node.i_children
             if ch.keyword in CHILDREN_STRUCTURE_MASK]
@@ -243,7 +245,7 @@ class Struct(object):
             (f"int", f"{self.prefix}_{self.name}_pack", [
                 (f"struct dpack_encoder *", "encoder", set()),
                 (f"const struct {self.prefix}_{self.name} *", "data", set())
-            ], set(["__warn_result", "__nonull(1,2)"])),
+            ], set(["__warn_result", "__nonull(1, 2)"])),
             str(Template(pack_template, searchList=[nameSpace])).splitlines())
 
         unpack_template = pkg_resources.read_text(templates, 'struct_unpack.c.tmpl')
@@ -251,7 +253,7 @@ class Struct(object):
             (f"int", f"{self.prefix}_{self.name}_unpack", [
                 (f"struct dpack_decoder *", "decoder", set()),
                 (f"struct {self.prefix}_{self.name} *", "data", set()),
-            ], set(["__warn_result", "__nonull(1,2)"])),
+            ], set(["__warn_result", "__nonull(1, 2)"])),
             str(Template(unpack_template, searchList=[nameSpace, {'check':ctx.opts.dpack_no_check}])).splitlines())
         
         dispatch_template = pkg_resources.read_text(templates, 'struct_dispatch.c.tmpl')
@@ -260,7 +262,7 @@ class Struct(object):
                 (f"struct dpack_decoder *", "decoder", set()),
                 (f"unsigned int", "fid", set()),
                 (f"void *", "data", set()),
-            ], set(["__warn_result", "__nonull(1,3)"])),
+            ], set(["__warn_result", "__nonull(1, 3)"])),
             str(Template(dispatch_template, searchList=[nameSpace])).splitlines())
 
         check_template = pkg_resources.read_text(templates, 'struct_check.c.tmpl')

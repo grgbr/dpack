@@ -2,6 +2,15 @@
 // SPDX-License-Identifier: MIT
 \#include "$(name).h"
 \#include <dpack/codec.h>
+#if $pattern == 'pcre2'
+\#define PCRE2_CODE_UNIT_WIDTH 8
+\#include <pcre2.h>
+#elif $pattern == 'pcre'
+\#include <pcre.h>
+#elif $pattern == 'custom'
+
+extern int pattern_matched_string(const char *pattern, const char *subject);
+#end if
 #for $t, $n, $v in $constVariables
 
 static const $t $n = $v[0];
@@ -12,10 +21,83 @@ static const $t $n = $v[0];
 $v[-1];
 #end if
 #end for
+#if $pattern == 'pcre2'
+
+static int __warn_result __nonull(1, 2)
+pattern_matched_string(const char *pattern, const char *subject)
+{
+	$(assert)(pattern);
+	$(assert)(subject);
+
+	pcre2_code       *re;
+	pcre2_match_data *match_data;
+	int               err;
+	int               errornumber;
+	PCRE2_SIZE        erroroffset;
+
+	re = pcre2_compile((PCRE2_SPTR)pattern,
+	           PCRE2_ZERO_TERMINATED,
+	           0,
+	           &errornumber,
+	           &erroroffset,
+	           NULL);
+	if (re == NULL) {
+		$(assert)(re);
+		return -EAGAIN;
+	}
+
+	match_data = pcre2_match_data_create_from_pattern(re, NULL);
+	err = pcre2_match(re,
+	                  (PCRE2_SPTR)subject,
+	                  strlen(subject),
+	                  0,
+	                  0,
+	                  match_data,
+	                  NULL);
+	pcre2_code_free(re);
+	pcre2_match_data_free(match_data);
+	if (err < 0)
+		return -EINVAL;
+	return 0;
+}
+#elif $pattern == 'pcre'
+
+static int __warn_result __nonull(1, 2)
+pattern_matched_string(const char *pattern, const char *subject)
+{
+	$(assert)(pattern);
+	$(assert)(subject);
+
+	pcre       *re;
+	const char *errptr;
+	size_t      len;
+	int         err;
+	int         offset;
+
+	len = strlen(subject);
+
+	re = pcre_compile(pattern, 0, &errptr, &offset, NULL);
+	if (re == NULL) {
+		$(assert)(re);
+		return -EAGAIN;
+	}
+
+	err = pcre_exec(re, NULL, subject, len, 0, 0, NULL, 0);
+	pcre_free(re);
+	if (err < 0)
+		return -EINVAL;
+	return 0;
+}
+#end if
 #for $f, $d in $StaticFunctions
 #set $r = functionAlign($f)
+#if len($f[3]) > 0
+#set $attr = " " + " ".join(list($f[3]))
+#else
+#set $attr = ""
+#end if
 
-static $f[0]
+static $f[0]$attr
 #for $x in $r
 $x
 #end for
