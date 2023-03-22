@@ -13,12 +13,35 @@ extern int pattern_matched_string(const char *pattern, const char *subject);
 #end if
 #for $t, $n, $v in $constVariables
 
-static const $t $n = $v[0];
-#if len($v) > 1
+#if len($v) == 1
+#set $tmp = "static const " + $t + " " + $n + " = " + $v[0] + ";"
+#if len($tmp) > 80
+static const $t $n = \
+	$v[0];
+#else
+$tmp
+#end if
+#elif $v[0] == "{" and $v[-1] == "}"
+static const $t $n = $v[0]
 #for $l in $v[1:-1]
 	$l
 #end for
 $v[-1];
+#else
+#set $pad = " " * len("static const " + $t + " " + $n + " = ")
+#if [x for x in $v if len($pad + x) > 80]
+static const $t $n = \
+#for $l in $v[:-1]
+	$l \
+#end for
+	$v[-1];
+#else
+static const $t $n = $v[0]
+#for $l in $v[:-1]
+$pad$l \
+#end for
+$pad$v[-1];
+#end if 
 #end if
 #end for
 #if $pattern == 'pcre2'

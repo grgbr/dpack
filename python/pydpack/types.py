@@ -230,7 +230,9 @@ class stringType(BaseType):
 
         self.nameSpace["pattern"] = []
         for p in self.node.search_one("type").search('pattern'):
-            self.nameSpace["pattern"].append((p.arg.replace("\\", "\\\\"),
+            arg = p.arg.replace("\\", "\\\\")
+            arg = f'^{arg}$'
+            self.nameSpace["pattern"].append((split_str(arg, 40),
                                               p.search_one("modifier", arg="invert-match") != None))
         if len(self.nameSpace["pattern"]) > 0:
             node.top.dpack_module.nameSpace['pattern'] = ctx.opts.dpack_pattern
@@ -244,7 +246,7 @@ class stringType(BaseType):
     def addFunctions(self, name, struct_type):
         if self.default:
             const_name = f"{struct_type}_dflt_{name}"
-            addConstVariable(self.node, "char * const", const_name, [f'"{self.default.arg}"'])
+            addConstVariable(self.node, "char * const", const_name, split_str(self.default.arg, 70))
             self.nameSpace['default'] = f"(char *){const_name}"
 
         super().addFunctions(name, struct_type)

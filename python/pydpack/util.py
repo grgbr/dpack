@@ -194,3 +194,16 @@ def parseMust(ctx, node):
             return None
         ret.append(must.i_xpath[1][2][0][1][1][1:-1])
     return ret
+
+def  split_str(data: str, size: int):
+    data = data.replace('"', '\\"')
+    if len(data) < size:
+        return [f'"{data}"']
+    ret = [f'"{data[:40]}"']
+    l = data[40:]
+    while(len(l) > 40):
+        ret.append(f'"{l[:40]}"')
+        l = l[40:]
+    if l:
+        ret.append(f'"{l}"')
+    return ret

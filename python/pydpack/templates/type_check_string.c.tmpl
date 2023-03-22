@@ -7,7 +7,15 @@ int   err;
 char *pattern;
 
 #for $p, $inv in $pattern
-pattern = "^$p\$";
+#if len($p) == 1
+pattern = $p[0];
+#else
+pattern = $p[0] \
+#for $i in $p[1:-1]:
+          $i \
+#end for
+          $p[-1];
+#end if
 err = pattern_matched_string(pattern, value);
 #if $inv
 if (!err)
