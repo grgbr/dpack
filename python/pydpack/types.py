@@ -230,10 +230,12 @@ class stringType(BaseType):
 
         self.nameSpace["pattern"] = []
         for p in self.node.search_one("type").search('pattern'):
+            size = len(p.arg) + 2
             arg = p.arg.replace("\\", "\\\\")
             arg = f'^{arg}$'
             self.nameSpace["pattern"].append((split_str(arg, 40),
-                                              p.search_one("modifier", arg="invert-match") != None))
+                                              p.search_one("modifier", arg="invert-match") != None,
+                                              size))
         if len(self.nameSpace["pattern"]) > 0:
             node.top.dpack_module.nameSpace['pattern'] = ctx.opts.dpack_pattern
             self.check_template = pkg_resources.read_text(templates, 'type_check_string.c.tmpl')

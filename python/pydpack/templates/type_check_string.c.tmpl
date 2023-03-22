@@ -6,7 +6,7 @@ $(assert)(value);
 int   err;
 char *pattern;
 
-#for $p, $inv in $pattern
+#for $p, $inv, $size in $pattern
 #if len($p) == 1
 pattern = $p[0];
 #else
@@ -16,7 +16,8 @@ pattern = $p[0] \
 #end for
           $p[-1];
 #end if
-err = pattern_matched_string(pattern, value);
+err = pattern_matched_string(pattern, $(size),
+                             value,   strlen(value));
 #if $inv
 if (!err)
 	return -EINVAL;

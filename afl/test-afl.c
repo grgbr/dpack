@@ -60,7 +60,7 @@ pack_to_file(const char *path)
 		return EXIT_FAILURE;
 	}
 
-	assert(!afl_sample_check_string("test string"));
+	assert(!afl_sample_check_string(STRING_VALUE));
 	assert(afl_sample_check_string("test string toto"));
 	assert(afl_sample_check_string("toto test string"));
 	assert(afl_sample_check_string("test afl string"));
