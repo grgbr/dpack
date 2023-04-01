@@ -1,7 +1,6 @@
 #ifndef _DPACK_ARRAY_H
 #define _DPACK_ARRAY_H
 
-#include <dpack/cdefs.h>
 #include <dpack/scalar.h>
 #include <sys/types.h>
 

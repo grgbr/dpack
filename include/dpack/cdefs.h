@@ -1,6 +1,7 @@
 #ifndef _DPACK_CDEFS_H
 #define _DPACK_CDEFS_H
 
+#include <dpack/config.h>
 #include <assert.h>
 
 #define _compile_eval(_expr, _msg) \

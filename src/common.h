@@ -1,9 +1,7 @@
 #ifndef _DPACK_COMMON_H
 #define _DPACK_COMMON_H
 
-#include "dpack/cdefs.h"
 #include "dpack/codec.h"
-#include <mpack.h>
 #include <errno.h>
 
 #define unreachable() \

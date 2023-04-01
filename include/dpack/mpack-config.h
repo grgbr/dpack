@@ -9,6 +9,8 @@
 #ifndef _DPACK_MPACK_CONFIG_H
 #define _DPACK_MPACK_CONFIG_H
 
+#include <dpack/config.h>
+
 /* Enable compile time configuration */
 #ifndef MPACK_HAS_CONFIG
 #define MPACK_HAS_CONFIG 1
@@ -57,7 +59,7 @@
  * mpack may provide helpers to ease debugging and reading/writing to/from
  * files.
  */
-#if defined(DPACK_DEBUG)
+#if defined(CONFIG_DPACK_DEBUG)
 #define MPACK_STDIO 1
 #else
 #define MPACK_STDIO 0
@@ -70,12 +72,12 @@
 /* #define MPACK_DOUBLE 1 */
 
 /* Enable mpack debugging if dpack debugging support is enabled. */
-#if defined(DPACK_DEBUG)
+#if defined(CONFIG_DPACK_DEBUG)
 #define MPACK_DEBUG 1
 #endif
 
 /* Enable mpack error strings when debugging support is enabled. */
-#if defined(DPACK_DEBUG)
+#if defined(CONFIG_DPACK_DEBUG)
 #define MPACK_STRINGS 1
 #else
 #define MPACK_STRINGS 0
@@ -85,7 +87,7 @@
  * Enable custom mpack assertions so that dpack provides a mpack_assert_fail()
  * function when debugging is enabled.
  */
-#if defined(DPACK_DEBUG)
+#if defined(CONFIG_DPACK_DEBUG)
 #define MPACK_CUSTOM_ASSERT 1
 #else
 #define MPACK_CUSTOM_ASSERT 0

@@ -1,0 +1,50 @@
+config DPACK_ASSERT_API
+	bool "API assertion"
+	default n
+	help
+	  Build dpack library with high-level API assertions enabled.
+
+config DPACK_ASSERT_INTERNAL
+	bool "Internal assertion"
+	select DPACK_ASSERT_API
+	default n
+	help
+	  Build dpack library with internal assertions enabled.
+
+config DPACK_DEBUG
+	bool "Debug"
+	select DPACK_ASSERT_INTERNAL
+	default n
+	help
+	  Build dpack library with internal debugging support enabled. This will
+	  enable internal mpack support for:
+	  * reading / writing to / from STDIO files,
+	  * error strings,
+	  * custom dpack / mpack assertions,
+	  * reader / writer tracking.
+
+config DPACK_SCALAR
+	bool "Scalars"
+	default y
+	help
+	  Build dpack library with scalar support, i.e., boolean, signed and
+	  unsigned integers.
+
+config DPACK_STRING
+	bool "Strings"
+	default y
+	help
+	  Build dpack library with string support.
+
+config DPACK_ARRAY
+	bool "Arrays"
+	default y
+	help
+	  Build dpack library with array support.
+
+config DPACK_MAP
+	bool "Maps"
+	select DPACK_SCALAR
+	default y
+	help
+	  Build dpack library with map support.

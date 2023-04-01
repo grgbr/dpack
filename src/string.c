@@ -55,7 +55,7 @@ dpack_encode_str_fix(struct dpack_encoder * encoder,
 	dpack_assert(value[0]);
 	dpack_assert(len <= DPACK_STRLEN_MAX);
 
-	mpack_write_str(&encoder->mpack, value, len);
+	mpack_write_str(&encoder->mpack, value, (uint32_t)len);
 
 	return dpack_encoder_error_state(&encoder->mpack);
 }
@@ -139,7 +139,7 @@ dpack_decode_strdup(struct dpack_decoder * decoder, char ** value)
 	if (len < 0)
 		return len;
 
-	return dpack_xtract_strdup(&decoder->mpack, value, len);
+	return dpack_xtract_strdup(&decoder->mpack, value, (uint32_t)len);
 }
 
 ssize_t
@@ -158,7 +158,7 @@ dpack_decode_strdup_max(struct dpack_decoder  * decoder,
 	if (len < 0)
 		return len;
 
-	return dpack_xtract_strdup(&decoder->mpack, value, len);
+	return dpack_xtract_strdup(&decoder->mpack, value, (uint32_t)len);
 }
 
 ssize_t
@@ -179,7 +179,7 @@ dpack_decode_strdup_range(struct dpack_decoder  * decoder,
 	if (len < 0)
 		return len;
 
-	return dpack_xtract_strdup(&decoder->mpack, value, len);
+	return dpack_xtract_strdup(&decoder->mpack, value, (uint32_t)len);
 }
 
 static int
@@ -220,7 +220,7 @@ dpack_decode_strdup_fix(struct dpack_decoder  * decoder,
 	if (err)
 		return err;
 
-	return dpack_xtract_strdup(&decoder->mpack, value, len);
+	return dpack_xtract_strdup(&decoder->mpack, value, (uint32_t)len);
 }
 
 static ssize_t
@@ -287,7 +287,7 @@ dpack_decode_strcpy(struct dpack_decoder * decoder,
 	if (len < 0)
 		return len;
 
-	return dpack_xtract_strcpy(&decoder->mpack, value, len);
+	return dpack_xtract_strcpy(&decoder->mpack, value, (uint32_t)len);
 }
 
 ssize_t
@@ -308,7 +308,7 @@ dpack_decode_strcpy_range(struct dpack_decoder * decoder,
 	if (len < 0)
 		return len;
 
-	return dpack_xtract_strcpy(&decoder->mpack, value, len);
+	return dpack_xtract_strcpy(&decoder->mpack, value, (uint32_t)len);
 }
 
 ssize_t
@@ -326,5 +326,5 @@ dpack_decode_strcpy_fix(struct dpack_decoder * decoder,
 	if (err)
 		return err;
 
-	return dpack_xtract_strcpy(&decoder->mpack, value, size - 1);
+	return dpack_xtract_strcpy(&decoder->mpack, value, (uint32_t)size - 1);
 }

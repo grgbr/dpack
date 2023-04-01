@@ -3,6 +3,7 @@
 
 #include <dpack/cdefs.h>
 #include <stdint.h>
+#include <limits.h>
 #include <sys/types.h>
 
 struct dpack_encoder;
@@ -20,9 +21,14 @@ struct dpack_decoder;
 /* Maximum number of characters an 32 bits msgpack string may encode */
 #define DPACK_STR32_LEN_MAX  UINT32_MAX
 
-/* Check DPACK_STRLEN_MAX definition is sensible. */
-#if DPACK_STRLEN_MAX > DPACK_STR32_LEN_MAX
-#error msgpack cannot encode strings which length is > UINT32_MAX !
+/*
+ * Check DPACK_STRLEN_MAX definition is sensible.
+ * Multiple dpack internal functions (such as dpack_decode_str_tag() for
+ * example) return string length using a ssize_t, effectively restricting
+ * maximum length to a SSIZE_MAX...
+ */
+#if DPACK_STRLEN_MAX > SSIZE_MAX
+#error dpack cannot encode strings which length is > SSIZE_MAX !
 #elif DPACK_STRLEN_MAX < 16U
 #error Huh ?!
 #endif

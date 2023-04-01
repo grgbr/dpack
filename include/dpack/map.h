@@ -1,7 +1,6 @@
 #ifndef _DPACK_MAP_H
 #define _DPACK_MAP_H
 
-#include <dpack/cdefs.h>
 #include <dpack/codec.h>
 #include <dpack/scalar.h>
 #include <dpack/string.h>
