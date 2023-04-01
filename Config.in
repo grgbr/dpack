@@ -48,3 +48,15 @@ config DPACK_MAP
 	default y
 	help
 	  Build dpack library with map support.
+
+config DPACK_UTEST
+	bool "Unit tests"
+	default n
+	help
+	  Build dpack library unit testsuite.
+
+config DPACK_SAMPLE
+	bool "Examples"
+	default n
+	help
+	  Build dpack library code examples demonstrating basic usage.

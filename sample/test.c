@@ -142,7 +142,7 @@ unpack_from_file(const char * path, const struct test_ops * ops)
 
 	if (ret) {
 		test_show_error("unpacking failed: %s (%d).\n",
-		                strerror(-ret),
+		                strerror(-(int)ret),
 		                (int)-ret);
 		ret = EXIT_FAILURE;
 		goto free;
@@ -153,7 +153,7 @@ unpack_from_file(const char * path, const struct test_ops * ops)
 free:
 	free(buff);
 
-	return ret;
+	return (int)ret;
 }
 
 #define TEST_USAGE \

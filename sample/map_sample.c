@@ -64,7 +64,7 @@ map_sample_unpack_astring(struct dpack_decoder * decoder,
 	map_sample_assert(decoder);
 	map_sample_assert(sample);
 
-	int ret;
+	ssize_t ret;
 
 	if (sample->filled & (1U << MAP_SAMPLE_ASTRING_FLD)) {
 		map_sample_assert(sample->astring);
@@ -73,9 +73,9 @@ map_sample_unpack_astring(struct dpack_decoder * decoder,
 
 	ret = dpack_decode_strdup(decoder, &sample->astring);
 	if (ret < 0)
-		return ret;
+		return (int)ret;
 
-	ret = map_sample_check_astring(sample->astring, ret);
+	ret = map_sample_check_astring(sample->astring, (size_t)ret);
 	if (ret)
 		goto free;
 
@@ -93,7 +93,7 @@ free:
 	 * though.
 	 */
 
-	return ret;
+	return (int)ret;
 }
 
 static int
@@ -200,7 +200,8 @@ map_sample_pack(struct dpack_encoder    * encoder,
 
 	int err;
 
-	dpack_map_begin_encode(encoder, __builtin_popcount(sample->filled));
+	dpack_map_begin_encode(encoder,
+	                       (unsigned int)__builtin_popcount(sample->filled));
 
 	/* ashort field is mandatory. */
 	err = dpack_map_encode_int16(encoder,
