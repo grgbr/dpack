@@ -28,6 +28,7 @@ libdpack.so-ldflags   := $(common-ldflags) \
                          -fpic \
                          -Bsymbolic -Bsymbolic-functions \
                          -Wl,-soname,libdpack.so
+libdpack.so-pkgconf   := libstroll
 
 arlibs                := libdpack.a
 libdpack.a-objs       += static/codec.o static/common.o static/mpack.o

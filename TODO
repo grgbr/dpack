@@ -15,3 +15,8 @@ Features
 * gcc attributes
 * min/max/range
 * enum string
+
+TODO
+====
+
+map, array: move size macros to MPACK_TAG_SIZE_... mpack definitions

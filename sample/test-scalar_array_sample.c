@@ -25,7 +25,7 @@ unpack(struct dpack_decoder * decoder)
 		return err;
 
 	printf("thirty_two: %u\n", spl.thirty_two);
-	for (e = 0; e < dpack_array_nr(spl.array); e++)
+	for (e = 0; e < array_nr(spl.array); e++)
 		printf("array[%u]: %hu\n", e, spl.array[e]);
 	printf("eight: %hhu\n", spl.eight);
 
