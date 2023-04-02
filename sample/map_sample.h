@@ -2,13 +2,13 @@
 #define _MAP_SAMPLE_H
 
 #include <dpack/map.h>
+#include <stroll/bmap.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <errno.h>
 
-#define map_sample_assert(condition) \
-	assert(condition)
+#define map_sample_assert(_cond) \
+	stroll_assert("map sample", _cond)
 
 enum map_sample_field {
 	MAP_SAMPLE_ASHORT_FLD  = 0,
@@ -19,15 +19,15 @@ enum map_sample_field {
 };
 
 struct map_sample {
-	unsigned int   filled;
-	int16_t        ashort;
-	char         * astring;
-	bool           abool;
-	uint32_t       anuint;
+	uint32_t   filled;
+	int16_t    ashort;
+	char     * astring;
+	bool       abool;
+	uint32_t   anuint;
 };
 
 #define MAP_SAMPLE_MAND_FLD_NR     (2U)
-#define MAP_SAMPLE_VALID_FLD_MSK   ((1U << MAP_SAMPLE_FLD_NR) - 1)
+#define MAP_SAMPLE_VALID_FLD_MSK   ((UINT32_C(1) << MAP_SAMPLE_FLD_NR) - 1)
 #define MAP_SAMPLE_MAND_FLD_MSK    (MAP_SAMPLE_ASHORT_FLD | \
                                     MAP_SAMPLE_ABOOL_FLD)
 
@@ -38,7 +38,7 @@ struct map_sample {
 #define MAP_SAMPLE_ASTRING_LEN_MAX (63U)
 
 #define MAP_SAMPLE_INIT \
-	{ .filled = 0 }
+	{ .filled = STROLL_BMAP32_INIT_CLEAR }
 
 #define MAP_SAMPLE_DECL(_name) \
 	struct map_sample _name = MAP_SAMPLE_INIT
@@ -57,7 +57,8 @@ struct map_sample {
 
 #define map_sample_assert_access(_sample) \
 	map_sample_assert(_sample); \
-	map_sample_assert(!((_sample)->filled & ~MAP_SAMPLE_VALID_FLD_MSK))
+	map_sample_assert(!stroll_bmap32_test_mask((_sample)->filled, \
+	                                           ~MAP_SAMPLE_VALID_FLD_MSK))
 
 static inline int
 map_sample_check_anuint(uint32_t value __unused)
@@ -89,7 +90,7 @@ map_sample_set_ashort(struct map_sample * sample, int16_t value)
 	map_sample_assert(!map_sample_check_ashort(value));
 
 	sample->ashort = value;
-	sample->filled |= (1U << MAP_SAMPLE_ASHORT_FLD);
+	stroll_bmap32_set(&sample->filled, MAP_SAMPLE_ASHORT_FLD);
 }
 
 static inline int
@@ -102,7 +103,7 @@ map_sample_get_ashort(const struct map_sample * sample, int16_t * value)
 	 * Despite being a mandatory field, we still want the caller to be able
 	 * to retrieve the current value. Tell him by returning -EPERM.
 	 */
-	if (!(sample->filled & (1U << MAP_SAMPLE_ASHORT_FLD)))
+	if (!stroll_bmap32_test(sample->filled, MAP_SAMPLE_ASHORT_FLD))
 		return -EPERM;
 
 	map_sample_assert(!map_sample_check_ashort(sample->ashort));
@@ -122,7 +123,7 @@ map_sample_set_astring(struct map_sample * sample, char * value)
 			strnlen(value, MAP_SAMPLE_ASTRING_LEN_MAX + 1)));
 
 	sample->astring = value;
-	sample->filled |= (1U << MAP_SAMPLE_ASTRING_FLD);
+	stroll_bmap32_set(&sample->filled, MAP_SAMPLE_ASTRING_FLD);
 }
 
 static inline int
@@ -138,7 +139,7 @@ map_sample_get_astring(const struct map_sample * sample, const char ** value)
 			        MAP_SAMPLE_ASTRING_LEN_MAX + 1)));
 
 	/* This field is optional with a default value. */
-	if (!(sample->filled & (1U << MAP_SAMPLE_ASTRING_FLD))) {
+	if (!stroll_bmap32_test(sample->filled, MAP_SAMPLE_ASTRING_FLD)) {
 		extern const char * const map_sample_dflt_astring;
 		*value = map_sample_dflt_astring;
 	}
@@ -154,7 +155,7 @@ map_sample_set_abool(struct map_sample * sample, bool value)
 	map_sample_assert_access(sample);
 
 	sample->abool = value;
-	sample->filled |= (1U << MAP_SAMPLE_ABOOL_FLD);
+	stroll_bmap32_set(&sample->filled, MAP_SAMPLE_ABOOL_FLD);
 }
 
 static inline int
@@ -167,7 +168,7 @@ map_sample_get_abool(const struct map_sample * sample, bool * value)
 	 * Despite being a mandatory field, we still want the caller to be able
 	 * to retrieve the current value. Tell him by returning -EPERM.
 	 */
-	if (!(sample->filled & (1U << MAP_SAMPLE_ABOOL_FLD)))
+	if (!stroll_bmap32_test(sample->filled, MAP_SAMPLE_ABOOL_FLD))
 		return -EPERM;
 
 	*value = sample->abool;
@@ -182,7 +183,7 @@ map_sample_set_anuint(struct map_sample * sample, uint32_t value)
 	map_sample_assert(!map_sample_check_anuint(value));
 
 	sample->anuint = value;
-	sample->filled |= (1U << MAP_SAMPLE_ANUINT_FLD);
+	stroll_bmap32_set(&sample->filled, MAP_SAMPLE_ANUINT_FLD);
 }
 
 static inline int
@@ -191,7 +192,7 @@ map_sample_get_anuint(const struct map_sample * sample, unsigned int * value)
 	map_sample_assert_access(sample);
 	map_sample_assert(value);
 
-	if (!(sample->filled & (1U << MAP_SAMPLE_ANUINT_FLD)))
+	if (!stroll_bmap32_test(sample->filled, MAP_SAMPLE_ANUINT_FLD))
 		return -EPERM;
 
 	map_sample_assert(!map_sample_check_anuint(sample->anuint));
@@ -206,7 +207,7 @@ map_sample_init(struct map_sample * sample)
 {
 	map_sample_assert(sample);
 
-	sample->filled = 0;
+	stroll_bmap32_setup_clear(&sample->filled);
 }
 
 extern void
