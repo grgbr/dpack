@@ -2,6 +2,7 @@
 #define _DPACK_STRING_H
 
 #include <dpack/cdefs.h>
+#include <dpack/mpack.h>
 #include <stdint.h>
 #include <limits.h>
 #include <sys/types.h>
@@ -39,7 +40,7 @@ struct dpack_decoder;
 
 /* Compute size of an encoded msgpack fixstr */
 #define DPACK_FIXSTR_SIZE(_len) \
-	(1U + (_len))
+	(MPACK_TAG_SIZE_FIXSTR + (_len))
 
 #define _DPACK_STR_CONST_SIZE(_len) \
 	DPACK_FIXSTR_SIZE(_len)
@@ -52,7 +53,7 @@ struct dpack_decoder;
 
 /* Compute size of an encoded 8 bits msgpack string */
 #define DPACK_STR8_SIZE(_len) \
-	(2U + (_len))
+	(MPACK_TAG_SIZE_STR8 + (_len))
 
 /* Size of an encoded string when length fits into an msgpack 8 bits string. */
 #define DPACK_STR8_CONST_SIZE(_len) \
@@ -73,7 +74,7 @@ struct dpack_decoder;
 
 /* Compute size of an encoded 16 bits msgpack string */
 #define DPACK_STR16_SIZE(_len) \
-	(3U + (_len))
+	(MPACK_TAG_SIZE_STR16 + (_len))
 
 /* Size of an encoded string when length fits into an msgpack 16 bits string. */
 #define DPACK_STR16_CONST_SIZE(_len) \
@@ -94,7 +95,7 @@ struct dpack_decoder;
 
 /* Compute size of an encoded 32 bits msgpack string */
 #define DPACK_STR32_SIZE(_len) \
-	(5U + (_len))
+	(MPACK_TAG_SIZE_STR32 + (_len))
 
 /* Size of an encoded string when length fits into an msgpack 32 bits string. */
 #define DPACK_STR32_CONST_SIZE(_len) \
@@ -141,7 +142,6 @@ dpack_str_size(size_t len) __dpack_export;
 extern int
 dpack_encode_str(struct dpack_encoder * encoder,
                  const char           * value) __dpack_export;
-
 
 extern int
 dpack_encode_str_fix(struct dpack_encoder * encoder,

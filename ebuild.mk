@@ -5,6 +5,7 @@ HEADERDIR   := $(CURDIR)/include
 headers      = $(PACKAGE)/cdefs.h $(PACKAGE)/codec.h $(PACKAGE)/mpack-config.h
 headers     += $(call kconf_enabled,DPACK_SCALAR,$(PACKAGE)/scalar.h)
 headers     += $(call kconf_enabled,DPACK_STRING,$(PACKAGE)/string.h)
+headers     += $(call kconf_enabled,DPACK_LVSTR,$(PACKAGE)/lvstr.h)
 headers     += $(call kconf_enabled,DPACK_MAP,$(PACKAGE)/map.h)
 headers     += $(call kconf_enabled,DPACK_ARRAY,$(PACKAGE)/array.h)
 
@@ -29,7 +30,7 @@ includedir=$${prefix}/include
 Name: libdpack
 Description: dpack library
 Version: %%PKG_VERSION%%
-Requires:
+Requires.private: libstroll
 Cflags: -I$${includedir}
 Libs: -L$${libdir} -ldpack
 endef

@@ -20,13 +20,14 @@ libdpack.so-objs      += shared/codec.o shared/common.o shared/mpack.o
 shared/mpack.o-cflags := -DMPACK_HAS_CONFIG=1 $(common-cflags)
 libdpack.so-objs      += $(call kconf_enabled,DPACK_SCALAR,shared/scalar.o)
 libdpack.so-objs      += $(call kconf_enabled,DPACK_STRING,shared/string.o)
+libdpack.so-objs      += $(call kconf_enabled,DPACK_LVSTR,shared/lvstr.o)
 libdpack.so-objs      += $(call kconf_enabled,DPACK_MAP,shared/map.o)
 libdpack.so-objs      += $(call kconf_enabled,DPACK_ARRAY,shared/array.o)
 libdpack.so-cflags    := $(common-cflags) -fpic
 libdpack.so-ldflags   := $(common-ldflags) \
                          -shared \
                          -fpic \
-                         -Bsymbolic -Bsymbolic-functions \
+                         -Bsymbolic \
                          -Wl,-soname,libdpack.so
 libdpack.so-pkgconf   := libstroll
 
@@ -35,6 +36,7 @@ libdpack.a-objs       += static/codec.o static/common.o static/mpack.o
 static/mpack.o-cflags := -DMPACK_HAS_CONFIG=1 $(common-cflags)
 libdpack.a-objs       += $(call kconf_enabled,DPACK_SCALAR,static/scalar.o)
 libdpack.a-objs       += $(call kconf_enabled,DPACK_STRING,static/string.o)
+libdpack.a-objs       += $(call kconf_enabled,DPACK_LVSTR,static/lvstr.o)
 libdpack.a-objs       += $(call kconf_enabled,DPACK_MAP,static/map.o)
 libdpack.a-objs       += $(call kconf_enabled,DPACK_ARRAY,static/array.o)
 libdpack.a-cflags     := $(common-cflags)

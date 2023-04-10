@@ -94,6 +94,8 @@ DPACK_MAP_DEFINE_ENCODE_SCALAR(dpack_map_encode_int64,
  * Map strings encoding
  ******************************************************************************/
 
+#if defined(CONFIG_DPACK_STRING)
+
 int
 dpack_map_encode_str(struct dpack_encoder * encoder,
                      uint16_t               id,
@@ -122,6 +124,30 @@ dpack_map_encode_str_fix(struct dpack_encoder * encoder,
 
 	return dpack_encode_str_fix(encoder, value, len);
 }
+
+#endif /* defined(CONFIG_DPACK_STRING) */
+
+/******************************************************************************
+ * Map lvstr encoding
+ ******************************************************************************/
+
+#if defined(CONFIG_DPACK_LVSTR)
+
+int
+dpack_map_encode_lvstr(struct dpack_encoder *      encoder,
+                       uint16_t                    id,
+                       const struct stroll_lvstr * value)
+{
+	int err;
+
+	err = dpack_map_encode_fldid(encoder, id);
+	if (err)
+		return err;
+
+	return dpack_encode_lvstr(encoder, value);
+}
+
+#endif /* defined(CONFIG_DPACK_LVSTR) */
 
 /******************************************************************************
  * Map decoding

@@ -36,6 +36,13 @@ config DPACK_STRING
 	help
 	  Build dpack library with string support.
 
+config DPACK_LVSTR
+	bool "Length-Value strings"
+	select DPACK_STRING
+	default y
+	help
+	  Build dpack library with string support.
+
 config DPACK_ARRAY
 	bool "Arrays"
 	default y
@@ -57,6 +64,12 @@ config DPACK_UTEST
 
 config DPACK_SAMPLE
 	bool "Examples"
+	select DPACK_MAP
+	select DPACK_ARRAY
+	select DPACK_STRING
+	select DPACK_LVSTR
 	default n
 	help
 	  Build dpack library code examples demonstrating basic usage.
+
+# vim: ft=kconfig:

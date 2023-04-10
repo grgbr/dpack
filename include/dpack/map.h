@@ -3,7 +3,6 @@
 
 #include <dpack/codec.h>
 #include <dpack/scalar.h>
-#include <dpack/string.h>
 
 /* Maximum number of fields of a dpack map */
 #define DPACK_MAP_FLDNR_MAX    (32U)
@@ -265,6 +264,10 @@ dpack_map_encode_int64(struct dpack_encoder * encoder,
  * Map strings encoding
  ******************************************************************************/
 
+#if defined(CONFIG_DPACK_STRING)
+
+#include <dpack/string.h>
+
 #define DPACK_MAP_STR_SIZE_MIN(_len) \
 	(DPACK_MAP_FLDID_SIZE_MIN + DPACK_STR_SIZE(_len))
 #define DPACK_MAP_STR_SIZE_MAX \
@@ -280,6 +283,28 @@ dpack_map_encode_str_fix(struct dpack_encoder * encoder,
                          uint16_t               id,
                          const char           * value,
                          size_t                 len) __dpack_export;
+
+#endif /* defined(CONFIG_DPACK_STRING) */
+
+/******************************************************************************
+ * Map lvstr encoding
+ ******************************************************************************/
+
+#if defined(CONFIG_DPACK_LVSTR)
+
+#include <dpack/lvstr.h>
+
+#define DPACK_MAP_LVSTR_SIZE_MIN(_len) \
+	(DPACK_MAP_FLDID_SIZE_MIN + DPACK_LVSTR_SIZE(_len))
+#define DPACK_MAP_LVSTR_SIZE_MAX \
+	(DPACK_MAP_FLDID_SIZE_MAX + DPACK_LVSTR_SIZE(_len))
+
+extern int
+dpack_map_encode_lvstr(struct dpack_encoder *      encoder,
+                       uint16_t                    id,
+                       const struct stroll_lvstr * value) __dpack_export;
+
+#endif /* defined(CONFIG_DPACK_LVSTR) */
 
 /******************************************************************************
  * Map decoding

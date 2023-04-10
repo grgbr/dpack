@@ -4,16 +4,32 @@
 #include "dpack/codec.h"
 #include <errno.h>
 
-#define unreachable() \
-	__builtin_unreachable()
+#if defined(DPACK_ASSERT_INTERN)
+
+#define dpack_assert_intern(_cond) \
+	stroll_assert("dpack", _cond)
+
+#else  /* !defined(DPACK_ASSERT_INTERN) */
+
+#define dpack_assert_intern(_cond)
+
+#endif /* defined(DPACK_ASSERT_INTERN) */
 
 #define dpack_assert_encoder(_enc) \
 	dpack_assert(_enc); \
 	dpack_assert(mpack_writer_error(&(_enc)->mpack) == mpack_ok)
 
+#define dpack_assert_api_encoder(_enc) \
+	dpack_assert_api(_enc); \
+	dpack_assert_api(mpack_writer_error(&(_enc)->mpack) == mpack_ok)
+
 #define dpack_assert_decoder(_dec) \
 	dpack_assert(_dec); \
 	dpack_assert(mpack_reader_error(&(_dec)->mpack) == mpack_ok)
+
+#define dpack_assert_api_decoder(_dec) \
+	dpack_assert_api(_dec); \
+	dpack_assert_api(mpack_reader_error(&(_dec)->mpack) == mpack_ok)
 
 static inline int
 dpack_errno_from_mpack(enum mpack_error_t err)

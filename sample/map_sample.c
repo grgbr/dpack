@@ -58,6 +58,59 @@ map_sample_check_astring(const char * value __unused, size_t len)
 }
 
 static int
+map_sample_check_intern_astring(const struct stroll_lvstr * value)
+{
+	return map_sample_check_astring(stroll_lvstr_cstr(value),
+	                                stroll_lvstr_len(value));
+}
+
+void
+map_sample_lend_astring(struct map_sample * sample, const char * value)
+{
+	map_sample_assert_access(sample);
+	map_sample_assert(
+		!map_sample_check_astring(
+			value,
+			strnlen(value, MAP_SAMPLE_ASTRING_LEN_MAX + 1)));
+
+	stroll_lvstr_lend(&sample->astring, value);
+	stroll_bmap32_set(&sample->filled, MAP_SAMPLE_ASTRING_FLD);
+}
+
+void
+map_sample_cede_astring(struct map_sample * sample, char * value)
+{
+	map_sample_assert_access(sample);
+	map_sample_assert(
+		!map_sample_check_astring(
+			value,
+			strnlen(value, MAP_SAMPLE_ASTRING_LEN_MAX + 1)));
+
+	stroll_lvstr_cede(&sample->astring, value);
+	stroll_bmap32_set(&sample->filled, MAP_SAMPLE_ASTRING_FLD);
+}
+
+int
+map_sample_get_astring(const struct map_sample * sample, const char ** value)
+{
+	map_sample_assert_access(sample);
+	map_sample_assert(value);
+	map_sample_assert(!map_sample_check_intern_astring(&sample->astring));
+
+	/* This field is optional with a default value. */
+	if (!stroll_bmap32_test(sample->filled, MAP_SAMPLE_ASTRING_FLD)) {
+		extern const char * const map_sample_dflt_astring;
+		*value = map_sample_dflt_astring;
+	}
+	else {
+		*value = stroll_lvstr_cstr(&sample->astring);
+		map_sample_assert(*value);
+	}
+
+	return 0;
+}
+
+static int
 map_sample_unpack_astring(struct dpack_decoder * decoder,
                           struct map_sample    * sample)
 {
@@ -67,15 +120,15 @@ map_sample_unpack_astring(struct dpack_decoder * decoder,
 	ssize_t ret;
 
 	if (stroll_bmap32_test(sample->filled, MAP_SAMPLE_ASTRING_FLD)) {
-		map_sample_assert(sample->astring);
+		map_sample_assert(stroll_lvstr_cstr(&sample->astring));
 		return -EEXIST;
 	}
 
-	ret = dpack_decode_strdup(decoder, &sample->astring);
+	ret = dpack_decode_lvstr(decoder, &sample->astring);
 	if (ret < 0)
 		return (int)ret;
 
-	ret = map_sample_check_astring(sample->astring, (size_t)ret);
+	ret = map_sample_check_intern_astring(&sample->astring);
 	if (ret)
 		goto free;
 
@@ -84,7 +137,7 @@ map_sample_unpack_astring(struct dpack_decoder * decoder,
 	return 0;
 
 free:
-	free(sample->astring);
+	stroll_lvstr_drop(&sample->astring);
 
 	/*
 	 * No need to clear astring field since the astring field bitmap bit has
@@ -167,10 +220,8 @@ map_sample_check(const struct map_sample * sample)
 	/* Now assert optional fields. Start by checking astring field: */
 	if (stroll_bmap32_test(sample->filled, MAP_SAMPLE_ASTRING_FLD))
 		map_sample_assert(
-			!map_sample_check_astring(
-				sample->astring,
-				strnlen(sample->astring,
-				        MAP_SAMPLE_ASTRING_LEN_MAX + 1)));
+			!map_sample_check_intern_astring(&sample->astring));
+
 	/* ... and finish by asserting auint field. */
 	if (stroll_bmap32_test(sample->filled, MAP_SAMPLE_ANUINT_FLD))
 		map_sample_assert(!map_sample_check_anuint(sample->anuint));
@@ -213,9 +264,9 @@ map_sample_pack(struct dpack_encoder    * encoder,
 
 	/* astring field is optional. */
 	if (stroll_bmap32_test(sample->filled, MAP_SAMPLE_ASTRING_FLD)) {
-		err = dpack_map_encode_str(encoder,
-		                           MAP_SAMPLE_ASTRING_FLD,
-		                           sample->astring);
+		err = dpack_map_encode_lvstr(encoder,
+		                             MAP_SAMPLE_ASTRING_FLD,
+		                             &sample->astring);
 		if (err)
 			return err;
 	}
@@ -299,8 +350,7 @@ map_sample_fini(struct map_sample * sample)
 {
 	map_sample_assert(sample);
 
-	if (stroll_bmap32_test(sample->filled, MAP_SAMPLE_ASTRING_FLD))
-		free(sample->astring);
+	stroll_lvstr_fini(&sample->astring);
 }
 
 struct map_sample *

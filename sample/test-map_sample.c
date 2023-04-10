@@ -4,19 +4,10 @@
 static int
 pack(struct dpack_encoder * encoder)
 {
-	struct map_sample   spl = MAP_SAMPLE_INIT;
-	char              * str;
-	int                 ret;
+	struct map_sample spl = MAP_SAMPLE_INIT;
+	int               ret;
 
-	str = strdup("a test sample string");
-	if (!str)
-		return -errno;
-	/*
-	 * Give ownership of string str to spl so that it may free() it at
-	 * map_sample_fini() time.
-	 */
-	map_sample_set_astring(&spl, str);
-
+	map_sample_lend_astring(&spl, "a test sample string");
 	map_sample_set_ashort(&spl, INT16_MIN + 2);
 	map_sample_set_abool(&spl, true);
 
