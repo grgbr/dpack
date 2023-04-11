@@ -6,6 +6,7 @@ common-cflags         := -Wall -Wextra -Wformat=2 \
                          -Wcast-align \
                          -Wmissing-declarations \
                          -D_GNU_SOURCE \
+                         -DMPACK_HAS_CONFIG=1 \
                          -I $(TOPDIR)/include \
                          $(EXTRA_CFLAGS) \
                          -fvisibility=hidden
@@ -17,7 +18,7 @@ common-ldflags        := $(common-cflags) \
 
 solibs                := libdpack.so
 libdpack.so-objs      += shared/codec.o shared/common.o shared/mpack.o
-shared/mpack.o-cflags := -DMPACK_HAS_CONFIG=1 $(common-cflags)
+shared/mpack.o-cflags := $(common-cflags)
 libdpack.so-objs      += $(call kconf_enabled,DPACK_SCALAR,shared/scalar.o)
 libdpack.so-objs      += $(call kconf_enabled,DPACK_STRING,shared/string.o)
 libdpack.so-objs      += $(call kconf_enabled,DPACK_LVSTR,shared/lvstr.o)
@@ -33,7 +34,7 @@ libdpack.so-pkgconf   := libstroll
 
 arlibs                := libdpack.a
 libdpack.a-objs       += static/codec.o static/common.o static/mpack.o
-static/mpack.o-cflags := -DMPACK_HAS_CONFIG=1 $(common-cflags)
+static/mpack.o-cflags := $(common-cflags)
 libdpack.a-objs       += $(call kconf_enabled,DPACK_SCALAR,static/scalar.o)
 libdpack.a-objs       += $(call kconf_enabled,DPACK_STRING,static/string.o)
 libdpack.a-objs       += $(call kconf_enabled,DPACK_LVSTR,static/lvstr.o)

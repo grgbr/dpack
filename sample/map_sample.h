@@ -38,7 +38,10 @@ struct map_sample {
 #define MAP_SAMPLE_ASTRING_LEN_MAX (63U)
 
 #define MAP_SAMPLE_INIT \
-	{ .filled = STROLL_BMAP32_INIT_CLEAR }
+	{ \
+		.filled = STROLL_BMAP32_INIT_CLEAR, \
+		.astring = STROLL_LVSTR_INIT \
+	}
 
 #define MAP_SAMPLE_DECL(_name) \
 	struct map_sample _name = MAP_SAMPLE_INIT
