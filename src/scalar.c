@@ -2,7 +2,7 @@
 #include "dpack/codec.h"
 #include "common.h"
 
-#define DPACK_STDINT_DEFINE_ENCODE(_name, _type, _func) \
+#define DPACK_SCALAR_DEFINE_ENCODE(_name, _type, _func) \
 	int \
 	_name(struct dpack_encoder * encoder, _type value) \
 	{ \
@@ -17,15 +17,7 @@
  * Boolean
  ******************************************************************************/
 
-int
-dpack_encode_bool(struct dpack_encoder * encoder, bool value)
-{
-	dpack_assert_api_encoder(encoder);
-
-	mpack_write_bool(&encoder->mpack, value);
-
-	return dpack_encoder_error_state(&encoder->mpack);
-}
+DPACK_SCALAR_DEFINE_ENCODE(dpack_encode_bool, bool, mpack_write_bool)
 
 int
 dpack_decode_bool(struct dpack_decoder * decoder, bool * value)
@@ -384,13 +376,13 @@ dpack_xtract_int64_range(struct mpack_reader_t * reader,
  * 8 bits integer
  ******************************************************************************/
 
-DPACK_STDINT_DEFINE_ENCODE(dpack_encode_uint8, uint8_t, mpack_write_u8)
+DPACK_SCALAR_DEFINE_ENCODE(dpack_encode_uint8, uint8_t, mpack_write_u8)
 DPACK_UINT_DEFINE_DECODE(dpack_decode_uint8, uint8_t, UINT8_MAX)
 DPACK_UINT_DEFINE_DECODE_MIN(dpack_decode_uint8_min, uint8_t, UINT8_MAX)
 DPACK_UINT_DEFINE_DECODE_MAX(dpack_decode_uint8_max, uint8_t, UINT8_MAX)
 DPACK_UINT_DEFINE_DECODE_RANGE(dpack_decode_uint8_range, uint8_t, UINT8_MAX)
 
-DPACK_STDINT_DEFINE_ENCODE(dpack_encode_int8, int8_t, mpack_write_i8)
+DPACK_SCALAR_DEFINE_ENCODE(dpack_encode_int8, int8_t, mpack_write_i8)
 DPACK_INT_DEFINE_DECODE(dpack_decode_int8, int8_t, INT8_MIN, INT8_MAX)
 DPACK_INT_DEFINE_DECODE_MIN(dpack_decode_int8_min, int8_t, INT8_MIN, INT8_MAX)
 DPACK_INT_DEFINE_DECODE_MAX(dpack_decode_int8_max, int8_t, INT8_MIN, INT8_MAX)
@@ -403,13 +395,13 @@ DPACK_INT_DEFINE_DECODE_RANGE(dpack_decode_int8_range,
  * 16 bits integer
  ******************************************************************************/
 
-DPACK_STDINT_DEFINE_ENCODE(dpack_encode_uint16, uint16_t, mpack_write_u16)
+DPACK_SCALAR_DEFINE_ENCODE(dpack_encode_uint16, uint16_t, mpack_write_u16)
 DPACK_UINT_DEFINE_DECODE(dpack_decode_uint16, uint16_t, UINT16_MAX)
 DPACK_UINT_DEFINE_DECODE_MIN(dpack_decode_uint16_min, uint16_t, UINT16_MAX)
 DPACK_UINT_DEFINE_DECODE_MAX(dpack_decode_uint16_max, uint16_t, UINT16_MAX)
 DPACK_UINT_DEFINE_DECODE_RANGE(dpack_decode_uint16_range, uint16_t, UINT16_MAX)
 
-DPACK_STDINT_DEFINE_ENCODE(dpack_encode_int16, int16_t, mpack_write_i16)
+DPACK_SCALAR_DEFINE_ENCODE(dpack_encode_int16, int16_t, mpack_write_i16)
 DPACK_INT_DEFINE_DECODE(dpack_decode_int16, int16_t, INT16_MIN, INT16_MAX)
 DPACK_INT_DEFINE_DECODE_MIN(dpack_decode_int16_min,
                             int16_t,
@@ -428,13 +420,13 @@ DPACK_INT_DEFINE_DECODE_RANGE(dpack_decode_int16_range,
  * 32 bits integer
  ******************************************************************************/
 
-DPACK_STDINT_DEFINE_ENCODE(dpack_encode_uint32, uint32_t, mpack_write_u32)
+DPACK_SCALAR_DEFINE_ENCODE(dpack_encode_uint32, uint32_t, mpack_write_u32)
 DPACK_UINT_DEFINE_DECODE(dpack_decode_uint32, uint32_t, UINT32_MAX)
 DPACK_UINT_DEFINE_DECODE_MIN(dpack_decode_uint32_min, uint32_t, UINT32_MAX)
 DPACK_UINT_DEFINE_DECODE_MAX(dpack_decode_uint32_max, uint32_t, UINT32_MAX)
 DPACK_UINT_DEFINE_DECODE_RANGE(dpack_decode_uint32_range, uint32_t, UINT32_MAX)
 
-DPACK_STDINT_DEFINE_ENCODE(dpack_encode_int32, int32_t, mpack_write_i32)
+DPACK_SCALAR_DEFINE_ENCODE(dpack_encode_int32, int32_t, mpack_write_i32)
 DPACK_INT_DEFINE_DECODE(dpack_decode_int32, int32_t, INT32_MIN, INT32_MAX)
 DPACK_INT_DEFINE_DECODE_MIN(dpack_decode_int32_min,
                             int32_t,
@@ -453,7 +445,7 @@ DPACK_INT_DEFINE_DECODE_RANGE(dpack_decode_int32_range,
  * 64 bits integer
  ******************************************************************************/
 
-DPACK_STDINT_DEFINE_ENCODE(dpack_encode_uint64, uint64_t, mpack_write_u64)
+DPACK_SCALAR_DEFINE_ENCODE(dpack_encode_uint64, uint64_t, mpack_write_u64)
 
 int
 dpack_decode_uint64(struct dpack_decoder * decoder, uint64_t * value)
@@ -514,7 +506,7 @@ dpack_decode_uint64_range(struct dpack_decoder * decoder,
 	return dpack_xtract_uint64_range(&decoder->mpack, low, high, value);
 }
 
-DPACK_STDINT_DEFINE_ENCODE(dpack_encode_int64, int64_t, mpack_write_i64)
+DPACK_SCALAR_DEFINE_ENCODE(dpack_encode_int64, int64_t, mpack_write_i64)
 
 int
 dpack_decode_int64(struct dpack_decoder * decoder, int64_t * value)
@@ -592,3 +584,193 @@ dpack_decode_int64_range(struct dpack_decoder * decoder,
 
 	return dpack_xtract_int64_range(&decoder->mpack, low, high, value);
 }
+
+/******************************************************************************
+ * Single precision floating point
+ ******************************************************************************/
+
+#if defined(CONFIG_DPACK_FLOAT)
+
+DPACK_SCALAR_DEFINE_ENCODE(dpack_encode_float, float, mpack_write_float)
+
+int
+dpack_decode_float(struct dpack_decoder * decoder, float * value)
+{
+	dpack_assert_api_decoder(decoder);
+	dpack_assert_api(value);
+
+	struct mpack_tag_t tag;
+	int                err;
+
+	err = dpack_decode_tag(&decoder->mpack, mpack_type_float, &tag);
+	if (err)
+		return err;
+
+	*value = mpack_tag_float_value(&tag);
+
+	return 0;
+}
+
+int
+dpack_decode_float_min(struct dpack_decoder * decoder, float low, float * value)
+{
+	dpack_assert_api_decoder(decoder);
+	dpack_assert_api(low > MINFLOAT);
+	dpack_assert_api(low < MAXFLOAT);
+	dpack_assert_api(value);
+
+	int err;
+
+	err = dpack_decode_float(decoder, value);
+	if (err)
+		return err;
+
+	if (*value < low)
+		return -ERANGE;
+
+	return 0;
+}
+
+int
+dpack_decode_float_max(struct dpack_decoder * decoder,
+                       float                  high,
+                       float *                value)
+{
+	dpack_assert_api_decoder(decoder);
+	dpack_assert_api(high > MINFLOAT);
+	dpack_assert_api(high < MAXFLOAT);
+	dpack_assert_api(value);
+
+	int err;
+
+	err = dpack_decode_float(decoder, value);
+	if (err)
+		return err;
+
+	if (*value > high)
+		return -ERANGE;
+
+	return 0;
+}
+
+int
+dpack_decode_float_range(struct dpack_decoder * decoder,
+                         float                  low,
+                         float                  high,
+                         float *                value)
+{
+	dpack_assert_api_decoder(decoder);
+	dpack_assert_api(low > MINFLOAT);
+	dpack_assert_api(low < high);
+	dpack_assert_api(high < MAXFLOAT);
+	dpack_assert_api(value);
+
+	int err;
+
+	err = dpack_decode_float(decoder, value);
+	if (err)
+		return err;
+
+	if ((*value < low) || (*value > high))
+		return -ERANGE;
+
+	return 0;
+}
+
+#endif /* defined(CONFIG_DPACK_FLOAT) */
+
+/******************************************************************************
+ * Double precision floating point
+ ******************************************************************************/
+
+#if defined(CONFIG_DPACK_DOUBLE)
+
+DPACK_SCALAR_DEFINE_ENCODE(dpack_encode_double, double, mpack_write_double)
+
+int
+dpack_decode_double(struct dpack_decoder * decoder, double * value)
+{
+	dpack_assert_api_decoder(decoder);
+	dpack_assert_api(value);
+
+	struct mpack_tag_t tag;
+	int                err;
+
+	err = dpack_decode_tag(&decoder->mpack, mpack_type_double, &tag);
+	if (err)
+		return err;
+
+	*value = mpack_tag_double_value(&tag);
+
+	return 0;
+}
+
+int
+dpack_decode_double_min(struct dpack_decoder * decoder,
+                        double                 low,
+                        double *               value)
+{
+	dpack_assert_api_decoder(decoder);
+	dpack_assert_api(low > MINDOUBLE);
+	dpack_assert_api(low < MAXDOUBLE);
+	dpack_assert_api(value);
+
+	int err;
+
+	err = dpack_decode_double(decoder, value);
+	if (err)
+		return err;
+
+	if (*value < low)
+		return -ERANGE;
+
+	return 0;
+}
+
+int
+dpack_decode_double_max(struct dpack_decoder * decoder,
+                        double                 high,
+                        double *               value)
+{
+	dpack_assert_api_decoder(decoder);
+	dpack_assert_api(high > MINDOUBLE);
+	dpack_assert_api(high < MAXDOUBLE);
+	dpack_assert_api(value);
+
+	int err;
+
+	err = dpack_decode_double(decoder, value);
+	if (err)
+		return err;
+
+	if (*value > high)
+		return -ERANGE;
+
+	return 0;
+}
+
+int
+dpack_decode_double_range(struct dpack_decoder * decoder,
+                          double                 low,
+                          double                 high,
+                          double *               value)
+{
+	dpack_assert_api_decoder(decoder);
+	dpack_assert_api(low > MINDOUBLE);
+	dpack_assert_api(low < high);
+	dpack_assert_api(high < MAXDOUBLE);
+	dpack_assert_api(value);
+
+	int err;
+
+	err = dpack_decode_double(decoder, value);
+	if (err)
+		return err;
+
+	if ((*value < low) || (*value > high))
+		return -ERANGE;
+
+	return 0;
+}
+
+#endif /* defined(CONFIG_DPACK_DOUBLE) */

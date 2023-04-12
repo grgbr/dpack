@@ -303,4 +303,70 @@ dpack_decode_int64_range(struct dpack_decoder * decoder,
                          int64_t                high,
                          int64_t              * value) __dpack_export;
 
+/******************************************************************************
+ * Single precision floating point
+ ******************************************************************************/
+
+#if defined(CONFIG_DPACK_FLOAT)
+
+#define DPACK_FLOAT_SIZE MPACK_TAG_SIZE_FLOAT
+
+extern int
+dpack_encode_float(struct dpack_encoder * encoder, float value) __dpack_export;
+
+extern int
+dpack_decode_float(struct dpack_decoder * decoder, float * value)
+	__dpack_export;
+
+extern int
+dpack_decode_float_min(struct dpack_decoder * decoder, float low, float * value)
+	__dpack_export;
+
+extern int
+dpack_decode_float_max(struct dpack_decoder * decoder,
+                       float                  high,
+                       float *                value) __dpack_export;
+
+extern int
+dpack_decode_float_range(struct dpack_decoder * decoder,
+                         float                  low,
+                         float                  high,
+                         float *                value) __dpack_export;
+
+#endif /* defined(CONFIG_DPACK_FLOAT) */
+
+/******************************************************************************
+ * Double precision floating point
+ ******************************************************************************/
+
+#if defined(CONFIG_DPACK_DOUBLE)
+
+#define DPACK_DOUBLE_SIZE MPACK_TAG_SIZE_DOUBLE
+
+extern int
+dpack_encode_double(struct dpack_encoder * encoder, double value)
+	__dpack_export;
+
+extern int
+dpack_decode_double(struct dpack_decoder * decoder, double * value)
+	__dpack_export;
+
+extern int
+dpack_decode_double_min(struct dpack_decoder * decoder,
+                        double                 low,
+                        double *               value) __dpack_export;
+
+extern int
+dpack_decode_double_max(struct dpack_decoder * decoder,
+                       double                  high,
+                       double *                value) __dpack_export;
+
+extern int
+dpack_decode_double_range(struct dpack_decoder * decoder,
+                         double                  low,
+                         double                  high,
+                         double *                value) __dpack_export;
+
+#endif /* defined(CONFIG_DPACK_DOUBLE) */
+
 #endif /* _DPACK_SCALAR_H */

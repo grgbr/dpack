@@ -7,7 +7,8 @@ pack(struct dpack_encoder * encoder)
 	const struct fix_sample spl = {
 		.eight      = 2,
 		.sixteen    = 3,
-		.thirty_two = 4
+		.thirty_two = 4,
+		.single     = 7.37f
 	};
 
 	return fix_sample_pack(encoder, &spl);
@@ -23,10 +24,11 @@ unpack(struct dpack_decoder * decoder)
 	if (err)
 		return err;
 
-	printf("eight: %hhu\nsixteen: %hu\nthirty_two: %u\n",
+	printf("eight: %hhu\nsixteen: %hu\nthirty_two: %u\nsingle: %f\n",
 	       spl.eight,
 	       spl.sixteen,
-	       spl.thirty_two);
+	       spl.thirty_two,
+	       spl.single);
 
 	return 0;
 }

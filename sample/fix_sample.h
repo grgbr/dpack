@@ -8,15 +8,18 @@ struct fix_sample {
 	uint8_t  eight;
 	uint16_t sixteen;
 	uint32_t thirty_two;
+	float    single;
 };
 
 #define FIX_SAMPLE_PACKED_SIZE_MIN (DPACK_UINT8_SIZE_MIN + \
                                     DPACK_UINT16_SIZE_MIN + \
-                                    DPACK_UINT32_SIZE_MIN)
+                                    DPACK_UINT32_SIZE_MIN + \
+                                    DPACK_FLOAT_SIZE)
 
 #define FIX_SAMPLE_PACKED_SIZE_MAX (DPACK_UINT8_SIZE_MAX + \
                                     DPACK_UINT16_SIZE_MAX + \
-                                    DPACK_UINT32_SIZE_MAX)
+                                    DPACK_UINT32_SIZE_MAX + \
+                                    DPACK_FLOAT_SIZE)
 
 extern int
 fix_sample_pack(struct dpack_encoder * encoder, const struct fix_sample * data);

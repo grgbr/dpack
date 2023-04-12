@@ -35,6 +35,10 @@ fix_sample_pack(struct dpack_encoder * encoder, const struct fix_sample * data)
 	if (err)
 		return err;
 
+	err = dpack_encode_float(encoder, data->single);
+	if (err)
+		return err;
+
 	return 0;
 }
 
@@ -57,6 +61,10 @@ fix_sample_unpack(struct dpack_decoder * decoder, struct fix_sample * data)
 		return err;
 
 	err = dpack_decode_uint32(decoder, &data->thirty_two);
+	if (err)
+		return err;
+
+	err = dpack_decode_float(decoder, &data->single);
 	if (err)
 		return err;
 

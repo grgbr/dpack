@@ -31,6 +31,22 @@ config DPACK_SCALAR
 	  Build dpack library with scalar support, i.e., boolean, signed and
 	  unsigned integers.
 
+config DPACK_FLOAT
+	bool "Single precision floating point numbers"
+	depends on DPACK_SCALAR
+	default n
+	help
+	  Build dpack library with single precision floating point number
+	  support.
+
+config DPACK_DOUBLE
+	bool "Double precision floating point numbers"
+	depends on DPACK_SCALAR
+	default n
+	help
+	  Build dpack library with double precision floating point number
+	  support.
+
 config DPACK_STRING
 	bool "Strings"
 	default y
@@ -69,6 +85,7 @@ config DPACK_SAMPLE
 	select DPACK_ARRAY
 	select DPACK_STRING
 	select DPACK_LVSTR
+	select DPACK_FLOAT
 	default n
 	help
 	  Build dpack library code examples demonstrating basic usage.
