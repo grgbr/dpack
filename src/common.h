@@ -2,7 +2,29 @@
 #define _DPACK_COMMON_H
 
 #include "dpack/codec.h"
+#include <stroll/assert.h>
 #include <errno.h>
+
+#if defined(DPACK_ASSERT_API)
+
+#define dpack_assert_api(_cond) \
+	stroll_assert("dpack", _cond)
+
+#define dpack_assert_api_encoder(_enc) \
+	dpack_assert_api(_enc); \
+	dpack_assert_api(mpack_writer_error(&(_enc)->mpack) == mpack_ok)
+
+#define dpack_assert_api_decoder(_dec) \
+	dpack_assert_api(_dec); \
+	dpack_assert_api(mpack_reader_error(&(_dec)->mpack) == mpack_ok)
+
+#else  /* !defined(DPACK_ASSERT_API) */
+
+#define dpack_assert_api(_cond)
+#define dpack_assert_api_encoder(_enc)
+#define dpack_assert_api_decoder(_dec)
+
+#endif /* defined(DPACK_ASSERT_API) */
 
 #if defined(DPACK_ASSERT_INTERN)
 
@@ -14,14 +36,6 @@
 #define dpack_assert_intern(_cond)
 
 #endif /* defined(DPACK_ASSERT_INTERN) */
-
-#define dpack_assert_api_encoder(_enc) \
-	dpack_assert_api(_enc); \
-	dpack_assert_api(mpack_writer_error(&(_enc)->mpack) == mpack_ok)
-
-#define dpack_assert_api_decoder(_dec) \
-	dpack_assert_api(_dec); \
-	dpack_assert_api(mpack_reader_error(&(_dec)->mpack) == mpack_ok)
 
 static inline int
 dpack_errno_from_mpack(enum mpack_error_t err)

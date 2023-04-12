@@ -39,6 +39,18 @@ dpack_map_end_encode(struct dpack_encoder * encoder)
 }
 
 /******************************************************************************
+ * Map field identifiers encoding
+ ******************************************************************************/
+
+int
+dpack_map_encode_fldid(struct dpack_encoder * encoder, unsigned int id)
+{
+	dpack_assert_api(id <= DPACK_MAP_FLDID_MAX);
+
+	return dpack_encode_uint(encoder, id);
+}
+
+/******************************************************************************
  * Map boolean encoding
  ******************************************************************************/
 
@@ -187,7 +199,7 @@ dpack_map_xtract_equ(struct dpack_decoder * decoder, unsigned int nr)
 		return err;
 
 	if (cnt != nr) {
-		dpack_decoder_intr(decoder, mpack_type_map, 2 * nr);
+		dpack_decoder_intr(decoder, mpack_type_map, 2 * cnt);
 		return -ENOMSG;
 	}
 
@@ -264,6 +276,27 @@ done:
 }
 
 int
+dpack_map_decode_fldid(struct dpack_decoder * decoder, unsigned int * id)
+{
+	return dpack_decode_uint_max(decoder, DPACK_MAP_FLDID_MAX, id);
+}
+
+int
+dpack_map_decode(struct dpack_decoder * decoder,
+                 dpack_decode_item_fn * decode,
+                 void                 * data)
+{
+	dpack_assert_api(decoder);
+	dpack_assert_api(decode);
+
+	return dpack_map_decode_range(decoder,
+	                              1,
+	                              DPACK_MAP_FLDNR_MAX,
+	                              decode,
+	                              data);
+}
+
+int
 dpack_map_decode_equ(struct dpack_decoder * decoder,
                      unsigned int           nr,
                      dpack_decode_item_fn * decode,
@@ -281,6 +314,38 @@ dpack_map_decode_equ(struct dpack_decoder * decoder,
 		return err;
 
 	return dpack_map_decode_fields(decoder, decode, data, nr);
+}
+
+int
+dpack_map_decode_min(struct dpack_decoder * decoder,
+                     unsigned int           min_nr,
+                     dpack_decode_item_fn * decode,
+                     void                 * data)
+{
+	dpack_assert_api(decoder);
+	dpack_assert_api(min_nr);
+	dpack_assert_api(min_nr < DPACK_MAP_FLDNR_MAX);
+	dpack_assert_api(decode);
+
+	return dpack_map_decode_range(decoder,
+	                              min_nr,
+	                              DPACK_MAP_FLDNR_MAX,
+	                              decode,
+	                              data);
+}
+
+int
+dpack_map_decode_max(struct dpack_decoder * decoder,
+                     unsigned int           max_nr,
+                     dpack_decode_item_fn * decode,
+                     void                 * data)
+{
+	dpack_assert_api(decoder);
+	dpack_assert_api(max_nr);
+	dpack_assert_api(max_nr <= DPACK_MAP_FLDNR_MAX);
+	dpack_assert_api(decode);
+
+	return dpack_map_decode_range(decoder, 1, max_nr, decode, data);
 }
 
 int

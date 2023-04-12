@@ -1,5 +1,6 @@
 #include "scalar_array_sample.h"
 #include <dpack/codec.h>
+#include <stroll/assert.h>
 
 #if defined(CONFIG_DPACK_ASSERT_API)
 
@@ -43,6 +44,20 @@ scalar_array_sample_pack(struct dpack_encoder             * encoder,
 	return 0;
 }
 
+static int
+scalar_array_sample_unpack_elem(struct dpack_decoder * decoder,
+                                unsigned int           id,
+                                void                 * data)
+{
+	scalar_array_sample_assert(decoder);
+	scalar_array_sample_assert(id < SCALAR_ARRAY_SAMPLE_NR);
+	scalar_array_sample_assert(data);
+
+	uint16_t * array = (uint16_t *)data;
+
+	return dpack_decode_uint16(decoder, &array[id]);
+}
+
 int
 scalar_array_sample_unpack(struct dpack_decoder       * decoder,
                            struct scalar_array_sample * data)
@@ -52,25 +67,18 @@ scalar_array_sample_unpack(struct dpack_decoder       * decoder,
 	scalar_array_sample_assert(dpack_decoder_data_left(decoder) >=
 	                           SCALAR_ARRAY_SAMPLE_PACKED_SIZE_MIN);
 
-	int          err;
-	unsigned int elm;
+	int err;
 
 	err = dpack_decode_uint32(decoder, &data->thirty_two);
 	if (err)
 		return err;
 
-	err = dpack_array_begin_decode_equ(decoder,
-	                                   array_nr(data->array));
+	err = dpack_array_decode_equ(decoder,
+	                             array_nr(data->array),
+	                             scalar_array_sample_unpack_elem,
+	                             data->array);
 	if (err)
 		return err;
-
-	for (elm = 0; elm < array_nr(data->array); elm++) {
-		err = dpack_decode_uint16(decoder, &data->array[elm]);
-		if (err)
-			return err;
-	}
-
-	dpack_array_end_decode(decoder);
 
 	err = dpack_decode_uint8(decoder, &data->eight);
 	if (err)

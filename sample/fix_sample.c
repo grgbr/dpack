@@ -1,5 +1,6 @@
 #include "fix_sample.h"
 #include <dpack/codec.h>
+#include <stroll/assert.h>
 
 #if defined(CONFIG_DPACK_ASSERT_API)
 

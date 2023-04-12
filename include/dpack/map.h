@@ -142,19 +142,11 @@ dpack_map_end_encode(struct dpack_encoder * encoder) __dpack_export;
 #define DPACK_MAP_FLDID_SIZE_MIN (DPACK_UINT_SIZE_MIN)
 #define DPACK_MAP_FLDID_SIZE_MAX (DPACK_UINT_SIZE_MAX)
 
-static inline int
-dpack_map_encode_fldid(struct dpack_encoder * encoder, unsigned int id)
-{
-	dpack_assert_api(id <= DPACK_MAP_FLDID_MAX);
+extern int
+dpack_map_encode_fldid(struct dpack_encoder * encoder, unsigned int id);
 
-	return dpack_encode_uint(encoder, id);
-}
-
-static inline int
-dpack_map_decode_fldid(struct dpack_decoder * decoder, unsigned int * id)
-{
-	return dpack_decode_uint_max(decoder, DPACK_MAP_FLDID_MAX, id);
-}
+extern int
+dpack_map_decode_fldid(struct dpack_decoder * decoder, unsigned int * id);
 
 /******************************************************************************
  * Map boolean encoding
@@ -317,10 +309,27 @@ dpack_map_encode_lvstr(struct dpack_encoder *      encoder,
  ******************************************************************************/
 
 extern int
+dpack_map_decode(struct dpack_decoder * decoder,
+                 dpack_decode_item_fn * decode,
+                 void                 * data);
+
+extern int
 dpack_map_decode_equ(struct dpack_decoder * decoder,
                      unsigned int           nr,
                      dpack_decode_item_fn * decode,
                      void                 * data) __dpack_export;
+
+extern int
+dpack_map_decode_min(struct dpack_decoder * decoder,
+                     unsigned int           min_nr,
+                     dpack_decode_item_fn * decode,
+                     void                 * data);
+
+extern int
+dpack_map_decode_max(struct dpack_decoder * decoder,
+                     unsigned int           max_nr,
+                     dpack_decode_item_fn * decode,
+                     void                 * data);
 
 extern int
 dpack_map_decode_range(struct dpack_decoder * decoder,
@@ -328,52 +337,5 @@ dpack_map_decode_range(struct dpack_decoder * decoder,
                        unsigned int           max_nr,
                        dpack_decode_item_fn * decode,
                        void                 * data) __dpack_export;
-
-static inline int
-dpack_map_decode(struct dpack_decoder * decoder,
-                 dpack_decode_item_fn * decode,
-                 void                 * data)
-{
-	dpack_assert_api(decoder);
-	dpack_assert_api(decode);
-
-	return dpack_map_decode_range(decoder,
-	                              1,
-	                              DPACK_MAP_FLDNR_MAX,
-	                              decode,
-	                              data);
-}
-
-static inline int
-dpack_map_decode_min(struct dpack_decoder * decoder,
-                     unsigned int           min_nr,
-                     dpack_decode_item_fn * decode,
-                     void                 * data)
-{
-	dpack_assert_api(decoder);
-	dpack_assert_api(min_nr);
-	dpack_assert_api(min_nr < DPACK_MAP_FLDNR_MAX);
-	dpack_assert_api(decode);
-
-	return dpack_map_decode_range(decoder,
-	                              min_nr,
-	                              DPACK_MAP_FLDNR_MAX,
-	                              decode,
-	                              data);
-}
-
-static inline int
-dpack_map_decode_max(struct dpack_decoder * decoder,
-                     unsigned int           max_nr,
-                     dpack_decode_item_fn * decode,
-                     void                 * data)
-{
-	dpack_assert_api(decoder);
-	dpack_assert_api(max_nr);
-	dpack_assert_api(max_nr <= DPACK_MAP_FLDNR_MAX);
-	dpack_assert_api(decode);
-
-	return dpack_map_decode_range(decoder, 1, max_nr, decode, data);
-}
 
 #endif /* _DPACK_MAP_H */

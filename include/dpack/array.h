@@ -1,11 +1,8 @@
 #ifndef _DPACK_ARRAY_H
 #define _DPACK_ARRAY_H
 
+#include <dpack/codec.h>
 #include <dpack/scalar.h>
-#include <sys/types.h>
-
-struct dpack_encoder;
-struct dpack_decoder;
 
 /* Maximum number of elements of a dpack array */
 #define DPACK_ARRAY_ELMNR_MAX    (1024U)
@@ -181,6 +178,10 @@ struct dpack_decoder;
 extern size_t
 dpack_array_size(size_t elm_size, unsigned int elm_nr) __dpack_export;
 
+/******************************************************************************
+ * Array encoding
+ ******************************************************************************/
+
 extern void
 dpack_array_begin_encode(struct dpack_encoder * encoder,
                          unsigned int           nr) __dpack_export;
@@ -188,26 +189,38 @@ dpack_array_begin_encode(struct dpack_encoder * encoder,
 extern void
 dpack_array_end_encode(struct dpack_encoder * encoder) __dpack_export;
 
+/******************************************************************************
+ * Array decoding
+ ******************************************************************************/
+
 extern int
-dpack_array_begin_decode(struct dpack_decoder * decoder,
-                         unsigned int         * nr) __dpack_export;
+dpack_array_decode(struct dpack_decoder * decoder,
+                   dpack_decode_item_fn * decode,
+                   void                 * data) __dpack_export;
+
 extern int
-dpack_array_begin_decode_equ(struct dpack_decoder * decoder,
-                             unsigned int           nr) __dpack_export;
+dpack_array_decode_equ(struct dpack_decoder * decoder,
+                       unsigned int           nr,
+                       dpack_decode_item_fn * decode,
+                       void                 * data) __dpack_export;
+
 extern int
-dpack_array_begin_decode_min(struct dpack_decoder * decoder,
-                             unsigned int           min_nr,
-                             unsigned int         * nr) __dpack_export;
+dpack_array_decode_min(struct dpack_decoder * decoder,
+                     unsigned int           min_nr,
+                     dpack_decode_item_fn * decode,
+                     void                 * data) __dpack_export;
+
 extern int
-dpack_array_begin_decode_max(struct dpack_decoder * decoder,
-                             unsigned int           max_nr,
-                             unsigned int         * nr) __dpack_export;
+dpack_array_decode_max(struct dpack_decoder * decoder,
+                       unsigned int           max_nr,
+                       dpack_decode_item_fn * decode,
+                       void                 * data) __dpack_export;
+
 extern int
-dpack_array_begin_decode_range(struct dpack_decoder * decoder,
-                               unsigned int           min_nr,
-                               unsigned int           max_nr,
-                               unsigned int         * nr) __dpack_export;
-extern void
-dpack_array_end_decode(struct dpack_decoder * decoder) __dpack_export;
+dpack_array_decode_range(struct dpack_decoder * decoder,
+                         unsigned int           min_nr,
+                         unsigned int           max_nr,
+                         dpack_decode_item_fn * decode,
+                         void                 * data) __dpack_export;
 
 #endif /* _DPACK_ARRAY_H */
