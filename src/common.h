@@ -15,17 +15,9 @@
 
 #endif /* defined(DPACK_ASSERT_INTERN) */
 
-#define dpack_assert_encoder(_enc) \
-	dpack_assert(_enc); \
-	dpack_assert(mpack_writer_error(&(_enc)->mpack) == mpack_ok)
-
 #define dpack_assert_api_encoder(_enc) \
 	dpack_assert_api(_enc); \
 	dpack_assert_api(mpack_writer_error(&(_enc)->mpack) == mpack_ok)
-
-#define dpack_assert_decoder(_dec) \
-	dpack_assert(_dec); \
-	dpack_assert(mpack_reader_error(&(_dec)->mpack) == mpack_ok)
 
 #define dpack_assert_api_decoder(_dec) \
 	dpack_assert_api(_dec); \
@@ -55,7 +47,7 @@ dpack_errno_from_mpack(enum mpack_error_t err)
 		return -ENODATA;
 	case mpack_error_bug:
 	default:
-		dpack_assert(0);
+		dpack_assert_intern(0);
 	}
 
 	unreachable();
@@ -77,8 +69,8 @@ dpack_decoder_intr(struct dpack_decoder * decoder,
                    enum mpack_type_t      type,
                    unsigned int           nr)
 {
-	dpack_assert(decoder);
-	dpack_assert(decoder->intr);
+	dpack_assert_intern(decoder);
+	dpack_assert_intern(decoder->intr);
 
 	decoder->intr(decoder, type, nr);
 }

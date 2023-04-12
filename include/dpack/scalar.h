@@ -2,19 +2,20 @@
 #define _DPACK_SCALAR_H
 
 #include <dpack/cdefs.h>
+#include <dpack/mpack.h>
 #include <stdbool.h>
 #include <stdint.h>
 
 struct dpack_encoder;
 struct dpack_decoder;
 
-#define DPACK_STDINT_SIZE_MIN (1U)
+#define DPACK_STDINT_SIZE_MIN MPACK_TAG_SIZE_FIXUINT
 
 /******************************************************************************
  * Boolean
  ******************************************************************************/
 
-#define DPACK_BOOL_SIZE (1U)
+#define DPACK_BOOL_SIZE 1
 
 extern int
 dpack_encode_bool(struct dpack_encoder * encoder, bool value) __dpack_export;
@@ -27,7 +28,7 @@ dpack_decode_bool(struct dpack_decoder * decoder, bool * value) __dpack_export;
  ******************************************************************************/
 
 #define DPACK_UINT8_SIZE_MIN (DPACK_STDINT_SIZE_MIN)
-#define DPACK_UINT8_SIZE_MAX (2U)
+#define DPACK_UINT8_SIZE_MAX MPACK_TAG_SIZE_U8
 
 extern int
 dpack_encode_uint8(struct dpack_encoder * encoder,
@@ -50,7 +51,7 @@ dpack_decode_uint8_range(struct dpack_decoder * decoder,
                          uint8_t              * value) __dpack_export;
 
 #define DPACK_INT8_SIZE_MIN (DPACK_STDINT_SIZE_MIN)
-#define DPACK_INT8_SIZE_MAX (2U)
+#define DPACK_INT8_SIZE_MAX MPACK_TAG_SIZE_I8
 
 extern int
 dpack_encode_int8(struct dpack_encoder * encoder,
@@ -77,7 +78,7 @@ dpack_decode_int8_range(struct dpack_decoder * decoder,
  ******************************************************************************/
 
 #define DPACK_UINT16_SIZE_MIN (DPACK_STDINT_SIZE_MIN)
-#define DPACK_UINT16_SIZE_MAX (3U)
+#define DPACK_UINT16_SIZE_MAX MPACK_TAG_SIZE_U16
 
 extern int
 dpack_encode_uint16(struct dpack_encoder * encoder,
@@ -100,7 +101,7 @@ dpack_decode_uint16_range(struct dpack_decoder * decoder,
                           uint16_t             * value) __dpack_export;
 
 #define DPACK_INT16_SIZE_MIN (DPACK_STDINT_SIZE_MIN)
-#define DPACK_INT16_SIZE_MAX (3U)
+#define DPACK_INT16_SIZE_MAX MPACK_TAG_SIZE_I16
 
 extern int
 dpack_encode_int16(struct dpack_encoder * encoder,
@@ -127,7 +128,7 @@ dpack_decode_int16_range(struct dpack_decoder * decoder,
  ******************************************************************************/
 
 #define DPACK_UINT32_SIZE_MIN (DPACK_STDINT_SIZE_MIN)
-#define DPACK_UINT32_SIZE_MAX (5U)
+#define DPACK_UINT32_SIZE_MAX MPACK_TAG_SIZE_U32
 
 extern int
 dpack_encode_uint32(struct dpack_encoder * encoder,
@@ -190,7 +191,7 @@ dpack_decode_uint_range(struct dpack_decoder * decoder,
 }
 
 #define DPACK_INT32_SIZE_MIN (DPACK_STDINT_SIZE_MIN)
-#define DPACK_INT32_SIZE_MAX (5U)
+#define DPACK_INT32_SIZE_MAX MPACK_TAG_SIZE_I32
 
 extern int
 dpack_encode_int32(struct dpack_encoder * encoder,
@@ -257,7 +258,7 @@ dpack_decode_int_range(struct dpack_decoder * decoder,
  ******************************************************************************/
 
 #define DPACK_UINT64_SIZE_MIN (DPACK_STDINT_SIZE_MIN)
-#define DPACK_UINT64_SIZE_MAX (9U)
+#define DPACK_UINT64_SIZE_MAX MPACK_TAG_SIZE_U64
 
 extern int
 dpack_encode_uint64(struct dpack_encoder * encoder,
@@ -280,7 +281,7 @@ dpack_decode_uint64_range(struct dpack_decoder * decoder,
                           uint64_t             * value) __dpack_export;
 
 #define DPACK_INT64_SIZE_MIN (DPACK_STDINT_SIZE_MIN)
-#define DPACK_INT64_SIZE_MAX (9U)
+#define DPACK_INT64_SIZE_MAX MPACK_TAG_SIZE_I64
 
 extern int
 dpack_encode_int64(struct dpack_encoder * encoder,

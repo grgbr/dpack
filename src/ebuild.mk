@@ -6,7 +6,6 @@ common-cflags         := -Wall -Wextra -Wformat=2 \
                          -Wcast-align \
                          -Wmissing-declarations \
                          -D_GNU_SOURCE \
-                         -DMPACK_HAS_CONFIG=1 \
                          -I $(TOPDIR)/include \
                          $(EXTRA_CFLAGS) \
                          -fvisibility=hidden
@@ -92,7 +91,8 @@ $(BUILDDIR)/mpack/mpack.c: $(wildcard $(TOPDIR)/mpack/src/mpack/*.c) \
 
 $(mpack-header): $(BUILDDIR)/mpack/mpack.c
 	@echo "  GEN     $(@)"
-	$(Q)sed 's@#include[[:blank:]]\+"mpack-config.h"@#include <$(PACKAGE)/mpack-config.h>@' \
+	$(Q)sed -e 's@#include[[:blank:]]\+"mpack-config.h"@#include <$(PACKAGE)/mpack-config.h>@' \
+	        -e '/^#define MPACK_H 1/a \\n#define MPACK_HAS_CONFIG 1' \
 	        $(BUILDDIR)/mpack/.build/amalgamation/src/mpack/mpack.h \
 	        > $(@)
 

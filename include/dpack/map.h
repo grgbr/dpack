@@ -35,8 +35,12 @@
 
 /* Size of encoded msgpack fixmap header. */
 #define DPACK_FIXMAP_HEAD_SIZE \
-	(1U)
+	MPACK_TAG_SIZE_FIXMAP
 
+/*
+ * Size of an encoded map header when maximum number of elements fits into a
+ * fixmap msgpack map (up to 15 elements).
+ */
 #define _DPACK_MAP_HEAD_CONST_SIZE(_fld_nr) \
 	DPACK_FIXMAP_HEAD_SIZE
 
@@ -47,7 +51,8 @@
 #if DPACK_MAP_FLDNR_MAX > DPACK_FIXMAP_FLDNR_MAX
 
 /* Size of encoded msgpack 16 bits map header. */
-#define DPACK_MAP16_HEAD_SIZE (3U)
+#define DPACK_MAP16_HEAD_SIZE \
+	MPACK_TAG_SIZE_MAP16
 
 /*
  * Size of an encoded map header when maximum number of elements fits into a 16
@@ -71,7 +76,8 @@
 #if DPACK_MAP_FLDNR_MAX > DPACK_MAP16_FLDNR_MAX
 
 /* Size of encoded msgpack 32 bits map header. */
-#define DPACK_MAP32_HEAD_SIZE (5U)
+#define DPACK_MAP32_HEAD_SIZE \
+	MPACK_TAG_SIZE_MAP32
 
 /*
  * Size of an encoded map header when maximum number of elements fits into a 32
@@ -139,7 +145,7 @@ dpack_map_end_encode(struct dpack_encoder * encoder) __dpack_export;
 static inline int
 dpack_map_encode_fldid(struct dpack_encoder * encoder, unsigned int id)
 {
-	dpack_assert(id <= DPACK_MAP_FLDID_MAX);
+	dpack_assert_api(id <= DPACK_MAP_FLDID_MAX);
 
 	return dpack_encode_uint(encoder, id);
 }
@@ -328,8 +334,8 @@ dpack_map_decode(struct dpack_decoder * decoder,
                  dpack_decode_item_fn * decode,
                  void                 * data)
 {
-	dpack_assert(decoder);
-	dpack_assert(decode);
+	dpack_assert_api(decoder);
+	dpack_assert_api(decode);
 
 	return dpack_map_decode_range(decoder,
 	                              1,
@@ -344,10 +350,10 @@ dpack_map_decode_min(struct dpack_decoder * decoder,
                      dpack_decode_item_fn * decode,
                      void                 * data)
 {
-	dpack_assert(decoder);
-	dpack_assert(min_nr);
-	dpack_assert(min_nr < DPACK_MAP_FLDNR_MAX);
-	dpack_assert(decode);
+	dpack_assert_api(decoder);
+	dpack_assert_api(min_nr);
+	dpack_assert_api(min_nr < DPACK_MAP_FLDNR_MAX);
+	dpack_assert_api(decode);
 
 	return dpack_map_decode_range(decoder,
 	                              min_nr,
@@ -362,10 +368,10 @@ dpack_map_decode_max(struct dpack_decoder * decoder,
                      dpack_decode_item_fn * decode,
                      void                 * data)
 {
-	dpack_assert(decoder);
-	dpack_assert(max_nr);
-	dpack_assert(max_nr <= DPACK_MAP_FLDNR_MAX);
-	dpack_assert(decode);
+	dpack_assert_api(decoder);
+	dpack_assert_api(max_nr);
+	dpack_assert_api(max_nr <= DPACK_MAP_FLDNR_MAX);
+	dpack_assert_api(decode);
 
 	return dpack_map_decode_range(decoder, 1, max_nr, decode, data);
 }

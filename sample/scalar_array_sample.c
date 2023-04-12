@@ -1,9 +1,16 @@
 #include "scalar_array_sample.h"
 #include <dpack/codec.h>
-#include <assert.h>
 
-#define scalar_array_sample_assert(condition) \
-	assert(condition)
+#if defined(CONFIG_DPACK_ASSERT_API)
+
+#define scalar_array_sample_assert(_cond) \
+	stroll_assert("scalar array sample", _cond)
+
+#else  /* !defined(CONFIG_DPACK_ASSERT_API) */
+
+#define scalar_array_sample_assert(_cond)
+
+#endif /* defined(CONFIG_DPACK_ASSERT_API) */
 
 int
 scalar_array_sample_pack(struct dpack_encoder             * encoder,

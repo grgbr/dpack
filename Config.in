@@ -13,10 +13,11 @@ config DPACK_ASSERT_INTERNAL
 
 config DPACK_DEBUG
 	bool "Debug"
+	select DPACK_ASSERT_API
 	select DPACK_ASSERT_INTERNAL
 	default n
 	help
-	  Build dpack library with internal debugging support enabled. This will
+	  Build dpack library with internal debugging support enabled.
 	  enable internal mpack support for:
 	  * reading / writing to / from STDIO files,
 	  * error strings,

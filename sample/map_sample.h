@@ -7,8 +7,16 @@
 #include <string.h>
 #include <errno.h>
 
+#if defined(CONFIG_DPACK_ASSERT_API)
+
 #define map_sample_assert(_cond) \
 	stroll_assert("map sample", _cond)
+
+#else  /* !defined(CONFIG_DPACK_ASSERT_API) */
+
+#define map_sample_assert(_cond)
+
+#endif /* defined(CONFIG_DPACK_ASSERT_API) */
 
 enum map_sample_field {
 	MAP_SAMPLE_ASHORT_FLD  = 0,

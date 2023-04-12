@@ -8,7 +8,7 @@
 int
 dpack_encoder_error_state(struct mpack_writer_t * writer)
 {
-	dpack_assert(writer);
+	dpack_assert_intern(writer);
 
 	enum mpack_error_t err;
 
@@ -22,7 +22,7 @@ dpack_encoder_error_state(struct mpack_writer_t * writer)
 size_t
 dpack_encoder_space_used(struct dpack_encoder * encoder)
 {
-	dpack_assert(encoder);
+	dpack_assert_api(encoder);
 
 	return mpack_writer_buffer_used(&encoder->mpack);
 }
@@ -30,7 +30,7 @@ dpack_encoder_space_used(struct dpack_encoder * encoder)
 size_t
 dpack_encoder_space_left(struct dpack_encoder * encoder)
 {
-	dpack_assert(encoder);
+	dpack_assert_api(encoder);
 
 	return mpack_writer_buffer_left(&encoder->mpack);
 }
@@ -40,9 +40,9 @@ dpack_encoder_init_buffer(struct dpack_encoder * encoder,
                           char *                 buffer,
                           size_t                 size)
 {
-	dpack_assert(encoder);
-	dpack_assert(buffer);
-	dpack_assert(size);
+	dpack_assert_api(encoder);
+	dpack_assert_api(buffer);
+	dpack_assert_api(size);
 
 	mpack_writer_init(&encoder->mpack, buffer, size);
 }
@@ -50,7 +50,7 @@ dpack_encoder_init_buffer(struct dpack_encoder * encoder,
 void
 dpack_encoder_fini(struct dpack_encoder * encoder)
 {
-	dpack_assert(encoder);
+	dpack_assert_api(encoder);
 
 	/*
 	 * As stated into documentation, calling mpack_writer_destroy() with
@@ -67,7 +67,7 @@ dpack_encoder_fini(struct dpack_encoder * encoder)
 int
 dpack_decoder_error_state(struct mpack_reader_t * reader)
 {
-	dpack_assert(reader);
+	dpack_assert_intern(reader);
 
 	enum mpack_error_t err;
 
@@ -83,9 +83,9 @@ dpack_decode_tag(struct mpack_reader_t * reader,
                  enum mpack_type_t       type,
                  struct mpack_tag_t    * tag)
 {
-	dpack_assert(reader);
-	dpack_assert(tag);
-	dpack_assert(mpack_reader_error(reader) == mpack_ok);
+	dpack_assert_intern(reader);
+	dpack_assert_intern(tag);
+	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
 
 	enum mpack_error_t err;
 
@@ -105,7 +105,7 @@ dpack_decode_tag(struct mpack_reader_t * reader,
 size_t
 dpack_decoder_data_left(struct dpack_decoder * decoder)
 {
-	dpack_assert(decoder);
+	dpack_assert_api(decoder);
 
 	return mpack_reader_remaining(&decoder->mpack, NULL);
 }
@@ -115,7 +115,7 @@ dpack_decoder_discard(struct dpack_decoder * decoder,
                       enum mpack_type_t      type,
                       unsigned int           nr)
 {
-	dpack_assert(decoder);
+	dpack_assert_intern(decoder);
 
 	if (dpack_decoder_error_state(&decoder->mpack))
 		return;
@@ -133,7 +133,7 @@ dpack_decoder_skip(struct dpack_decoder * decoder)
 	 * Decoder MUST NOT be in error state since this interface is primarily
 	 * meant for skipping deprecated / unwanted content.
 	 */
-	dpack_assert_decoder(decoder);
+	dpack_assert_api_decoder(decoder);
 
 	mpack_discard(&decoder->mpack);
 
@@ -145,9 +145,9 @@ dpack_decoder_init_skip_buffer(struct dpack_decoder * decoder,
                                const char *           buffer,
                                size_t                 size)
 {
-	dpack_assert(decoder);
-	dpack_assert(buffer);
-	dpack_assert(size);
+	dpack_assert_api(decoder);
+	dpack_assert_api(buffer);
+	dpack_assert_api(size);
 
 	mpack_reader_init_data(&decoder->mpack, buffer, size);
 	decoder->intr = dpack_decoder_discard;
@@ -158,7 +158,7 @@ dpack_decoder_abort(struct dpack_decoder * decoder,
                     enum mpack_type_t      type __unused,
                     unsigned int           nr __unused)
 {
-	dpack_assert(decoder);
+	dpack_assert_intern(decoder);
 
 	mpack_reader_flag_error(&decoder->mpack, mpack_error_data);
 }
@@ -168,9 +168,9 @@ dpack_decoder_init_buffer(struct dpack_decoder * decoder,
                           const char *           buffer,
                           size_t                 size)
 {
-	dpack_assert(decoder);
-	dpack_assert(buffer);
-	dpack_assert(size);
+	dpack_assert_api(decoder);
+	dpack_assert_api(buffer);
+	dpack_assert_api(size);
 
 	mpack_reader_init_data(&decoder->mpack, buffer, size);
 	decoder->intr = dpack_decoder_abort;
@@ -179,7 +179,7 @@ dpack_decoder_init_buffer(struct dpack_decoder * decoder,
 void
 dpack_decoder_fini(struct dpack_decoder * decoder)
 {
-	dpack_assert(decoder);
+	dpack_assert_api(decoder);
 
 	mpack_reader_destroy(&decoder->mpack);
 }

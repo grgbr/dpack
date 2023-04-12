@@ -7,9 +7,6 @@
 #define __dpack_export \
 	__export_public
 
-#define dpack_assert(_cond) \
-	stroll_assert("dpack", _cond)
-
 #if defined(DPACK_ASSERT_API)
 
 #define dpack_assert_api(_cond) \

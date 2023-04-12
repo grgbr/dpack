@@ -1,22 +1,14 @@
 Features
 ========
 
-* enum
+* array/list/vectors
 * float
-* length-value strings
-* default values
 * bins
-* vectors
+* enum
 
 * test strings
 * utf8 ?
 * nil
-* mpack build
 * gcc attributes
 * min/max/range
 * enum string
-
-TODO
-====
-
-map, array: move size macros to MPACK_TAG_SIZE_... mpack definitions

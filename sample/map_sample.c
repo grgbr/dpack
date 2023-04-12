@@ -1,6 +1,5 @@
 #include "map_sample.h"
 #include <dpack/codec.h>
-#include <assert.h>
 
 int
 map_sample_check_ashort(int16_t value)
@@ -218,13 +217,15 @@ map_sample_check(const struct map_sample * sample)
 	map_sample_assert(!map_sample_check_ashort(sample->ashort));
 
 	/* Now assert optional fields. Start by checking astring field: */
-	if (stroll_bmap32_test(sample->filled, MAP_SAMPLE_ASTRING_FLD))
+	if (stroll_bmap32_test(sample->filled, MAP_SAMPLE_ASTRING_FLD)) {
 		map_sample_assert(
 			!map_sample_check_intern_astring(&sample->astring));
+	}
 
 	/* ... and finish by asserting auint field. */
-	if (stroll_bmap32_test(sample->filled, MAP_SAMPLE_ANUINT_FLD))
+	if (stroll_bmap32_test(sample->filled, MAP_SAMPLE_ANUINT_FLD)) {
 		map_sample_assert(!map_sample_check_anuint(sample->anuint));
+	}
 
 	/*
 	 * If required, more complex inter-field checking may happen here...

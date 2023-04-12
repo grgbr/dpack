@@ -1,14 +1,25 @@
 #include "test.h"
 #include <dpack/codec.h>
 #include <getopt.h>
-#include <assert.h>
+
+#if defined(CONFIG_DPACK_ASSERT_API)
+
+#define sample_assert(_cond) \
+	stroll_assert("sample", _cond)
+
+#else  /* !defined(CONFIG_DPACK_ASSERT_API) */
+
+#define sample_assert(_cond)
+
+#endif /* defined(CONFIG_DPACK_ASSERT_API) */
+
 
 static int
 save_to_file(const char * path, const char * buffer, size_t size)
 {
-	assert(path);
-	assert(buffer);
-	assert(size);
+	sample_assert(path);
+	sample_assert(buffer);
+	sample_assert(size);
 
 	FILE       * out;
 	const char * msg;
@@ -75,10 +86,10 @@ pack_to_file(const char * path, const struct test_ops * ops)
 static ssize_t
 load_from_file(const char * path, char * buffer, size_t size)
 {
-	assert(path);
-	assert(buffer);
-	assert(size);
-	assert(size <= SSIZE_MAX);
+	sample_assert(path);
+	sample_assert(buffer);
+	sample_assert(size);
+	sample_assert(size <= SSIZE_MAX);
 
 	FILE       * in;
 	size_t       sz;
@@ -176,13 +187,13 @@ test_show_usage(void)
 int
 test_main(int argc, char * const argv[], const struct test_ops * ops)
 {
-	assert(argv);
-	assert(ops);
-	assert(ops->min_size);
-	assert(ops->min_size <= SSIZE_MAX);
-	assert(ops->min_size <= ops->max_size);
-	assert(ops->pack);
-	assert(ops->unpack);
+	sample_assert(argv);
+	sample_assert(ops);
+	sample_assert(ops->min_size);
+	sample_assert(ops->min_size <= SSIZE_MAX);
+	sample_assert(ops->min_size <= ops->max_size);
+	sample_assert(ops->pack);
+	sample_assert(ops->unpack);
 
 	int                           ret;
 	enum { PACK_CMD, UNPACK_CMD } cmd;
@@ -245,7 +256,7 @@ test_main(int argc, char * const argv[], const struct test_ops * ops)
 	case UNPACK_CMD:
 		return unpack_from_file(argv[optind + 1], ops);
 	default:
-		assert(0);
+		sample_assert(0);
 	}
 
 usage:

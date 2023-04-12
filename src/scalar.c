@@ -6,7 +6,7 @@
 	int \
 	_name(struct dpack_encoder * encoder, _type value) \
 	{ \
-		dpack_assert_encoder(encoder); \
+		dpack_assert_api_encoder(encoder); \
 		\
 		_func(&encoder->mpack, value); \
 		\
@@ -20,7 +20,7 @@
 int
 dpack_encode_bool(struct dpack_encoder * encoder, bool value)
 {
-	dpack_assert_encoder(encoder);
+	dpack_assert_api_encoder(encoder);
 
 	mpack_write_bool(&encoder->mpack, value);
 
@@ -30,8 +30,8 @@ dpack_encode_bool(struct dpack_encoder * encoder, bool value)
 int
 dpack_decode_bool(struct dpack_decoder * decoder, bool * value)
 {
-	dpack_assert_decoder(decoder);
-	dpack_assert(value);
+	dpack_assert_api_decoder(decoder);
+	dpack_assert_api(value);
 
 	struct mpack_tag_t tag;
 	int                err;
@@ -54,10 +54,10 @@ dpack_xtract_uint64_min(struct mpack_reader_t * reader,
                         uint64_t                low,
                         uint64_t              * value)
 {
-	dpack_assert(reader);
-	dpack_assert(mpack_reader_error(reader) == mpack_ok);
-	dpack_assert(low);
-	dpack_assert(value);
+	dpack_assert_intern(reader);
+	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
+	dpack_assert_intern(low);
+	dpack_assert_intern(value);
 
 	struct mpack_tag_t tag;
 	int                err;
@@ -78,11 +78,11 @@ dpack_xtract_uint64_max(struct mpack_reader_t * reader,
                         uint64_t                high,
                         uint64_t              * value)
 {
-	dpack_assert(reader);
-	dpack_assert(mpack_reader_error(reader) == mpack_ok);
-	dpack_assert(high);
-	dpack_assert(high < UINT64_MAX);
-	dpack_assert(value);
+	dpack_assert_intern(reader);
+	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
+	dpack_assert_intern(high);
+	dpack_assert_intern(high < UINT64_MAX);
+	dpack_assert_intern(value);
 
 	struct mpack_tag_t tag;
 	int                err;
@@ -104,12 +104,12 @@ dpack_xtract_uint64_range(struct mpack_reader_t * reader,
                           uint64_t                high,
                           uint64_t              * value)
 {
-	dpack_assert(reader);
-	dpack_assert(mpack_reader_error(reader) == mpack_ok);
-	dpack_assert(low);
-	dpack_assert(low < high);
-	dpack_assert(high < UINT64_MAX);
-	dpack_assert(value);
+	dpack_assert_intern(reader);
+	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
+	dpack_assert_intern(low);
+	dpack_assert_intern(low < high);
+	dpack_assert_intern(high < UINT64_MAX);
+	dpack_assert_intern(value);
 
 	struct mpack_tag_t tag;
 	int                err;
@@ -129,8 +129,8 @@ dpack_xtract_uint64_range(struct mpack_reader_t * reader,
 	int \
 	_name(struct dpack_decoder * decoder, _type * value) \
 	{ \
-		dpack_assert_decoder(decoder); \
-		dpack_assert(value); \
+		dpack_assert_api_decoder(decoder); \
+		dpack_assert_api(value); \
 		\
 		uint64_t val; \
 		int      err; \
@@ -150,10 +150,10 @@ dpack_xtract_uint64_range(struct mpack_reader_t * reader,
 	int \
 	_name(struct dpack_decoder * decoder, _type low, _type * value) \
 	{ \
-		dpack_assert_decoder(decoder); \
-		dpack_assert(low); \
-		dpack_assert(low < (_high)); \
-		dpack_assert(value); \
+		dpack_assert_api_decoder(decoder); \
+		dpack_assert_api(low); \
+		dpack_assert_api(low < (_high)); \
+		dpack_assert_api(value); \
 		\
 		uint64_t val; \
 		int      err; \
@@ -174,10 +174,10 @@ dpack_xtract_uint64_range(struct mpack_reader_t * reader,
 	int \
 	_name(struct dpack_decoder * decoder, _type high, _type * value) \
 	{ \
-		dpack_assert_decoder(decoder); \
-		dpack_assert(high); \
-		dpack_assert(high < (_high)); \
-		dpack_assert(value); \
+		dpack_assert_api_decoder(decoder); \
+		dpack_assert_api(high); \
+		dpack_assert_api(high < (_high)); \
+		dpack_assert_api(value); \
 		\
 		uint64_t val; \
 		int      err; \
@@ -200,11 +200,11 @@ dpack_xtract_uint64_range(struct mpack_reader_t * reader,
 	      _type                  high, \
 	      _type                * value) \
 	{ \
-		dpack_assert_decoder(decoder); \
-		dpack_assert(low); \
-		dpack_assert(low < high); \
-		dpack_assert(high < (_high)); \
-		dpack_assert(value); \
+		dpack_assert_api_decoder(decoder); \
+		dpack_assert_api(low); \
+		dpack_assert_api(low < high); \
+		dpack_assert_api(high < (_high)); \
+		dpack_assert_api(value); \
 		\
 		uint64_t val; \
 		int      err; \
@@ -231,12 +231,12 @@ dpack_xtract_int64_range(struct mpack_reader_t * reader,
                          int64_t                 high,
                          int64_t               * value)
 {
-	dpack_assert(reader);
-	dpack_assert(mpack_reader_error(reader) == mpack_ok);
-	dpack_assert(low > INT64_MIN);
-	dpack_assert(low < high);
-	dpack_assert(high < INT64_MAX);
-	dpack_assert(value);
+	dpack_assert_intern(reader);
+	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
+	dpack_assert_intern(low > INT64_MIN);
+	dpack_assert_intern(low < high);
+	dpack_assert_intern(high < INT64_MAX);
+	dpack_assert_intern(value);
 
 	struct mpack_tag_t tag;
 	int                err;
@@ -274,11 +274,11 @@ dpack_xtract_int64_range(struct mpack_reader_t * reader,
 	int \
 	_name(struct dpack_decoder * decoder, _type * value) \
 	{ \
-		dpack_assert_decoder(decoder); \
-		dpack_assert((_low) > INT64_MIN); \
-		dpack_assert((_low) < (_high)); \
-		dpack_assert((_high) < INT64_MAX); \
-		dpack_assert(value); \
+		dpack_assert_api_decoder(decoder); \
+		dpack_assert_api((_low) > INT64_MIN); \
+		dpack_assert_api((_low) < (_high)); \
+		dpack_assert_api((_high) < INT64_MAX); \
+		dpack_assert_api(value); \
 		\
 		int64_t val; \
 		int     err; \
@@ -299,13 +299,13 @@ dpack_xtract_int64_range(struct mpack_reader_t * reader,
 	int \
 	_name(struct dpack_decoder * decoder, _type low, _type * value) \
 	{ \
-		dpack_assert_decoder(decoder); \
-		dpack_assert((_low) > INT64_MIN); \
-		dpack_assert((_low) < (_high)); \
-		dpack_assert((_high) < INT64_MAX); \
-		dpack_assert(low > (_low)); \
-		dpack_assert(low < (_high)); \
-		dpack_assert(value); \
+		dpack_assert_api_decoder(decoder); \
+		dpack_assert_api((_low) > INT64_MIN); \
+		dpack_assert_api((_low) < (_high)); \
+		dpack_assert_api((_high) < INT64_MAX); \
+		dpack_assert_api(low > (_low)); \
+		dpack_assert_api(low < (_high)); \
+		dpack_assert_api(value); \
 		\
 		int64_t val; \
 		int     err; \
@@ -326,13 +326,13 @@ dpack_xtract_int64_range(struct mpack_reader_t * reader,
 	int \
 	_name(struct dpack_decoder * decoder, _type high, _type * value) \
 	{ \
-		dpack_assert_decoder(decoder); \
-		dpack_assert((_low) > INT64_MIN); \
-		dpack_assert((_low) < (_high)); \
-		dpack_assert((_high) < INT64_MAX); \
-		dpack_assert(high > (_low)); \
-		dpack_assert(high < (_high)); \
-		dpack_assert(value); \
+		dpack_assert_api_decoder(decoder); \
+		dpack_assert_api((_low) > INT64_MIN); \
+		dpack_assert_api((_low) < (_high)); \
+		dpack_assert_api((_high) < INT64_MAX); \
+		dpack_assert_api(high > (_low)); \
+		dpack_assert_api(high < (_high)); \
+		dpack_assert_api(value); \
 		\
 		int64_t val; \
 		int     err; \
@@ -356,14 +356,14 @@ dpack_xtract_int64_range(struct mpack_reader_t * reader,
 	      _type                  high, \
 	      _type                * value) \
 	{ \
-		dpack_assert_decoder(decoder); \
-		dpack_assert((_low) > INT64_MIN); \
-		dpack_assert((_low) < (_high)); \
-		dpack_assert((_high) < INT64_MAX); \
-		dpack_assert(low > (_low)); \
-		dpack_assert(low < high); \
-		dpack_assert(high < (_high)); \
-		dpack_assert(value); \
+		dpack_assert_api_decoder(decoder); \
+		dpack_assert_api((_low) > INT64_MIN); \
+		dpack_assert_api((_low) < (_high)); \
+		dpack_assert_api((_high) < INT64_MAX); \
+		dpack_assert_api(low > (_low)); \
+		dpack_assert_api(low < high); \
+		dpack_assert_api(high < (_high)); \
+		dpack_assert_api(value); \
 		\
 		int64_t val; \
 		int     err; \
@@ -458,8 +458,8 @@ DPACK_STDINT_DEFINE_ENCODE(dpack_encode_uint64, uint64_t, mpack_write_u64)
 int
 dpack_decode_uint64(struct dpack_decoder * decoder, uint64_t * value)
 {
-	dpack_assert_decoder(decoder);
-	dpack_assert(value);
+	dpack_assert_api_decoder(decoder);
+	dpack_assert_api(value);
 
 	struct mpack_tag_t tag;
 	int                err;
@@ -478,10 +478,10 @@ dpack_decode_uint64_min(struct dpack_decoder * decoder,
                         uint64_t               low,
                         uint64_t             * value)
 {
-	dpack_assert_decoder(decoder);
-	dpack_assert(low);
-	dpack_assert(low < UINT64_MAX);
-	dpack_assert(value);
+	dpack_assert_api_decoder(decoder);
+	dpack_assert_api(low);
+	dpack_assert_api(low < UINT64_MAX);
+	dpack_assert_api(value);
 
 	return dpack_xtract_uint64_min(&decoder->mpack, low, value);
 }
@@ -491,10 +491,10 @@ dpack_decode_uint64_max(struct dpack_decoder * decoder,
                         uint64_t               high,
                         uint64_t             * value)
 {
-	dpack_assert_decoder(decoder);
-	dpack_assert(high);
-	dpack_assert(high < UINT64_MAX);
-	dpack_assert(value);
+	dpack_assert_api_decoder(decoder);
+	dpack_assert_api(high);
+	dpack_assert_api(high < UINT64_MAX);
+	dpack_assert_api(value);
 
 	return dpack_xtract_uint64_max(&decoder->mpack, high, value);
 }
@@ -505,11 +505,11 @@ dpack_decode_uint64_range(struct dpack_decoder * decoder,
                           uint64_t               high,
                           uint64_t             * value)
 {
-	dpack_assert_decoder(decoder);
-	dpack_assert(low);
-	dpack_assert(low < high);
-	dpack_assert(high < UINT64_MAX);
-	dpack_assert(value);
+	dpack_assert_api_decoder(decoder);
+	dpack_assert_api(low);
+	dpack_assert_api(low < high);
+	dpack_assert_api(high < UINT64_MAX);
+	dpack_assert_api(value);
 
 	return dpack_xtract_uint64_range(&decoder->mpack, low, high, value);
 }
@@ -519,8 +519,8 @@ DPACK_STDINT_DEFINE_ENCODE(dpack_encode_int64, int64_t, mpack_write_i64)
 int
 dpack_decode_int64(struct dpack_decoder * decoder, int64_t * value)
 {
-	dpack_assert_decoder(decoder);
-	dpack_assert(value);
+	dpack_assert_api_decoder(decoder);
+	dpack_assert_api(value);
 
 	struct mpack_tag_t tag;
 	int                err;
@@ -539,10 +539,10 @@ dpack_decode_int64_min(struct dpack_decoder * decoder,
                        int64_t                low,
                        int64_t              * value)
 {
-	dpack_assert_decoder(decoder);
-	dpack_assert(low > INT64_MIN);
-	dpack_assert(low < INT64_MAX);
-	dpack_assert(value);
+	dpack_assert_api_decoder(decoder);
+	dpack_assert_api(low > INT64_MIN);
+	dpack_assert_api(low < INT64_MAX);
+	dpack_assert_api(value);
 
 	int err;
 
@@ -561,10 +561,10 @@ dpack_decode_int64_max(struct dpack_decoder * decoder,
                        int64_t                high,
                        int64_t              * value)
 {
-	dpack_assert_decoder(decoder);
-	dpack_assert(high > INT64_MIN);
-	dpack_assert(high < INT64_MAX);
-	dpack_assert(value);
+	dpack_assert_api_decoder(decoder);
+	dpack_assert_api(high > INT64_MIN);
+	dpack_assert_api(high < INT64_MAX);
+	dpack_assert_api(value);
 
 	int err;
 
@@ -584,11 +584,11 @@ dpack_decode_int64_range(struct dpack_decoder * decoder,
                          int64_t                high,
                          int64_t              * value)
 {
-	dpack_assert_decoder(decoder);
-	dpack_assert(low > INT64_MIN);
-	dpack_assert(low < high);
-	dpack_assert(high < INT64_MAX);
-	dpack_assert(value);
+	dpack_assert_api_decoder(decoder);
+	dpack_assert_api(low > INT64_MIN);
+	dpack_assert_api(low < high);
+	dpack_assert_api(high < INT64_MAX);
+	dpack_assert_api(value);
 
 	return dpack_xtract_int64_range(&decoder->mpack, low, high, value);
 }

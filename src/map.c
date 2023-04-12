@@ -23,9 +23,9 @@
 void
 dpack_map_begin_encode(struct dpack_encoder * encoder, unsigned int nr)
 {
-	dpack_assert_encoder(encoder);
-	dpack_assert(nr);
-	dpack_assert(nr <= DPACK_MAP_FLDNR_MAX);
+	dpack_assert_api_encoder(encoder);
+	dpack_assert_api(nr);
+	dpack_assert_api(nr <= DPACK_MAP_FLDNR_MAX);
 
 	mpack_start_map(&encoder->mpack, nr);
 }
@@ -33,7 +33,7 @@ dpack_map_begin_encode(struct dpack_encoder * encoder, unsigned int nr)
 void
 dpack_map_end_encode(struct dpack_encoder * encoder)
 {
-	dpack_assert_encoder(encoder);
+	dpack_assert_api_encoder(encoder);
 
 	mpack_finish_map(&encoder->mpack);
 }
@@ -156,9 +156,9 @@ dpack_map_encode_lvstr(struct dpack_encoder *      encoder,
 static int
 dpack_map_xtract_nr(struct mpack_reader_t * reader, unsigned int * nr)
 {
-	dpack_assert(reader);
-	dpack_assert(mpack_reader_error(reader) == mpack_ok);
-	dpack_assert(nr);
+	dpack_assert_intern(reader);
+	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
+	dpack_assert_intern(nr);
 
 	struct mpack_tag_t tag;
 	int                err;
@@ -175,9 +175,9 @@ dpack_map_xtract_nr(struct mpack_reader_t * reader, unsigned int * nr)
 static int
 dpack_map_xtract_equ(struct dpack_decoder * decoder, unsigned int nr)
 {
-	dpack_assert_decoder(decoder);
-	dpack_assert(nr);
-	dpack_assert(nr <= DPACK_MAP_FLDNR_MAX);
+	dpack_assert_intern(decoder);
+	dpack_assert_intern(nr);
+	dpack_assert_intern(nr <= DPACK_MAP_FLDNR_MAX);
 
 	unsigned int cnt;
 	int          err;
@@ -200,11 +200,11 @@ dpack_map_xtract_range(struct dpack_decoder * decoder,
                        unsigned int           max_nr,
                        unsigned int         * nr)
 {
-	dpack_assert_decoder(decoder);
-	dpack_assert(min_nr);
-	dpack_assert(min_nr < max_nr);
-	dpack_assert(max_nr <= DPACK_MAP_FLDNR_MAX);
-	dpack_assert(nr);
+	dpack_assert_intern(decoder);
+	dpack_assert_intern(min_nr);
+	dpack_assert_intern(min_nr < max_nr);
+	dpack_assert_intern(max_nr <= DPACK_MAP_FLDNR_MAX);
+	dpack_assert_intern(nr);
 
 	int err;
 
@@ -226,9 +226,9 @@ dpack_map_decode_fields(struct dpack_decoder * decoder,
                         void                 * data,
                         unsigned int           nr)
 {
-	dpack_assert_decoder(decoder);
-	dpack_assert(decode);
-	dpack_assert(nr);
+	dpack_assert_intern(decoder);
+	dpack_assert_intern(decode);
+	dpack_assert_intern(nr);
 
 	int err;
 
@@ -269,10 +269,10 @@ dpack_map_decode_equ(struct dpack_decoder * decoder,
                      dpack_decode_item_fn * decode,
                      void                 * data)
 {
-	dpack_assert_decoder(decoder);
-	dpack_assert(nr);
-	dpack_assert(nr <= DPACK_MAP_FLDNR_MAX);
-	dpack_assert(decode);
+	dpack_assert_api_decoder(decoder);
+	dpack_assert_api(nr);
+	dpack_assert_api(nr <= DPACK_MAP_FLDNR_MAX);
+	dpack_assert_api(decode);
 
 	int err;
 
@@ -290,11 +290,11 @@ dpack_map_decode_range(struct dpack_decoder * decoder,
                        dpack_decode_item_fn * decode,
                        void                 * data)
 {
-	dpack_assert_decoder(decoder);
-	dpack_assert(min_nr);
-	dpack_assert(min_nr < max_nr);
-	dpack_assert(max_nr <= DPACK_MAP_FLDNR_MAX);
-	dpack_assert(decode);
+	dpack_assert_api_decoder(decoder);
+	dpack_assert_api(min_nr);
+	dpack_assert_api(min_nr < max_nr);
+	dpack_assert_api(max_nr <= DPACK_MAP_FLDNR_MAX);
+	dpack_assert_api(decode);
 
 	unsigned int nr;
 	int          err;

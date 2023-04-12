@@ -32,10 +32,10 @@ struct dpack_decoder;
 
 /* Compute size of an encoded msgpack fixarray */
 #define DPACK_FIXARRAY_SIZE(_elm_size, _elm_nr) \
-	(1UL + ((_elm_size) * (_elm_nr)))
+	(MPACK_TAG_SIZE_FIXARRAY + ((_elm_size) * (_elm_nr)))
 /* Compute the maximum size of the data portion of an encoded msgpack array. */
 #define DPACK_ARRAY_DATA_SIZE_MAX \
-	(DPACK_ARRAY_SIZE_MAX - 1UL)
+	(DPACK_ARRAY_SIZE_MAX - MPACK_TAG_SIZE_FIXARRAY)
 
 #define _DPACK_ARRAY_CONST_SIZE(_elm_size, _elm_nr) \
 	DPACK_FIXARRAY_SIZE(_elm_size, _elm_nr)
@@ -48,11 +48,11 @@ struct dpack_decoder;
 
 /* Compute size of an encoded 16 bits msgpack array */
 #define DPACK_ARRAY16_SIZE(_elm_size, _elm_nr) \
-	(3UL + ((_elm_size) * (_elm_nr)))
+	(MPACK_TAG_SIZE_ARRAY16 + ((_elm_size) * (_elm_nr)))
 /* Maximum size of the data portion of an encoded 16 bits msgpack array. */
 #undef  DPACK_ARRAY_DATA_SIZE_MAX
 #define DPACK_ARRAY_DATA_SIZE_MAX \
-	(DPACK_ARRAY_SIZE_MAX - 3UL)
+	(DPACK_ARRAY_SIZE_MAX - MPACK_TAG_SIZE_ARRAY16)
 
 /*
  * Size of an encoded array when maximum number of elements fits into a 16 bits
@@ -76,12 +76,12 @@ struct dpack_decoder;
 #if DPACK_ARRAY_ELMNR_MAX > DPACK_ARRAY16_ELMNR_MAX
 
 /* Compute size of an encoded 32 bits msgpack array */
-#define DPACK_ARRAY32_SIZE(_elm_size, _elm_nr)  (5UL + \
-                                                 ((_elm_size) * (_elm_nr)))
+#define DPACK_ARRAY32_SIZE(_elm_size, _elm_nr) \
+	(MPACK_TAG_SIZE_ARRAY32 + ((_elm_size) * (_elm_nr)))
 /* Maximum size of the data portion of an encoded 32 bits msgpack array. */
 #undef  DPACK_ARRAY_DATA_SIZE_MAX
 #define DPACK_ARRAY_DATA_SIZE_MAX \
-	(DPACK_ARRAY_SIZE_MAX - 5UL)
+	(DPACK_ARRAY_SIZE_MAX - MPACK_TAG_SIZE_ARRAY32)
 
 /*
  * Size of an encoded array when maximum number of elements fits into a 32 bits

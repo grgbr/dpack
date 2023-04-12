@@ -2,9 +2,6 @@
 #define _DPACK_CODEC_H
 
 #include <dpack/cdefs.h>
-
-#undef MPACK_HAS_CONFIG
-#define MPACK_HAS_CONFIG 1
 #include <dpack/mpack.h>
 
 /******************************************************************************
