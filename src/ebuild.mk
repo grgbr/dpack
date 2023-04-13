@@ -1,4 +1,6 @@
-common-cflags         := -Wall -Wextra -Wformat=2 \
+common-cflags         := -Wall \
+                         -Wextra \
+                         -Wformat=2 \
                          -Wconversion \
                          -Wundef \
                          -Wshadow \
@@ -9,11 +11,13 @@ common-cflags         := -Wall -Wextra -Wformat=2 \
                          -I $(TOPDIR)/include \
                          $(EXTRA_CFLAGS) \
                          -fvisibility=hidden
-ifeq ($(CONFIG_DPACK_ASSERT_API),y)
-common-cflags         := $(filter-out -DNDEBUG,$(common-cflags))
-endif
 common-ldflags        := $(common-cflags) \
                          $(EXTRA_LDFLAGS)
+
+ifneq ($(filter y,$(CONFIG_DPACK_ASSERT_API) $(CONFIG_DPACK_ASSERT_INTERN)),)
+common-cflags         := $(filter-out -DNDEBUG,$(common-cflags))
+common-ldflags        := $(filter-out -DNDEBUG,$(common-ldflags))
+endif # ($(filter y,$(CONFIG_DPACK_ASSERT_API) $(CONFIG_DPACK_ASSERT_INTERN)),)
 
 solibs                := libdpack.so
 libdpack.so-objs      += shared/codec.o shared/common.o shared/mpack.o
@@ -24,12 +28,9 @@ libdpack.so-objs      += $(call kconf_enabled,DPACK_LVSTR,shared/lvstr.o)
 libdpack.so-objs      += $(call kconf_enabled,DPACK_BIN,shared/bin.o)
 libdpack.so-objs      += $(call kconf_enabled,DPACK_MAP,shared/map.o)
 libdpack.so-objs      += $(call kconf_enabled,DPACK_ARRAY,shared/array.o)
-libdpack.so-cflags    := $(common-cflags) -fpic
-libdpack.so-ldflags   := $(common-ldflags) \
-                         -shared \
-                         -fpic \
-                         -Bsymbolic \
-                         -Wl,-soname,libdpack.so
+libdpack.so-cflags    := $(filter-out -fpie -fPIE,$(common-cflags)) -fpic
+libdpack.so-ldflags   := $(filter-out -fpie -fPIE,$(common-cflags)) \
+                         -shared -fpic -Bsymbolic -Wl,-soname,libdpack.so
 libdpack.so-pkgconf   := libstroll
 
 arlibs                := libdpack.a

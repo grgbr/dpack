@@ -16,6 +16,11 @@ test-ldflags           := $(common-cflags) \
                           $(EXTRA_LDFLAGS) \
                           -ldpack
 
+ifneq ($(filter y,$(CONFIG_DPACK_ASSERT_API) $(CONFIG_DPACK_ASSERT_INTERN)),)
+test-cflags            := $(filter-out -DNDEBUG,$(test-cflags))
+test-ldflags           := $(filter-out -DNDEBUG,$(test-ldflags))
+endif # ($(filter y,$(CONFIG_DPACK_ASSERT_API) $(CONFIG_DPACK_ASSERT_INTERN)),)
+
 bins                   :=
 
 ifeq ($(CONFIG_DPACK_ARRAY),y)

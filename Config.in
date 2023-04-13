@@ -4,7 +4,7 @@ config DPACK_ASSERT_API
 	help
 	  Build dpack library with high-level API assertions enabled.
 
-config DPACK_ASSERT_INTERNAL
+config DPACK_ASSERT_INTERN
 	bool "Internal assertion"
 	select DPACK_ASSERT_API
 	default n
@@ -14,7 +14,7 @@ config DPACK_ASSERT_INTERNAL
 config DPACK_DEBUG
 	bool "Debug"
 	select DPACK_ASSERT_API
-	select DPACK_ASSERT_INTERNAL
+	select DPACK_ASSERT_INTERN
 	default n
 	help
 	  Build dpack library with internal debugging support enabled.
