@@ -60,6 +60,12 @@ config DPACK_LVSTR
 	help
 	  Build dpack library with string support.
 
+config DPACK_BIN
+	bool "Bins"
+	default n
+	help
+	  Build dpack library with msgpack bin, i.e. byte array / blob support.
+
 config DPACK_ARRAY
 	bool "Arrays"
 	default y

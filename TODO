@@ -1,12 +1,8 @@
-Features
-========
+TODO
+====
 
-* bins
-* enum
-
-* test strings
+* unit tests
 * utf8 ?
-* nil
+* nil ?
 * gcc attributes
-* min/max/range
-* enum string
+* doc

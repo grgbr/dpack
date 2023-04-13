@@ -6,6 +6,7 @@ headers      = $(PACKAGE)/cdefs.h $(PACKAGE)/codec.h $(PACKAGE)/mpack-config.h
 headers     += $(call kconf_enabled,DPACK_SCALAR,$(PACKAGE)/scalar.h)
 headers     += $(call kconf_enabled,DPACK_STRING,$(PACKAGE)/string.h)
 headers     += $(call kconf_enabled,DPACK_LVSTR,$(PACKAGE)/lvstr.h)
+headers     += $(call kconf_enabled,DPACK_LVSTR,$(PACKAGE)/bin.h)
 headers     += $(call kconf_enabled,DPACK_MAP,$(PACKAGE)/map.h)
 headers     += $(call kconf_enabled,DPACK_ARRAY,$(PACKAGE)/array.h)
 
