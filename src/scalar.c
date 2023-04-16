@@ -218,16 +218,10 @@ dpack_xtract_uint64_range(struct mpack_reader_t * reader,
  ******************************************************************************/
 
 static int
-dpack_xtract_int64_range(struct mpack_reader_t * reader,
-                         int64_t                 low,
-                         int64_t                 high,
-                         int64_t               * value)
+dpack_xtract_int64(struct mpack_reader_t * reader, int64_t * value)
 {
 	dpack_assert_intern(reader);
 	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
-	dpack_assert_intern(low > INT64_MIN);
-	dpack_assert_intern(low < high);
-	dpack_assert_intern(high < INT64_MAX);
 	dpack_assert_intern(value);
 
 	struct mpack_tag_t tag;
@@ -249,12 +243,37 @@ dpack_xtract_int64_range(struct mpack_reader_t * reader,
 
 	case mpack_type_uint:
 		*value = (int64_t)mpack_tag_uint_value(&tag);
+		if (*value < 0)
+			/* 64 bits signed integer overflow. */
+			return -ERANGE;
 		break;
 
 	default:
 		mpack_reader_flag_error(reader, mpack_error_type);
 		return -ENOMSG;
 	}
+
+	return 0;
+}
+
+static int
+dpack_xtract_int64_range(struct mpack_reader_t * reader,
+                         int64_t                 low,
+                         int64_t                 high,
+                         int64_t               * value)
+{
+	dpack_assert_intern(reader);
+	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
+	dpack_assert_intern(low > INT64_MIN);
+	dpack_assert_intern(low < high);
+	dpack_assert_intern(high < INT64_MAX);
+	dpack_assert_intern(value);
+
+	int err;
+
+	err = dpack_xtract_int64(reader, value);
+	if (err)
+		return err;
 
 	if ((*value < low) || (*value > high))
 		return -ERANGE;
@@ -514,16 +533,7 @@ dpack_decode_int64(struct dpack_decoder * decoder, int64_t * value)
 	dpack_assert_api_decoder(decoder);
 	dpack_assert_api(value);
 
-	struct mpack_tag_t tag;
-	int                err;
-
-	err = dpack_decode_tag(&decoder->mpack, mpack_type_int, &tag);
-	if (err)
-		return err;
-
-	*value = mpack_tag_int_value(&tag);
-
-	return 0;
+	return dpack_xtract_int64(&decoder->mpack, value);
 }
 
 int
