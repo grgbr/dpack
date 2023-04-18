@@ -31,11 +31,19 @@ dpack_scalar_utest(const struct dpack_scalar_utest_data * data,
                    dpack_utest_unpack_fn *                unpack)
 
 {
-	unsigned int d;
+	struct dpack_decoder dec = { 0, };
+	unsigned int         d;
+
+#if defined(CONFIG_DPACK_ASSERT_API)
+	expect_assert_failure(unpack(NULL, &data[0]));
+	expect_assert_failure(unpack(&dec, &data[0]));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(unpack(&dec, NULL));
+	dpack_decoder_fini(&dec);
+#endif
 
 	for (d = 0; d < nr; d++) {
-		struct dpack_decoder dec;
-
 		dpack_decoder_init_buffer(&dec, data[d].packed, data[d].size);
 
 		unpack(&dec, &data[d]);
@@ -57,6 +65,11 @@ dpack_scalar_utest_unpack_uint8(struct dpack_decoder *                 decoder,
                                 const struct dpack_scalar_utest_data * data)
 {
 	uint8_t val;
+
+	if (!data) {
+		dpack_decode_uint8(decoder, NULL);
+		return;
+	}
 
 	assert_int_equal(dpack_decode_uint8(decoder, &val), data->error);
 	if (!data->error)
@@ -97,6 +110,11 @@ dpack_scalar_utest_unpack_int8(struct dpack_decoder *                 decoder,
                                const struct dpack_scalar_utest_data * data)
 {
 	int8_t val;
+
+	if (!data) {
+		dpack_decode_int8(decoder, NULL);
+		return;
+	}
 
 	assert_int_equal(dpack_decode_int8(decoder, &val), data->error);
 	if (!data->error)
@@ -144,6 +162,11 @@ dpack_scalar_utest_unpack_uint16(struct dpack_decoder *                 decoder,
 {
 	uint16_t val;
 
+	if (!data) {
+		dpack_decode_uint16(decoder, NULL);
+		return;
+	}
+
 	assert_int_equal(dpack_decode_uint16(decoder, &val), data->error);
 	if (!data->error)
 		assert_int_equal(val, data->uint16);
@@ -183,6 +206,11 @@ dpack_scalar_utest_unpack_int16(struct dpack_decoder *                 decoder,
                                 const struct dpack_scalar_utest_data * data)
 {
 	int16_t val;
+
+	if (!data) {
+		dpack_decode_int16(decoder, NULL);
+		return;
+	}
 
 	assert_int_equal(dpack_decode_int16(decoder, &val), data->error);
 	if (!data->error)
@@ -231,6 +259,11 @@ dpack_scalar_utest_unpack_uint32(struct dpack_decoder *                 decoder,
 {
 	uint32_t val;
 
+	if (!data) {
+		dpack_decode_uint32(decoder, NULL);
+		return;
+	}
+
 	assert_int_equal(dpack_decode_uint32(decoder, &val), data->error);
 	if (!data->error)
 		assert_int_equal(val, data->uint32);
@@ -273,6 +306,11 @@ dpack_scalar_utest_unpack_int32(struct dpack_decoder *                 decoder,
                                 const struct dpack_scalar_utest_data * data)
 {
 	int32_t val;
+
+	if (!data) {
+		dpack_decode_int32(decoder, NULL);
+		return;
+	}
 
 	assert_int_equal(dpack_decode_int32(decoder, &val), data->error);
 	if (!data->error)
@@ -326,6 +364,11 @@ dpack_scalar_utest_unpack_uint64(struct dpack_decoder *                 decoder,
 {
 	uint64_t val;
 
+	if (!data) {
+		dpack_decode_uint64(decoder, NULL);
+		return;
+	}
+
 	assert_int_equal(dpack_decode_uint64(decoder, &val), data->error);
 	if (!data->error)
 		assert_int_equal(val, data->uint64);
@@ -365,6 +408,11 @@ dpack_scalar_utest_unpack_int64(struct dpack_decoder *                 decoder,
                                 const struct dpack_scalar_utest_data * data)
 {
 	int64_t val;
+
+	if (!data) {
+		dpack_decode_int64(decoder, NULL);
+		return;
+	}
 
 	assert_int_equal(dpack_decode_int64(decoder, &val), data->error);
 	if (!data->error)

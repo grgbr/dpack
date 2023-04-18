@@ -55,6 +55,50 @@ stroll_assert_fail(const char * __restrict prefix,
 	abort();
 }
 
+/*
+ * Override libstroll's stroll_asser_fail_msg() and use mock_assert() to
+ * validate assertions.
+ */
+void
+stroll_assert_fail_msg(const char * __restrict prefix,
+                       const char * __restrict message)
+{
+	int    ret;
+	size_t sz = sizeof(dpack_utest_assert_msg) - 1;
+
+	/*
+	 * mock_assert() does not really "return". It uses a nonlocal goto logic
+	 * to restore program / stack state that existed before the code under
+	 * test called us. This is the way cmocka allows checking for
+	 * assertions.
+	 * This means that the code below will never reach the abort() call
+	 * below (which is just there to prevent GCC from warning us since
+	 * stroll_assert_fail() is declared as a function that cannot return).
+	 *
+	 * Since mock_assert() does not give control back to us, we MUST use a
+	 * statically allocated buffer to store assertion messages. We would not
+	 * have the opportunity to free(3) a previously allocated buffer
+	 * otherwise.
+	 * In other words, valgrind memory leak checker should be happy with
+	 * this...
+	 */
+	ret = snprintf(dpack_utest_assert_msg,
+	               sz,
+	               "{utest assert} %s:%s",
+	               prefix,
+	               message);
+	if (ret > 0) {
+		if ((size_t)ret >= sz)
+			dpack_utest_assert_msg[sz - 1] = '\0';
+
+		mock_assert(0, dpack_utest_assert_msg, __FILE__, __LINE__);
+	}
+	else
+		mock_assert(0, "{utest assert} ??", __FILE__, __LINE__);
+
+	abort();
+}
+
 bool dpack_utest_free_wrapped;
 
 /*
