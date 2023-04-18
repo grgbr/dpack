@@ -7,22 +7,25 @@ struct dpack_scalar_utest_data;
 typedef void (dpack_utest_unpack_fn)(struct dpack_decoder *,
                                      const struct dpack_scalar_utest_data *);
 
+union dpack_scalar_utest_value {
+	uint8_t  uint8;
+	int8_t   int8;
+	uint16_t uint16;
+	int16_t  int16;
+	uint32_t uint32;
+	int32_t  int32;
+	uint64_t uint64;
+	int64_t  int64;
+	float    f32;
+	double   f64;
+};
+
 struct dpack_scalar_utest_data {
-	const char *     packed;
-	size_t           size;
-	int              error;
-	union {
-		uint8_t  uint8;
-		int8_t   int8;
-		uint16_t uint16;
-		int16_t  int16;
-		uint32_t uint32;
-		int32_t  int32;
-		uint64_t uint64;
-		int64_t  int64;
-		float    f32;
-		double   f64;
-	};
+	const char *                   packed;
+	size_t                         size;
+	int                            error;
+	union dpack_scalar_utest_value value;
+	union dpack_scalar_utest_value low;
 };
 
 static void
@@ -33,15 +36,6 @@ dpack_scalar_utest(const struct dpack_scalar_utest_data * data,
 {
 	struct dpack_decoder dec = { 0, };
 	unsigned int         d;
-
-#if defined(CONFIG_DPACK_ASSERT_API)
-	expect_assert_failure(unpack(NULL, &data[0]));
-	expect_assert_failure(unpack(&dec, &data[0]));
-
-	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
-	expect_assert_failure(unpack(&dec, NULL));
-	dpack_decoder_fini(&dec);
-#endif
 
 	for (d = 0; d < nr; d++) {
 		dpack_decoder_init_buffer(&dec, data[d].packed, data[d].size);
@@ -54,10 +48,10 @@ dpack_scalar_utest(const struct dpack_scalar_utest_data * data,
 
 #define DPACK_UTEST_UINT8(_packed, _error, _value) \
 	{ \
-		.packed = _packed, \
-		.size   = sizeof(_packed) - 1, \
-		.error  = _error, \
-		.uint8  = _value \
+		.packed      = _packed, \
+		.size        = sizeof(_packed) - 1, \
+		.error       = _error, \
+		.value.uint8 = _value \
 	}
 
 static void
@@ -73,7 +67,63 @@ dpack_scalar_utest_unpack_uint8(struct dpack_decoder *                 decoder,
 
 	assert_int_equal(dpack_decode_uint8(decoder, &val), data->error);
 	if (!data->error)
-		assert_int_equal(val, data->uint8);
+		assert_int_equal(val, data->value.uint8);
+}
+
+static void
+dpack_scalar_utest_uint8(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* -1 */
+		DPACK_UTEST_UINT8("\xff",         -ENOMSG, 0),
+		/* 0 */
+		DPACK_UTEST_UINT8("\x00",         0,       0),
+		/* 1 */
+		DPACK_UTEST_UINT8("\x01",         0,       1),
+		/* 255 */
+		DPACK_UTEST_UINT8("\xcc\xff",     0,       255),
+		/* 256 */
+		DPACK_UTEST_UINT8("\xcd\x01\x00", -ERANGE, 0)
+	};
+
+#if defined(CONFIG_DPACK_ASSERT_API)
+	uint8_t              val;
+	struct dpack_decoder dec = { 0, };
+
+	expect_assert_failure(dpack_decode_uint8(NULL, &val));
+	expect_assert_failure(dpack_decode_uint8(&dec, &val));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(dpack_decode_uint8(&dec, NULL));
+	dpack_decoder_fini(&dec);
+#endif
+
+	dpack_scalar_utest(data,
+	                   array_nr(data),
+	                   dpack_scalar_utest_unpack_uint8);
+}
+
+#if 0
+
+#define DPACK_UTEST_UINT8_MIN(_packed, _error, _value, _low) \
+	{ \
+		.packed      = _packed, \
+		.size        = sizeof(_packed) - 1, \
+		.error       = _error, \
+		.value.uint8 = _value, \
+		.value.low   = _low \
+	}
+
+static void
+dpack_scalar_utest_unpack_uint8_min(
+	struct dpack_decoder *                 decoder,
+	const struct dpack_scalar_utest_data * data)
+{
+	uint8_t val;
+
+	assert_int_equal(dpack_decode_uint8(decoder, &val), data->error);
+	if (!data->error)
+		assert_int_equal(val, data->value.uint8);
 }
 
 static void
@@ -97,12 +147,14 @@ dpack_scalar_utest_uint8(void ** state __unused)
 	                   dpack_scalar_utest_unpack_uint8);
 }
 
+#endif
+
 #define DPACK_UTEST_INT8(_packed, _error, _value) \
 	{ \
-		.packed = _packed, \
-		.size   = sizeof(_packed) - 1, \
-		.error  = _error, \
-		.int8   = _value \
+		.packed     = _packed, \
+		.size       = sizeof(_packed) - 1, \
+		.error      = _error, \
+		.value.int8 = _value \
 	}
 
 static void
@@ -111,14 +163,9 @@ dpack_scalar_utest_unpack_int8(struct dpack_decoder *                 decoder,
 {
 	int8_t val;
 
-	if (!data) {
-		dpack_decode_int8(decoder, NULL);
-		return;
-	}
-
 	assert_int_equal(dpack_decode_int8(decoder, &val), data->error);
 	if (!data->error)
-		assert_int_equal(val, data->int8);
+		assert_int_equal(val, data->value.int8);
 }
 
 static void
@@ -143,6 +190,18 @@ dpack_scalar_utest_int8(void ** state __unused)
 		DPACK_UTEST_INT8("\xcc\x80",     -ERANGE, 0)
 	};
 
+#if defined(CONFIG_DPACK_ASSERT_API)
+	int8_t               val;
+	struct dpack_decoder dec = { 0, };
+
+	expect_assert_failure(dpack_decode_int8(NULL, &val));
+	expect_assert_failure(dpack_decode_int8(&dec, &val));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(dpack_decode_int8(&dec, NULL));
+	dpack_decoder_fini(&dec);
+#endif
+
 	dpack_scalar_utest(data,
 	                   array_nr(data),
 	                   dpack_scalar_utest_unpack_int8);
@@ -150,10 +209,10 @@ dpack_scalar_utest_int8(void ** state __unused)
 
 #define DPACK_UTEST_UINT16(_packed, _error, _value) \
 	{ \
-		.packed = _packed, \
-		.size   = sizeof(_packed) - 1, \
-		.error  = _error, \
-		.uint16 = _value \
+		.packed       = _packed, \
+		.size         = sizeof(_packed) - 1, \
+		.error        = _error, \
+		.value.uint16 = _value \
 	}
 
 static void
@@ -162,14 +221,9 @@ dpack_scalar_utest_unpack_uint16(struct dpack_decoder *                 decoder,
 {
 	uint16_t val;
 
-	if (!data) {
-		dpack_decode_uint16(decoder, NULL);
-		return;
-	}
-
 	assert_int_equal(dpack_decode_uint16(decoder, &val), data->error);
 	if (!data->error)
-		assert_int_equal(val, data->uint16);
+		assert_int_equal(val, data->value.uint16);
 }
 
 static void
@@ -188,6 +242,18 @@ dpack_scalar_utest_uint16(void ** state __unused)
 		DPACK_UTEST_UINT16("\xce\x00\x01\x00\x00", -ERANGE, UINT16_C(0))
 	};
 
+#if defined(CONFIG_DPACK_ASSERT_API)
+	uint16_t             val;
+	struct dpack_decoder dec = { 0, };
+
+	expect_assert_failure(dpack_decode_uint16(NULL, &val));
+	expect_assert_failure(dpack_decode_uint16(&dec, &val));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(dpack_decode_uint16(&dec, NULL));
+	dpack_decoder_fini(&dec);
+#endif
+
 	dpack_scalar_utest(data,
 	                   array_nr(data),
 	                   dpack_scalar_utest_unpack_uint16);
@@ -195,10 +261,10 @@ dpack_scalar_utest_uint16(void ** state __unused)
 
 #define DPACK_UTEST_INT16(_packed, _error, _value) \
 	{ \
-		.packed = _packed, \
-		.size   = sizeof(_packed) - 1, \
-		.error  = _error, \
-		.int16  = _value \
+		.packed      = _packed, \
+		.size        = sizeof(_packed) - 1, \
+		.error       = _error, \
+		.value.int16 = _value \
 	}
 
 static void
@@ -207,14 +273,9 @@ dpack_scalar_utest_unpack_int16(struct dpack_decoder *                 decoder,
 {
 	int16_t val;
 
-	if (!data) {
-		dpack_decode_int16(decoder, NULL);
-		return;
-	}
-
 	assert_int_equal(dpack_decode_int16(decoder, &val), data->error);
 	if (!data->error)
-		assert_int_equal(val, data->int16);
+		assert_int_equal(val, data->value.int16);
 }
 
 static void
@@ -240,6 +301,18 @@ dpack_scalar_utest_int16(void ** state __unused)
 		DPACK_UTEST_INT16("\xcd\x80\x00",     -ERANGE, INT16_C(0))
 	};
 
+#if defined(CONFIG_DPACK_ASSERT_API)
+	int16_t               val;
+	struct dpack_decoder dec = { 0, };
+
+	expect_assert_failure(dpack_decode_int16(NULL, &val));
+	expect_assert_failure(dpack_decode_int16(&dec, &val));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(dpack_decode_int16(&dec, NULL));
+	dpack_decoder_fini(&dec);
+#endif
+
 	dpack_scalar_utest(data,
 	                   array_nr(data),
 	                   dpack_scalar_utest_unpack_int16);
@@ -247,10 +320,10 @@ dpack_scalar_utest_int16(void ** state __unused)
 
 #define DPACK_UTEST_UINT32(_packed, _error, _value) \
 	{ \
-		.packed = _packed, \
-		.size   = sizeof(_packed) - 1, \
-		.error  = _error, \
-		.uint32 = _value \
+		.packed       = _packed, \
+		.size         = sizeof(_packed) - 1, \
+		.error        = _error, \
+		.value.uint32 = _value \
 	}
 
 static void
@@ -259,14 +332,9 @@ dpack_scalar_utest_unpack_uint32(struct dpack_decoder *                 decoder,
 {
 	uint32_t val;
 
-	if (!data) {
-		dpack_decode_uint32(decoder, NULL);
-		return;
-	}
-
 	assert_int_equal(dpack_decode_uint32(decoder, &val), data->error);
 	if (!data->error)
-		assert_int_equal(val, data->uint32);
+		assert_int_equal(val, data->value.uint32);
 }
 
 static void
@@ -288,6 +356,18 @@ dpack_scalar_utest_uint32(void ** state __unused)
 		                   "\x00\x00\x00\x00", -ERANGE, UINT32_C(0))
 	};
 
+#if defined(CONFIG_DPACK_ASSERT_API)
+	uint32_t             val;
+	struct dpack_decoder dec = { 0, };
+
+	expect_assert_failure(dpack_decode_uint32(NULL, &val));
+	expect_assert_failure(dpack_decode_uint32(&dec, &val));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(dpack_decode_uint32(&dec, NULL));
+	dpack_decoder_fini(&dec);
+#endif
+
 	dpack_scalar_utest(data,
 	                   array_nr(data),
 	                   dpack_scalar_utest_unpack_uint32);
@@ -295,10 +375,10 @@ dpack_scalar_utest_uint32(void ** state __unused)
 
 #define DPACK_UTEST_INT32(_packed, _error, _value) \
 	{ \
-		.packed = _packed, \
-		.size   = sizeof(_packed) - 1, \
-		.error  = _error, \
-		.int32  = _value \
+		.packed      = _packed, \
+		.size        = sizeof(_packed) - 1, \
+		.error       = _error, \
+		.value.int32 = _value \
 	}
 
 static void
@@ -307,14 +387,9 @@ dpack_scalar_utest_unpack_int32(struct dpack_decoder *                 decoder,
 {
 	int32_t val;
 
-	if (!data) {
-		dpack_decode_int32(decoder, NULL);
-		return;
-	}
-
 	assert_int_equal(dpack_decode_int32(decoder, &val), data->error);
 	if (!data->error)
-		assert_int_equal(val, data->int32);
+		assert_int_equal(val, data->value.int32);
 }
 
 static void
@@ -345,6 +420,18 @@ dpack_scalar_utest_int32(void ** state __unused)
 		                  "\x80\x00\x00\x00", -ERANGE, INT32_C(0))
 	};
 
+#if defined(CONFIG_DPACK_ASSERT_API)
+	int32_t               val;
+	struct dpack_decoder dec = { 0, };
+
+	expect_assert_failure(dpack_decode_int32(NULL, &val));
+	expect_assert_failure(dpack_decode_int32(&dec, &val));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(dpack_decode_int32(&dec, NULL));
+	dpack_decoder_fini(&dec);
+#endif
+
 	dpack_scalar_utest(data,
 	                   array_nr(data),
 	                   dpack_scalar_utest_unpack_int32);
@@ -352,10 +439,10 @@ dpack_scalar_utest_int32(void ** state __unused)
 
 #define DPACK_UTEST_UINT64(_packed, _error, _value) \
 	{ \
-		.packed = _packed, \
-		.size   = sizeof(_packed) - 1, \
-		.error  = _error, \
-		.uint64 = _value \
+		.packed       = _packed, \
+		.size         = sizeof(_packed) - 1, \
+		.error        = _error, \
+		.value.uint64 = _value \
 	}
 
 static void
@@ -364,14 +451,9 @@ dpack_scalar_utest_unpack_uint64(struct dpack_decoder *                 decoder,
 {
 	uint64_t val;
 
-	if (!data) {
-		dpack_decode_uint64(decoder, NULL);
-		return;
-	}
-
 	assert_int_equal(dpack_decode_uint64(decoder, &val), data->error);
 	if (!data->error)
-		assert_int_equal(val, data->uint64);
+		assert_int_equal(val, data->value.uint64);
 }
 
 static void
@@ -390,6 +472,18 @@ dpack_scalar_utest_uint64(void ** state __unused)
 		                   "\xff\xff\xff\xff", 0,       UINT64_MAX)
 	};
 
+#if defined(CONFIG_DPACK_ASSERT_API)
+	uint64_t             val;
+	struct dpack_decoder dec = { 0, };
+
+	expect_assert_failure(dpack_decode_uint64(NULL, &val));
+	expect_assert_failure(dpack_decode_uint64(&dec, &val));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(dpack_decode_uint64(&dec, NULL));
+	dpack_decoder_fini(&dec);
+#endif
+
 	dpack_scalar_utest(data,
 	                   array_nr(data),
 	                   dpack_scalar_utest_unpack_uint64);
@@ -397,10 +491,10 @@ dpack_scalar_utest_uint64(void ** state __unused)
 
 #define DPACK_UTEST_INT64(_packed, _error, _value) \
 	{ \
-		.packed = _packed, \
-		.size   = sizeof(_packed) - 1, \
-		.error  = _error, \
-		.int64  = _value \
+		.packed      = _packed, \
+		.size        = sizeof(_packed) - 1, \
+		.error       = _error, \
+		.value.int64 = _value \
 	}
 
 static void
@@ -409,14 +503,9 @@ dpack_scalar_utest_unpack_int64(struct dpack_decoder *                 decoder,
 {
 	int64_t val;
 
-	if (!data) {
-		dpack_decode_int64(decoder, NULL);
-		return;
-	}
-
 	assert_int_equal(dpack_decode_int64(decoder, &val), data->error);
 	if (!data->error)
-		assert_int_equal(val, data->int64);
+		assert_int_equal(val, data->value.int64);
 }
 
 static void
@@ -446,6 +535,18 @@ dpack_scalar_utest_int64(void ** state __unused)
 		                  "\x7f\xff\xff\xff"
 		                  "\xff\xff\xff\xff", 0,       INT64_MAX),
 	};
+
+#if defined(CONFIG_DPACK_ASSERT_API)
+	int64_t               val;
+	struct dpack_decoder dec = { 0, };
+
+	expect_assert_failure(dpack_decode_int64(NULL, &val));
+	expect_assert_failure(dpack_decode_int64(&dec, &val));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(dpack_decode_int64(&dec, NULL));
+	dpack_decoder_fini(&dec);
+#endif
 
 	dpack_scalar_utest(data,
 	                   array_nr(data),
