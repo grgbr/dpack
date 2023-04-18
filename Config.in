@@ -85,17 +85,6 @@ config DPACK_UTEST
 	help
 	  Build dpack library unit testsuite.
 
-config DPACK_UTEST_GEN
-	bool "(Re-)generate unit tests"
-	depends on DPACK_UTEST
-	default n
-	help
-	  When unit testing is enabled, allow (re-)generation of unit test
-	  source files. This requires working msgpack and Cheetah3 python3
-	  modules.
-	  This option is meant for dpack development purposes only. Do not
-	  enable for production use.
-
 config DPACK_VALGRIND
 	bool "Valgrind support"
 	depends on DPACK_UTEST

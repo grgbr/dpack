@@ -1,48 +1,418 @@
 #include "utest.h"
+#include "dpack/scalar.h"
+#include "dpack/codec.h"
+
+struct dpack_scalar_utest_data;
+
+typedef void (dpack_utest_unpack_fn)(struct dpack_decoder *,
+                                     const struct dpack_scalar_utest_data *);
+
+struct dpack_scalar_utest_data {
+	const char *     packed;
+	size_t           size;
+	int              error;
+	union {
+		uint8_t  uint8;
+		int8_t   int8;
+		uint16_t uint16;
+		int16_t  int16;
+		uint32_t uint32;
+		int32_t  int32;
+		uint64_t uint64;
+		int64_t  int64;
+		float    f32;
+		double   f64;
+	};
+};
 
 static void
-dpack_scalar_utest_run(void ** state)
-{
-	const struct dpack_scalar_utest      * test = *state;
-	const struct dpack_scalar_utest_data * data;
+dpack_scalar_utest(const struct dpack_scalar_utest_data * data,
+                   unsigned int                           nr,
+                   dpack_utest_unpack_fn *                unpack)
 
-	for (data = test->data; data->packed; data++) {
+{
+	unsigned int d;
+
+	for (d = 0; d < nr; d++) {
 		struct dpack_decoder dec;
 
-		dpack_decoder_init_buffer(&dec, data->packed, data->size);
+		dpack_decoder_init_buffer(&dec, data[d].packed, data[d].size);
 
-		test->unpack(&dec, data);
+		unpack(&dec, &data[d]);
 
 		dpack_decoder_fini(&dec);
 	}
 }
 
-extern const struct dpack_scalar_utest dpack_scalar_utest_uint8;
-extern const struct dpack_scalar_utest dpack_scalar_utest_int8;
-extern const struct dpack_scalar_utest dpack_scalar_utest_uint16;
-extern const struct dpack_scalar_utest dpack_scalar_utest_int16;
-extern const struct dpack_scalar_utest dpack_scalar_utest_uint32;
-extern const struct dpack_scalar_utest dpack_scalar_utest_int32;
-extern const struct dpack_scalar_utest dpack_scalar_utest_uint64;
-extern const struct dpack_scalar_utest dpack_scalar_utest_int64;
-
-#define DPACK_SCALAR_UNIT_TEST(_test) \
-	{ .name          = STROLL_STRING(_test), \
-	  .test_func     = dpack_scalar_utest_run, \
-	  .setup_func    = NULL, \
-	  .teardown_func = NULL, \
-	  .initial_state = (void *)&(_test) \
+#define DPACK_UTEST_UINT8(_packed, _error, _value) \
+	{ \
+		.packed = _packed, \
+		.size   = sizeof(_packed) - 1, \
+		.error  = _error, \
+		.uint8  = _value \
 	}
 
+static void
+dpack_scalar_utest_unpack_uint8(struct dpack_decoder *                 decoder,
+                                const struct dpack_scalar_utest_data * data)
+{
+	uint8_t val;
+
+	assert_int_equal(dpack_decode_uint8(decoder, &val), data->error);
+	if (!data->error)
+		assert_int_equal(val, data->uint8);
+}
+
+static void
+dpack_scalar_utest_uint8(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* -1 */
+		DPACK_UTEST_UINT8("\xff",         -ENOMSG, 0),
+		/* 0 */
+		DPACK_UTEST_UINT8("\x00",         0,       0),
+		/* 1 */
+		DPACK_UTEST_UINT8("\x01",         0,       1),
+		/* 255 */
+		DPACK_UTEST_UINT8("\xcc\xff",     0,       255),
+		/* 256 */
+		DPACK_UTEST_UINT8("\xcd\x01\x00", -ERANGE, 0)
+	};
+
+	dpack_scalar_utest(data,
+	                   array_nr(data),
+	                   dpack_scalar_utest_unpack_uint8);
+}
+
+#define DPACK_UTEST_INT8(_packed, _error, _value) \
+	{ \
+		.packed = _packed, \
+		.size   = sizeof(_packed) - 1, \
+		.error  = _error, \
+		.int8   = _value \
+	}
+
+static void
+dpack_scalar_utest_unpack_int8(struct dpack_decoder *                 decoder,
+                               const struct dpack_scalar_utest_data * data)
+{
+	int8_t val;
+
+	assert_int_equal(dpack_decode_int8(decoder, &val), data->error);
+	if (!data->error)
+		assert_int_equal(val, data->int8);
+}
+
+static void
+dpack_scalar_utest_int8(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* -129 */
+		DPACK_UTEST_INT8("\xd1\xff\x7f", -ERANGE, 0),
+		/* -128 */
+		DPACK_UTEST_INT8("\xd0\x80",     0,       -128),
+		/* -127 */
+		DPACK_UTEST_INT8("\xd0\x81",     0,       -127),
+		/* -1 */
+		DPACK_UTEST_INT8("\xff",         0,       -1),
+		/* 0 */
+		DPACK_UTEST_INT8("\x00",         0,       0),
+		/* 1 */
+		DPACK_UTEST_INT8("\x01",         0,       1),
+		/* 127 */
+		DPACK_UTEST_INT8("\x7f",         0,       127),
+		/* 128 */
+		DPACK_UTEST_INT8("\xcc\x80",     -ERANGE, 0)
+	};
+
+	dpack_scalar_utest(data,
+	                   array_nr(data),
+	                   dpack_scalar_utest_unpack_int8);
+}
+
+#define DPACK_UTEST_UINT16(_packed, _error, _value) \
+	{ \
+		.packed = _packed, \
+		.size   = sizeof(_packed) - 1, \
+		.error  = _error, \
+		.uint16 = _value \
+	}
+
+static void
+dpack_scalar_utest_unpack_uint16(struct dpack_decoder *                 decoder,
+                                 const struct dpack_scalar_utest_data * data)
+{
+	uint16_t val;
+
+	assert_int_equal(dpack_decode_uint16(decoder, &val), data->error);
+	if (!data->error)
+		assert_int_equal(val, data->uint16);
+}
+
+static void
+dpack_scalar_utest_uint16(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* -1 */
+		DPACK_UTEST_UINT16("\xff",                 -ENOMSG, UINT16_C(0)),
+		/* 0 */
+		DPACK_UTEST_UINT16("\x00",                 0,       UINT16_C(0)),
+		/* 1 */
+		DPACK_UTEST_UINT16("\x01",                 0,       UINT16_C(1)),
+		/* 65535 */
+		DPACK_UTEST_UINT16("\xcd\xff\xff",         0,       UINT16_MAX),
+		/* 65536 */
+		DPACK_UTEST_UINT16("\xce\x00\x01\x00\x00", -ERANGE, UINT16_C(0))
+	};
+
+	dpack_scalar_utest(data,
+	                   array_nr(data),
+	                   dpack_scalar_utest_unpack_uint16);
+}
+
+#define DPACK_UTEST_INT16(_packed, _error, _value) \
+	{ \
+		.packed = _packed, \
+		.size   = sizeof(_packed) - 1, \
+		.error  = _error, \
+		.int16  = _value \
+	}
+
+static void
+dpack_scalar_utest_unpack_int16(struct dpack_decoder *                 decoder,
+                                const struct dpack_scalar_utest_data * data)
+{
+	int16_t val;
+
+	assert_int_equal(dpack_decode_int16(decoder, &val), data->error);
+	if (!data->error)
+		assert_int_equal(val, data->int16);
+}
+
+static void
+dpack_scalar_utest_int16(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* -32769 */
+		DPACK_UTEST_INT16("\xd2"
+		                  "\xff\xff\x7f\xff", -ERANGE, INT16_C(0)),
+		/* -32768 */
+		DPACK_UTEST_INT16("\xd1\x80\x00",     0,       INT16_MIN),
+		/* -32767 */
+		DPACK_UTEST_INT16("\xd1\x80\x01",     0,       INT16_MIN + 1),
+		/* -1 */
+		DPACK_UTEST_INT16("\xff",             0,       INT16_C(-1)),
+		/* 0 */
+		DPACK_UTEST_INT16("\x00",             0,       INT16_C(0)),
+		/* 1 */
+		DPACK_UTEST_INT16("\x01",             0,       INT16_C(1)),
+		/* 32767 */
+		DPACK_UTEST_INT16("\xcd\x7f\xff",     0,       INT16_MAX),
+		/* 32768 */
+		DPACK_UTEST_INT16("\xcd\x80\x00",     -ERANGE, INT16_C(0))
+	};
+
+	dpack_scalar_utest(data,
+	                   array_nr(data),
+	                   dpack_scalar_utest_unpack_int16);
+}
+
+#define DPACK_UTEST_UINT32(_packed, _error, _value) \
+	{ \
+		.packed = _packed, \
+		.size   = sizeof(_packed) - 1, \
+		.error  = _error, \
+		.uint32 = _value \
+	}
+
+static void
+dpack_scalar_utest_unpack_uint32(struct dpack_decoder *                 decoder,
+                                 const struct dpack_scalar_utest_data * data)
+{
+	uint32_t val;
+
+	assert_int_equal(dpack_decode_uint32(decoder, &val), data->error);
+	if (!data->error)
+		assert_int_equal(val, data->uint32);
+}
+
+static void
+dpack_scalar_utest_uint32(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* -1 */
+		DPACK_UTEST_UINT32("\xff",             -ENOMSG, UINT32_C(0)),
+		/* 0 */
+		DPACK_UTEST_UINT32("\x00",             0,       UINT32_C(0)),
+		/* 1 */
+		DPACK_UTEST_UINT32("\x01",             0,       UINT32_C(1)),
+		/* 4294967295 */
+		DPACK_UTEST_UINT32("\xce"
+		                   "\xff\xff\xff\xff", 0,       UINT32_MAX),
+		/* 4294967296 */
+		DPACK_UTEST_UINT32("\xcf"
+		                   "\x00\x00\x00\x01"
+		                   "\x00\x00\x00\x00", -ERANGE, UINT32_C(0))
+	};
+
+	dpack_scalar_utest(data,
+	                   array_nr(data),
+	                   dpack_scalar_utest_unpack_uint32);
+}
+
+#define DPACK_UTEST_INT32(_packed, _error, _value) \
+	{ \
+		.packed = _packed, \
+		.size   = sizeof(_packed) - 1, \
+		.error  = _error, \
+		.int32  = _value \
+	}
+
+static void
+dpack_scalar_utest_unpack_int32(struct dpack_decoder *                 decoder,
+                                const struct dpack_scalar_utest_data * data)
+{
+	int32_t val;
+
+	assert_int_equal(dpack_decode_int32(decoder, &val), data->error);
+	if (!data->error)
+		assert_int_equal(val, data->int32);
+}
+
+static void
+dpack_scalar_utest_int32(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* -32769 */
+		DPACK_UTEST_INT32("\xd3"
+		                  "\xff\xff\xff\xff"
+		                  "\x7f\xff\xff\xff", -ERANGE, INT32_C(0)),
+		/* -32768 */
+		DPACK_UTEST_INT32("\xd2"
+		                  "\x80\x00\x00\x00", 0,       INT32_MIN),
+		/* -32767 */
+		DPACK_UTEST_INT32("\xd2"
+		                  "\x80\x00\x00\x01", 0,       INT32_MIN + 1),
+		/* -1 */
+		DPACK_UTEST_INT32("\xff",             0,       INT32_C(-1)),
+		/* 0 */
+		DPACK_UTEST_INT32("\x00",             0,       INT32_C(0)),
+		/* 1 */
+		DPACK_UTEST_INT32("\x01",             0,       INT32_C(1)),
+		/* 32767 */
+		DPACK_UTEST_INT32("\xce"
+		                  "\x7f\xff\xff\xff", 0,       INT32_MAX),
+		/* 32768 */
+		DPACK_UTEST_INT32("\xce"
+		                  "\x80\x00\x00\x00", -ERANGE, INT32_C(0))
+	};
+
+	dpack_scalar_utest(data,
+	                   array_nr(data),
+	                   dpack_scalar_utest_unpack_int32);
+}
+
+#define DPACK_UTEST_UINT64(_packed, _error, _value) \
+	{ \
+		.packed = _packed, \
+		.size   = sizeof(_packed) - 1, \
+		.error  = _error, \
+		.uint64 = _value \
+	}
+
+static void
+dpack_scalar_utest_unpack_uint64(struct dpack_decoder *                 decoder,
+                                 const struct dpack_scalar_utest_data * data)
+{
+	uint64_t val;
+
+	assert_int_equal(dpack_decode_uint64(decoder, &val), data->error);
+	if (!data->error)
+		assert_int_equal(val, data->uint64);
+}
+
+static void
+dpack_scalar_utest_uint64(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* -1 */
+		DPACK_UTEST_UINT64("\xff",             -ENOMSG, UINT64_C(0)),
+		/* 0 */
+		DPACK_UTEST_UINT64("\x00",             0,       UINT64_C(0)),
+		/* 1 */
+		DPACK_UTEST_UINT64("\x01",             0,       UINT64_C(1)),
+		/* 18446744073709551615 */
+		DPACK_UTEST_UINT64("\xcf"
+		                   "\xff\xff\xff\xff"
+		                   "\xff\xff\xff\xff", 0,       UINT64_MAX)
+	};
+
+	dpack_scalar_utest(data,
+	                   array_nr(data),
+	                   dpack_scalar_utest_unpack_uint64);
+}
+
+#define DPACK_UTEST_INT64(_packed, _error, _value) \
+	{ \
+		.packed = _packed, \
+		.size   = sizeof(_packed) - 1, \
+		.error  = _error, \
+		.int64  = _value \
+	}
+
+static void
+dpack_scalar_utest_unpack_int64(struct dpack_decoder *                 decoder,
+                                const struct dpack_scalar_utest_data * data)
+{
+	int64_t val;
+
+	assert_int_equal(dpack_decode_int64(decoder, &val), data->error);
+	if (!data->error)
+		assert_int_equal(val, data->int64);
+}
+
+static void
+dpack_scalar_utest_int64(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* 9223372036854775808 */
+		DPACK_UTEST_INT64("\xcf"
+		                  "\x80\x00\x00\x00"
+		                  "\x00\x00\x00\x00", -ERANGE, INT64_C(0)),
+		/* -9223372036854775808 */
+		DPACK_UTEST_INT64("\xd3"
+		                  "\x80\x00\x00\x00"
+		                  "\x00\x00\x00\x00", 0,       INT64_MIN),
+		/* -9223372036854775807 */
+		DPACK_UTEST_INT64("\xd3"
+		                  "\x80\x00\x00\x00"
+		                  "\x00\x00\x00\x01", 0,       INT64_MIN + 1),
+		/* -1 */
+		DPACK_UTEST_INT64("\xff",             0,       INT64_C(-1)),
+		/* 0 */
+		DPACK_UTEST_INT64("\x00",             0,       INT64_C(0)),
+		/* 1 */
+		DPACK_UTEST_INT64("\x01",             0,       INT64_C(1)),
+		/* 9223372036854775807 */
+		DPACK_UTEST_INT64("\xcf"
+		                  "\x7f\xff\xff\xff"
+		                  "\xff\xff\xff\xff", 0,       INT64_MAX),
+	};
+
+	dpack_scalar_utest(data,
+	                   array_nr(data),
+	                   dpack_scalar_utest_unpack_int64);
+}
+
 static const struct CMUnitTest dpack_stdint_utests[] = {
-	DPACK_SCALAR_UNIT_TEST(dpack_scalar_utest_uint8),
-	DPACK_SCALAR_UNIT_TEST(dpack_scalar_utest_int8),
-	DPACK_SCALAR_UNIT_TEST(dpack_scalar_utest_uint16),
-	DPACK_SCALAR_UNIT_TEST(dpack_scalar_utest_int16),
-	DPACK_SCALAR_UNIT_TEST(dpack_scalar_utest_uint32),
-	DPACK_SCALAR_UNIT_TEST(dpack_scalar_utest_int32),
-	DPACK_SCALAR_UNIT_TEST(dpack_scalar_utest_uint64),
-	DPACK_SCALAR_UNIT_TEST(dpack_scalar_utest_int64)
+	cmocka_unit_test(dpack_scalar_utest_uint8),
+	cmocka_unit_test(dpack_scalar_utest_int8),
+	cmocka_unit_test(dpack_scalar_utest_uint16),
+	cmocka_unit_test(dpack_scalar_utest_int16),
+	cmocka_unit_test(dpack_scalar_utest_uint32),
+	cmocka_unit_test(dpack_scalar_utest_int32),
+	cmocka_unit_test(dpack_scalar_utest_uint64),
+	cmocka_unit_test(dpack_scalar_utest_int64)
 };
 
 int

@@ -28,25 +28,11 @@ builtin.a-cflags := $(test-cflags)
 bins :=
 
 ifeq ($(CONFIG_DPACK_SCALAR),y)
-scalar-test-cflags      := $(filter-out -Wcast-qual -Wmissing-declarations, \
-                                        $(test-cflags))
-
-stdint-test-objs        :=  uint8.o int8.o \
-                            uint16.o int16.o \
-                            uint32.o int32.o \
-                            uint64.o int64.o
-
 bins                    += dpack-stdint-ut
-dpack-stdint-ut-objs    := stdint.o $(stdint-test-objs)
-dpack-stdint-ut-cflags  := $(scalar-test-cflags)
+dpack-stdint-ut-objs    := stdint.o
+dpack-stdint-ut-cflags  := $(test-cflags)
 dpack-stdint-ut-ldflags := $(test-ldflags)
 dpack-stdint-ut-pkgconf := libstroll cmocka
-
-stdint-test-gen := $(call kconf_enabled,DPACK_UTEST_GEN,dpack-utest-gen.py)
-$(addprefix $(SRCDIR)/,$(subst .o,.c,$(stdint-test-objs))): $(stdint-test-gen)
-	@echo "  GEN     $(@)"
-	$(SRCDIR)/dpack-utest-gen.py --outfile $(@) \
-	                             gen $(subst .c,,$(notdir $(@)))
 endif # ($(CONFIG_DPACK_SCALAR),y)
 
 ifeq ($(CONFIG_DPACK_ARRAY),y)
