@@ -4,6 +4,8 @@
 
 #include <errno.h>
 
+static __thread char dpack_mpack_assert_msg[LINE_MAX];
+
 void __dpack_nonull(1) __noreturn __leaf
 mpack_assert_fail(const char * __restrict message)
 {
@@ -12,19 +14,19 @@ mpack_assert_fail(const char * __restrict message)
 
 	/* For skipping first characters of mpack assertion message. */
 	size_t start = sizeof("mpack assertion failed at ") - 1;
-	char * msg;
+	size_t len;
+	char * chr;
 
-	msg = strdup(&message[start]);
-	if (msg) {
-		char * chr;
+	len = strnlen(&message[start], LINE_MAX - 1);
+	memcpy(dpack_mpack_assert_msg, &message[start], len);
+	dpack_mpack_assert_msg[len] = '\0';
 
-		for (chr = strchr(msg, '\n'); chr; chr = strchr(chr + 1, '\n'))
-			*chr = ':';
-	}
-	else
-		msg = ":??";
+	for (chr = strchr(dpack_mpack_assert_msg, '\n');
+	     chr;
+	     chr = strchr(chr + 1, '\n'))
+		*chr = ':';
 
-	stroll_assert_fail_msg("dpack:mpack", msg);
+	stroll_assert_fail_msg("dpack:mpack", dpack_mpack_assert_msg);
 
 	unreachable();
 }
