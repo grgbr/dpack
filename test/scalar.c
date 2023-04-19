@@ -9,6 +9,7 @@ typedef void (dpack_utest_unpack_fn)(struct dpack_decoder *,
                                      const struct dpack_scalar_utest_data *);
 
 union dpack_scalar_utest_value {
+	bool     boolean;
 	uint8_t  uint8;
 	int8_t   int8;
 	uint16_t uint16;
@@ -45,6 +46,57 @@ dpack_scalar_utest(const struct dpack_scalar_utest_data * data,
 
 		dpack_decoder_fini(&dec);
 	}
+}
+
+#define DPACK_UTEST_BOOL(_packed, _error, _value) \
+	{ \
+		.packed        = _packed, \
+		.size          = sizeof(_packed) - 1, \
+		.error         = _error, \
+		.value.boolean = _value \
+	}
+
+static void
+dpack_scalar_utest_unpack_bool(struct dpack_decoder *                 decoder,
+                               const struct dpack_scalar_utest_data * data)
+{
+	bool val;
+
+	assert_int_equal(dpack_decode_bool(decoder, &val), data->error);
+	if (!data->error)
+		assert_int_equal(val, data->value.boolean);
+}
+
+static void
+dpack_scalar_utest_bool(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* 1 */
+		DPACK_UTEST_BOOL("\x01", -ENOMSG, 0),
+		/* 0 */
+		DPACK_UTEST_BOOL("\x00", -ENOMSG, 0),
+		/* True */
+		DPACK_UTEST_BOOL("\xc3", 0,       true),
+		/* False */
+		DPACK_UTEST_BOOL("\xc2", 0,       false)
+	};
+
+#if defined(CONFIG_DPACK_ASSERT_API)
+	bool                 val;
+	struct dpack_decoder dec = { 0, };
+	int                  ret __unused;
+
+	expect_assert_failure(ret = dpack_decode_bool(NULL, &val));
+	expect_assert_failure(ret = dpack_decode_bool(&dec, &val));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(ret = dpack_decode_bool(&dec, NULL));
+	dpack_decoder_fini(&dec);
+#endif
+
+	dpack_scalar_utest(data,
+	                   array_nr(data),
+	                   dpack_scalar_utest_unpack_bool);
 }
 
 #define DPACK_UTEST_UINT8(_packed, _error, _value) \
@@ -660,6 +712,7 @@ dpack_scalar_utest_int64(void ** state __unused)
 }
 
 static const struct CMUnitTest dpack_stdint_utests[] = {
+	cmocka_unit_test(dpack_scalar_utest_bool),
 	cmocka_unit_test(dpack_scalar_utest_uint8),
 	cmocka_unit_test(dpack_scalar_utest_uint8_min),
 	cmocka_unit_test(dpack_scalar_utest_int8),

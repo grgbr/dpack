@@ -28,11 +28,11 @@ builtin.a-cflags := $(test-cflags)
 bins :=
 
 ifeq ($(CONFIG_DPACK_SCALAR),y)
-bins                    += dpack-stdint-ut
-dpack-stdint-ut-objs    := stdint.o
-dpack-stdint-ut-cflags  := $(test-cflags)
-dpack-stdint-ut-ldflags := $(test-ldflags)
-dpack-stdint-ut-pkgconf := libstroll cmocka
+bins                    += dpack-scalar-ut
+dpack-scalar-ut-objs    := scalar.o
+dpack-scalar-ut-cflags  := $(test-cflags)
+dpack-scalar-ut-ldflags := $(test-ldflags)
+dpack-scalar-ut-pkgconf := libstroll cmocka
 endif # ($(CONFIG_DPACK_SCALAR),y)
 
 ifeq ($(CONFIG_DPACK_ARRAY),y)

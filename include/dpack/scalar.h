@@ -21,7 +21,12 @@ extern int
 dpack_encode_bool(struct dpack_encoder * encoder, bool value) __dpack_export;
 
 extern int
-dpack_decode_bool(struct dpack_decoder * decoder, bool * value) __dpack_export;
+dpack_decode_bool(struct dpack_decoder * decoder,
+                  bool * __restrict      value) __dpack_nonull(1, 2)
+                                                __dpack_nothrow
+                                                __leaf
+                                                __warn_result
+                                                __dpack_export;
 
 /******************************************************************************
  * 8 bits integers
@@ -35,7 +40,7 @@ dpack_encode_uint8(struct dpack_encoder * encoder,
                    uint8_t                value) __dpack_export;
 extern int
 dpack_decode_uint8(struct dpack_decoder * decoder,
-                   uint8_t              * value) __dpack_nonull(1, 2)
+                   uint8_t * __restrict   value) __dpack_nonull(1, 2)
                                                  __dpack_nothrow
                                                  __leaf
                                                  __warn_result
@@ -43,7 +48,7 @@ dpack_decode_uint8(struct dpack_decoder * decoder,
 extern int
 dpack_decode_uint8_min(struct dpack_decoder * decoder,
                        uint8_t                low,
-                       uint8_t              * value) __dpack_nonull(1, 3)
+                       uint8_t * __restrict   value) __dpack_nonull(1, 3)
                                                      __dpack_nothrow
                                                      __leaf
                                                      __warn_result

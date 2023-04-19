@@ -20,7 +20,7 @@
 DPACK_SCALAR_DEFINE_ENCODE(dpack_encode_bool, bool, mpack_write_bool)
 
 int
-dpack_decode_bool(struct dpack_decoder * decoder, bool * value)
+dpack_decode_bool(struct dpack_decoder * decoder, bool * __restrict value)
 {
 	dpack_assert_api_decoder(decoder);
 	dpack_assert_api(value);
@@ -94,7 +94,7 @@ static int __dpack_nonull(1, 4) __dpack_nothrow __warn_result
 dpack_xtract_uint64_range(struct mpack_reader_t * reader,
                           uint64_t                low,
                           uint64_t                high,
-                          uint64_t              * value)
+                          uint64_t * __restrict   value)
 {
 	dpack_assert_intern(reader);
 	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
@@ -119,7 +119,7 @@ dpack_xtract_uint64_range(struct mpack_reader_t * reader,
 
 #define DPACK_UINT_DEFINE_DECODE(_name, _type, _high) \
 	int \
-	_name(struct dpack_decoder * decoder, _type * value) \
+	_name(struct dpack_decoder * decoder, _type * __restrict value) \
 	{ \
 		dpack_assert_api_decoder(decoder); \
 		dpack_assert_api(value); \
@@ -140,7 +140,9 @@ dpack_xtract_uint64_range(struct mpack_reader_t * reader,
 
 #define DPACK_UINT_DEFINE_DECODE_MIN(_name, _type, _high) \
 	int \
-	_name(struct dpack_decoder * decoder, _type low, _type * value) \
+	_name(struct dpack_decoder * decoder, \
+	      _type                  low, \
+	      _type * __restrict     value) \
 	{ \
 		dpack_assert_api_decoder(decoder); \
 		dpack_assert_api(low); \
