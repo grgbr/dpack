@@ -172,11 +172,19 @@ dpack_encode_uint32(struct dpack_encoder * encoder,
                     uint32_t               value) __dpack_export;
 extern int
 dpack_decode_uint32(struct dpack_decoder * decoder,
-                    uint32_t             * value) __dpack_export;
+                    uint32_t * __restrict  value) __dpack_nonull(1, 2)
+                                                  __dpack_nothrow
+                                                  __leaf
+                                                  __warn_result
+                                                  __dpack_export;
 extern int
 dpack_decode_uint32_min(struct dpack_decoder * decoder,
                         uint32_t               low,
-                        uint32_t             * value) __dpack_export;
+                        uint32_t * __restrict  value) __dpack_nonull(1, 3)
+                                                      __dpack_nothrow
+                                                      __leaf
+                                                      __warn_result
+                                                      __dpack_export;
 extern int
 dpack_decode_uint32_max(struct dpack_decoder * decoder,
                         uint32_t               high,
@@ -235,11 +243,19 @@ dpack_encode_int32(struct dpack_encoder * encoder,
                    int32_t                value) __dpack_export;
 extern int
 dpack_decode_int32(struct dpack_decoder * decoder,
-                   int32_t              * value) __dpack_export;
+                   int32_t * __restrict   value) __dpack_nonull(1, 2)
+                                                 __dpack_nothrow
+                                                 __leaf
+                                                 __warn_result
+                                                 __dpack_export;
 extern int
 dpack_decode_int32_min(struct dpack_decoder * decoder,
                        int32_t                low,
-                       int32_t              * value) __dpack_export;
+                       int32_t * __restrict   value) __dpack_nonull(1, 3)
+                                                     __dpack_nothrow
+                                                     __leaf
+                                                     __warn_result
+                                                     __dpack_export;
 extern int
 dpack_decode_int32_max(struct dpack_decoder * decoder,
                        int32_t                high,
