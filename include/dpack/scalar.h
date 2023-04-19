@@ -35,11 +35,19 @@ dpack_encode_uint8(struct dpack_encoder * encoder,
                    uint8_t                value) __dpack_export;
 extern int
 dpack_decode_uint8(struct dpack_decoder * decoder,
-                   uint8_t              * value) __dpack_export;
+                   uint8_t              * value) __dpack_nonull(1, 2)
+                                                 __dpack_nothrow
+                                                 __leaf
+                                                 __warn_result
+                                                 __dpack_export;
 extern int
 dpack_decode_uint8_min(struct dpack_decoder * decoder,
                        uint8_t                low,
-                       uint8_t              * value) __dpack_export;
+                       uint8_t              * value) __dpack_nonull(1, 3)
+                                                     __dpack_nothrow
+                                                     __leaf
+                                                     __warn_result
+                                                     __dpack_export;
 extern int
 dpack_decode_uint8_max(struct dpack_decoder * decoder,
                        uint8_t                high,

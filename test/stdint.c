@@ -1,6 +1,7 @@
 #include "utest.h"
 #include "dpack/scalar.h"
 #include "dpack/codec.h"
+#include <errno.h>
 
 struct dpack_scalar_utest_data;
 
@@ -60,11 +61,6 @@ dpack_scalar_utest_unpack_uint8(struct dpack_decoder *                 decoder,
 {
 	uint8_t val;
 
-	if (!data) {
-		dpack_decode_uint8(decoder, NULL);
-		return;
-	}
-
 	assert_int_equal(dpack_decode_uint8(decoder, &val), data->error);
 	if (!data->error)
 		assert_int_equal(val, data->value.uint8);
@@ -89,12 +85,13 @@ dpack_scalar_utest_uint8(void ** state __unused)
 #if defined(CONFIG_DPACK_ASSERT_API)
 	uint8_t              val;
 	struct dpack_decoder dec = { 0, };
+	int                  ret __unused;
 
-	expect_assert_failure(dpack_decode_uint8(NULL, &val));
-	expect_assert_failure(dpack_decode_uint8(&dec, &val));
+	expect_assert_failure(ret = dpack_decode_uint8(NULL, &val));
+	expect_assert_failure(ret = dpack_decode_uint8(&dec, &val));
 
 	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
-	expect_assert_failure(dpack_decode_uint8(&dec, NULL));
+	expect_assert_failure(ret = dpack_decode_uint8(&dec, NULL));
 	dpack_decoder_fini(&dec);
 #endif
 
@@ -164,14 +161,17 @@ dpack_scalar_utest_uint8_min(void ** state __unused)
 #if defined(CONFIG_DPACK_ASSERT_API)
 	uint8_t              val;
 	struct dpack_decoder dec = { 0, };
+	int                  ret __unused;
 
-	expect_assert_failure(dpack_decode_uint8_min(NULL, 1, &val));
-	expect_assert_failure(dpack_decode_uint8_min(&dec, 1, &val));
-	expect_assert_failure(dpack_decode_uint8_min(NULL, 0, &val));
-	expect_assert_failure(dpack_decode_uint8_min(NULL, UINT8_MAX, &val));
+	expect_assert_failure(ret = dpack_decode_uint8_min(NULL, 1, &val));
+	expect_assert_failure(ret = dpack_decode_uint8_min(&dec, 1, &val));
+	expect_assert_failure(ret = dpack_decode_uint8_min(NULL, 0, &val));
+	expect_assert_failure(ret = dpack_decode_uint8_min(NULL,
+	                                                   UINT8_MAX,
+	                                                   &val));
 
 	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
-	expect_assert_failure(dpack_decode_uint8_min(&dec, 1, NULL));
+	expect_assert_failure(ret = dpack_decode_uint8_min(&dec, 1, NULL));
 	dpack_decoder_fini(&dec);
 #endif
 

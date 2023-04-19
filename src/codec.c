@@ -79,9 +79,9 @@ dpack_decoder_error_state(struct mpack_reader_t * reader)
 }
 
 int
-dpack_decode_tag(struct mpack_reader_t * reader,
-                 enum mpack_type_t       type,
-                 struct mpack_tag_t    * tag)
+dpack_decode_tag(struct mpack_reader_t *         reader,
+                 enum mpack_type_t               type,
+                 struct mpack_tag_t * __restrict tag)
 {
 	dpack_assert_intern(reader);
 	dpack_assert_intern(tag);

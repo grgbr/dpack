@@ -65,10 +65,10 @@ dpack_xtract_uint64_min(struct mpack_reader_t * reader,
 	return 0;
 }
 
-static int
+static int __dpack_nonull(1, 3) __dpack_nothrow __warn_result
 dpack_xtract_uint64_max(struct mpack_reader_t * reader,
                         uint64_t                high,
-                        uint64_t              * value)
+                        uint64_t * __restrict   value)
 {
 	dpack_assert_intern(reader);
 	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
@@ -90,7 +90,7 @@ dpack_xtract_uint64_max(struct mpack_reader_t * reader,
 	return 0;
 }
 
-static int
+static int __dpack_nonull(1, 4) __dpack_nothrow __warn_result
 dpack_xtract_uint64_range(struct mpack_reader_t * reader,
                           uint64_t                low,
                           uint64_t                high,
