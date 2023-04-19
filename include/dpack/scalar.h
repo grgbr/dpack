@@ -71,11 +71,19 @@ dpack_encode_int8(struct dpack_encoder * encoder,
                   int8_t                 value) __dpack_export;
 extern int
 dpack_decode_int8(struct dpack_decoder * decoder,
-                  int8_t               * value) __dpack_export;
+                  int8_t * __restrict    value) __dpack_nonull(1, 2)
+                                                __dpack_nothrow
+                                                __leaf
+                                                __warn_result
+                                                __dpack_export;
 extern int
 dpack_decode_int8_min(struct dpack_decoder * decoder,
                       int8_t                 low,
-                      int8_t               * value) __dpack_export;
+                      int8_t               * value) __dpack_nonull(1, 3)
+                                                    __dpack_nothrow
+                                                    __leaf
+                                                    __warn_result
+                                                    __dpack_export;
 extern int
 dpack_decode_int8_max(struct dpack_decoder * decoder,
                       int8_t                 high,
@@ -98,11 +106,19 @@ dpack_encode_uint16(struct dpack_encoder * encoder,
                     uint16_t               value) __dpack_export;
 extern int
 dpack_decode_uint16(struct dpack_decoder * decoder,
-                    uint16_t             * value) __dpack_export;
+                    uint16_t * __restrict  value) __dpack_nonull(1, 2)
+                                                  __dpack_nothrow
+                                                  __leaf
+                                                  __warn_result
+                                                  __dpack_export;
 extern int
 dpack_decode_uint16_min(struct dpack_decoder * decoder,
                         uint16_t               low,
-                        uint16_t             * value) __dpack_export;
+                        uint16_t * __restrict  value) __dpack_nonull(1, 3)
+                                                      __dpack_nothrow
+                                                      __leaf
+                                                      __warn_result
+                                                      __dpack_export;
 extern int
 dpack_decode_uint16_max(struct dpack_decoder * decoder,
                         uint16_t               high,
@@ -121,11 +137,19 @@ dpack_encode_int16(struct dpack_encoder * encoder,
                    int16_t                value) __dpack_export;
 extern int
 dpack_decode_int16(struct dpack_decoder * decoder,
-                   int16_t              * value) __dpack_export;
+                   int16_t * __restrict   value) __dpack_nonull(1, 2)
+                                                 __dpack_nothrow
+                                                 __leaf
+                                                 __warn_result
+                                                 __dpack_export;
 extern int
 dpack_decode_int16_min(struct dpack_decoder * decoder,
                        int16_t                low,
-                       int16_t              * value) __dpack_export;
+                       int16_t * __restrict   value) __dpack_nonull(1, 3)
+                                                     __dpack_nothrow
+                                                     __leaf
+                                                     __warn_result
+                                                     __dpack_export;
 extern int
 dpack_decode_int16_max(struct dpack_decoder * decoder,
                        int16_t                high,

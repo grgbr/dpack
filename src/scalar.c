@@ -219,8 +219,8 @@ dpack_xtract_uint64_range(struct mpack_reader_t * reader,
  * Signed integers common logic
  ******************************************************************************/
 
-static int
-dpack_xtract_int64(struct mpack_reader_t * reader, int64_t * value)
+static int __dpack_nonull(1, 2) __dpack_nothrow __warn_result
+dpack_xtract_int64(struct mpack_reader_t * reader, int64_t * __restrict value)
 {
 	dpack_assert_intern(reader);
 	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
@@ -258,11 +258,11 @@ dpack_xtract_int64(struct mpack_reader_t * reader, int64_t * value)
 	return 0;
 }
 
-static int
+static int __dpack_nonull(1, 4) __dpack_nothrow __warn_result
 dpack_xtract_int64_range(struct mpack_reader_t * reader,
                          int64_t                 low,
                          int64_t                 high,
-                         int64_t               * value)
+                         int64_t * __restrict    value)
 {
 	dpack_assert_intern(reader);
 	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
@@ -285,7 +285,7 @@ dpack_xtract_int64_range(struct mpack_reader_t * reader,
 
 #define DPACK_INT_DEFINE_DECODE(_name, _type, _low, _high) \
 	int \
-	_name(struct dpack_decoder * decoder, _type * value) \
+	_name(struct dpack_decoder * decoder, _type * __restrict value) \
 	{ \
 		dpack_assert_api_decoder(decoder); \
 		dpack_assert_api((_low) > INT64_MIN); \
@@ -310,7 +310,9 @@ dpack_xtract_int64_range(struct mpack_reader_t * reader,
 
 #define DPACK_INT_DEFINE_DECODE_MIN(_name, _type, _low, _high) \
 	int \
-	_name(struct dpack_decoder * decoder, _type low, _type * value) \
+	_name(struct dpack_decoder * decoder, \
+	      _type                  low, \
+	      _type * __restrict     value) \
 	{ \
 		dpack_assert_api_decoder(decoder); \
 		dpack_assert_api((_low) > INT64_MIN); \
