@@ -77,11 +77,11 @@ dpack_scalar_utest_uint8(void ** state __unused)
 		/* -1 */
 		DPACK_UTEST_UINT8("\xff",         -ENOMSG, 0),
 		/* 0 */
-		DPACK_UTEST_UINT8("\x00",         0,       0),
+		DPACK_UTEST_UINT8("\x00",         0,       UINT8_C(0)),
 		/* 1 */
-		DPACK_UTEST_UINT8("\x01",         0,       1),
+		DPACK_UTEST_UINT8("\x01",         0,       UINT8_C(1)),
 		/* 255 */
-		DPACK_UTEST_UINT8("\xcc\xff",     0,       255),
+		DPACK_UTEST_UINT8("\xcc\xff",     0,       UINT8_C(255)),
 		/* 256 */
 		DPACK_UTEST_UINT8("\xcd\x01\x00", -ERANGE, 0)
 	};
@@ -103,15 +103,13 @@ dpack_scalar_utest_uint8(void ** state __unused)
 	                   dpack_scalar_utest_unpack_uint8);
 }
 
-#if 0
-
 #define DPACK_UTEST_UINT8_MIN(_packed, _error, _value, _low) \
 	{ \
 		.packed      = _packed, \
 		.size        = sizeof(_packed) - 1, \
 		.error       = _error, \
 		.value.uint8 = _value, \
-		.value.low   = _low \
+		.low.uint8   = _low \
 	}
 
 static void
@@ -121,33 +119,66 @@ dpack_scalar_utest_unpack_uint8_min(
 {
 	uint8_t val;
 
-	assert_int_equal(dpack_decode_uint8(decoder, &val), data->error);
+	assert_int_equal(dpack_decode_uint8_min(decoder, data->low.uint8, &val),
+	                 data->error);
 	if (!data->error)
 		assert_int_equal(val, data->value.uint8);
 }
 
 static void
-dpack_scalar_utest_uint8(void ** state __unused)
+dpack_scalar_utest_uint8_min(void ** state __unused)
 {
 	static const struct dpack_scalar_utest_data data[] = {
 		/* -1 */
-		DPACK_UTEST_UINT8("\xff",         -ENOMSG, 0),
+		DPACK_UTEST_UINT8_MIN("\xff",         -ENOMSG, 0,            UINT8_C(1)),
 		/* 0 */
-		DPACK_UTEST_UINT8("\x00",         0,       0),
+		DPACK_UTEST_UINT8_MIN("\x00",         -ERANGE, 0,            UINT8_C(1)),
 		/* 1 */
-		DPACK_UTEST_UINT8("\x01",         0,       1),
+		DPACK_UTEST_UINT8_MIN("\x01",         0,       UINT8_C(1),   UINT8_C(1)),
 		/* 255 */
-		DPACK_UTEST_UINT8("\xcc\xff",     0,       255),
+		DPACK_UTEST_UINT8_MIN("\xcc\xff",     0,       UINT8_C(255), UINT8_C(1)),
 		/* 256 */
-		DPACK_UTEST_UINT8("\xcd\x01\x00", -ERANGE, 0)
+		DPACK_UTEST_UINT8_MIN("\xcd\x01\x00", -ERANGE, 0,            UINT8_C(1)),
+
+		/* 1 */
+		DPACK_UTEST_UINT8_MIN("\x01",         -ERANGE, 0,            UINT8_C(64)),
+		/* 63 */
+		DPACK_UTEST_UINT8_MIN("\x3f",         -ERANGE, 0,            UINT8_C(64)),
+		/* 64 */
+		DPACK_UTEST_UINT8_MIN("\x40",         0,       UINT8_C(64),  UINT8_C(64)),
+		/* 65 */
+		DPACK_UTEST_UINT8_MIN("\x41",         0,       UINT8_C(65),  UINT8_C(64)),
+		/* 255 */
+		DPACK_UTEST_UINT8_MIN("\xcc\xff",     0,       UINT8_C(255), UINT8_C(64)),
+
+		/* 253 */
+		DPACK_UTEST_UINT8_MIN("\xcc\xfd",     -ERANGE, 0,            UINT8_C(254)),
+		/* 254 */
+		DPACK_UTEST_UINT8_MIN("\xcc\xfe",     0,       UINT8_C(254), UINT8_C(254)),
+		/* 255 */
+		DPACK_UTEST_UINT8_MIN("\xcc\xff",     0,       UINT8_C(255), UINT8_C(254)),
+		/* 256 */
+		DPACK_UTEST_UINT8_MIN("\xcd\x01\x00", -ERANGE, 0,            UINT8_C(254))
 	};
+
+#if defined(CONFIG_DPACK_ASSERT_API)
+	uint8_t              val;
+	struct dpack_decoder dec = { 0, };
+
+	expect_assert_failure(dpack_decode_uint8_min(NULL, 1, &val));
+	expect_assert_failure(dpack_decode_uint8_min(&dec, 1, &val));
+	expect_assert_failure(dpack_decode_uint8_min(NULL, 0, &val));
+	expect_assert_failure(dpack_decode_uint8_min(NULL, UINT8_MAX, &val));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(dpack_decode_uint8_min(&dec, 1, NULL));
+	dpack_decoder_fini(&dec);
+#endif
 
 	dpack_scalar_utest(data,
 	                   array_nr(data),
-	                   dpack_scalar_utest_unpack_uint8);
+	                   dpack_scalar_utest_unpack_uint8_min);
 }
-
-#endif
 
 #define DPACK_UTEST_INT8(_packed, _error, _value) \
 	{ \
@@ -175,17 +206,17 @@ dpack_scalar_utest_int8(void ** state __unused)
 		/* -129 */
 		DPACK_UTEST_INT8("\xd1\xff\x7f", -ERANGE, 0),
 		/* -128 */
-		DPACK_UTEST_INT8("\xd0\x80",     0,       -128),
+		DPACK_UTEST_INT8("\xd0\x80",     0,       INT8_C(-128)),
 		/* -127 */
-		DPACK_UTEST_INT8("\xd0\x81",     0,       -127),
+		DPACK_UTEST_INT8("\xd0\x81",     0,       INT8_C(-127)),
 		/* -1 */
-		DPACK_UTEST_INT8("\xff",         0,       -1),
+		DPACK_UTEST_INT8("\xff",         0,       INT8_C(-1)),
 		/* 0 */
-		DPACK_UTEST_INT8("\x00",         0,       0),
+		DPACK_UTEST_INT8("\x00",         0,       INT8_C(0)),
 		/* 1 */
-		DPACK_UTEST_INT8("\x01",         0,       1),
+		DPACK_UTEST_INT8("\x01",         0,       INT8_C(1)),
 		/* 127 */
-		DPACK_UTEST_INT8("\x7f",         0,       127),
+		DPACK_UTEST_INT8("\x7f",         0,       INT8_C(127)),
 		/* 128 */
 		DPACK_UTEST_INT8("\xcc\x80",     -ERANGE, 0)
 	};
@@ -205,6 +236,81 @@ dpack_scalar_utest_int8(void ** state __unused)
 	dpack_scalar_utest(data,
 	                   array_nr(data),
 	                   dpack_scalar_utest_unpack_int8);
+}
+
+#define DPACK_UTEST_INT8_MIN(_packed, _error, _value, _low) \
+	{ \
+		.packed     = _packed, \
+		.size       = sizeof(_packed) - 1, \
+		.error      = _error, \
+		.value.int8 = _value, \
+		.low.int8   = _low \
+	}
+
+static void
+dpack_scalar_utest_unpack_int8_min(
+	struct dpack_decoder *                 decoder,
+	const struct dpack_scalar_utest_data * data)
+{
+	int8_t val;
+
+	assert_int_equal(dpack_decode_int8_min(decoder, data->low.int8, &val),
+	                 data->error);
+	if (!data->error)
+		assert_int_equal(val, data->value.int8);
+}
+
+static void
+dpack_scalar_utest_int8_min(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* -129 */
+		DPACK_UTEST_INT8_MIN("\xd1\xff\x7f", -ERANGE, 0,            INT8_C(0)),
+		/* -128 */
+		DPACK_UTEST_INT8_MIN("\xd0\x80",     -ERANGE, 0,            INT8_C(0)),
+		/* -127 */
+		DPACK_UTEST_INT8_MIN("\xd0\x81",     0,       INT8_C(-127), INT8_C(-127)),
+		/* -126 */
+		DPACK_UTEST_INT8_MIN("\xd0\x82",     0,       INT8_C(-126), INT8_C(-127)),
+
+		/* -1 */
+		DPACK_UTEST_INT8_MIN("\xff",         -ERANGE, 0,            INT8_C(0)),
+		/* 0 */
+		DPACK_UTEST_INT8_MIN("\x00",         0,       INT8_C(0),    INT8_C(0)),
+		/* 1 */
+		DPACK_UTEST_INT8_MIN("\x01",         0,       INT8_C(1),    INT8_C(0)),
+		/* 127 */
+		DPACK_UTEST_INT8_MIN("\x7f",         0,       INT8_C(127),  INT8_C(0)),
+		/* 128 */
+		DPACK_UTEST_INT8_MIN("\xcc\x80",     -ERANGE, 0,            INT8_C(0)),
+
+		/* 125 */
+		DPACK_UTEST_INT8_MIN("\x7d",         -ERANGE, 0,            INT8_C(126)),
+		/* 126 */
+		DPACK_UTEST_INT8_MIN("\x7e",         0,       INT8_C(126),  INT8_C(126)),
+		/* 127 */
+		DPACK_UTEST_INT8_MIN("\x7f",         0,       INT8_C(127),  INT8_C(126)),
+		/* 128 */
+		DPACK_UTEST_INT8_MIN("\xcc\x80",     -ERANGE, 0,            INT8_C(126))
+	};
+
+#if defined(CONFIG_DPACK_ASSERT_API)
+	int8_t              val;
+	struct dpack_decoder dec = { 0, };
+
+	expect_assert_failure(dpack_decode_int8_min(NULL, 1, &val));
+	expect_assert_failure(dpack_decode_int8_min(&dec, 1, &val));
+	expect_assert_failure(dpack_decode_int8_min(NULL, INT8_MIN, &val));
+	expect_assert_failure(dpack_decode_int8_min(NULL, INT8_MAX, &val));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(dpack_decode_int8_min(&dec, 1, NULL));
+	dpack_decoder_fini(&dec);
+#endif
+
+	dpack_scalar_utest(data,
+	                   array_nr(data),
+	                   dpack_scalar_utest_unpack_int8_min);
 }
 
 #define DPACK_UTEST_UINT16(_packed, _error, _value) \
@@ -555,7 +661,9 @@ dpack_scalar_utest_int64(void ** state __unused)
 
 static const struct CMUnitTest dpack_stdint_utests[] = {
 	cmocka_unit_test(dpack_scalar_utest_uint8),
+	cmocka_unit_test(dpack_scalar_utest_uint8_min),
 	cmocka_unit_test(dpack_scalar_utest_int8),
+	cmocka_unit_test(dpack_scalar_utest_int8_min),
 	cmocka_unit_test(dpack_scalar_utest_uint16),
 	cmocka_unit_test(dpack_scalar_utest_int16),
 	cmocka_unit_test(dpack_scalar_utest_uint32),
