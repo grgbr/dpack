@@ -128,6 +128,8 @@ dpack_scalar_utest_unpack_bool(struct dpack_decoder *                 decoder,
 {
 	bool val;
 
+	assert_int_equal(data->size, DPACK_BOOL_SIZE);
+
 	assert_int_equal(dpack_decode_bool(decoder, &val), data->error);
 	if (!data->error)
 		assert_int_equal(val, data->value.boolean);
@@ -216,8 +218,13 @@ dpack_scalar_utest_unpack_uint8(struct dpack_decoder *                 decoder,
 	uint8_t val;
 
 	assert_int_equal(dpack_decode_uint8(decoder, &val), data->error);
-	if (!data->error)
-		assert_int_equal(val, data->value.uint8);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_UINT8_SIZE_MIN <= data->size);
+	assert_true(DPACK_UINT8_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.uint8);
 }
 
 static void
@@ -272,8 +279,13 @@ dpack_scalar_utest_unpack_uint8_min(
 
 	assert_int_equal(dpack_decode_uint8_min(decoder, data->low.uint8, &val),
 	                 data->error);
-	if (!data->error)
-		assert_int_equal(val, data->value.uint8);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_UINT8_SIZE_MIN <= data->size);
+	assert_true(DPACK_UINT8_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.uint8);
 }
 
 static void
@@ -391,8 +403,14 @@ dpack_scalar_utest_unpack_int8(struct dpack_decoder *                 decoder,
 	int8_t val;
 
 	assert_int_equal(dpack_decode_int8(decoder, &val), data->error);
-	if (!data->error)
-		assert_int_equal(val, data->value.int8);
+
+	if (data->error)
+		return;
+
+	assert_true(DPACK_INT8_SIZE_MIN <= data->size);
+	assert_true(DPACK_INT8_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.int8);
 }
 
 static void
@@ -453,8 +471,13 @@ dpack_scalar_utest_unpack_int8_min(
 
 	assert_int_equal(dpack_decode_int8_min(decoder, data->low.int8, &val),
 	                 data->error);
-	if (!data->error)
-		assert_int_equal(val, data->value.int8);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_INT8_SIZE_MIN <= data->size);
+	assert_true(DPACK_INT8_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.int8);
 }
 
 static void
@@ -562,8 +585,14 @@ dpack_scalar_utest_unpack_uint16(struct dpack_decoder *                 decoder,
 	uint16_t val;
 
 	assert_int_equal(dpack_decode_uint16(decoder, &val), data->error);
-	if (!data->error)
-		assert_int_equal(val, data->value.uint16);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_UINT16_SIZE_MIN <= data->size);
+	assert_true(DPACK_UINT16_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.uint16);
+
 }
 
 static void
@@ -620,8 +649,14 @@ dpack_scalar_utest_unpack_uint16_min(
 	                                         data->low.uint16,
 	                                         &val),
 	                 data->error);
-	if (!data->error)
-		assert_int_equal(val, data->value.uint16);
+
+	if (data->error)
+		return;
+
+	assert_true(DPACK_UINT16_SIZE_MIN <= data->size);
+	assert_true(DPACK_UINT16_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.uint16);
 }
 
 static void
@@ -748,8 +783,13 @@ dpack_scalar_utest_unpack_int16(struct dpack_decoder *                 decoder,
 	int16_t val;
 
 	assert_int_equal(dpack_decode_int16(decoder, &val), data->error);
-	if (!data->error)
-		assert_int_equal(val, data->value.int16);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_INT16_SIZE_MIN <= data->size);
+	assert_true(DPACK_INT16_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.int16);
 }
 
 static void
@@ -811,8 +851,13 @@ dpack_scalar_utest_unpack_int16_min(
 
 	assert_int_equal(dpack_decode_int16_min(decoder, data->low.int16, &val),
 	                 data->error);
-	if (!data->error)
-		assert_int_equal(val, data->value.int16);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_INT16_SIZE_MIN <= data->size);
+	assert_true(DPACK_INT16_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.int16);
 }
 
 static void
@@ -926,8 +971,13 @@ dpack_scalar_utest_unpack_uint32(struct dpack_decoder *                 decoder,
 	uint32_t val;
 
 	assert_int_equal(dpack_decode_uint32(decoder, &val), data->error);
-	if (!data->error)
-		assert_int_equal(val, data->value.uint32);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_UINT32_SIZE_MIN <= data->size);
+	assert_true(DPACK_UINT32_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.uint32);
 }
 
 static void
@@ -987,8 +1037,13 @@ dpack_scalar_utest_unpack_uint32_min(
 	                                         data->low.uint32,
 	                                         &val),
 	                 data->error);
-	if (!data->error)
-		assert_int_equal(val, data->value.uint32);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_UINT32_SIZE_MIN <= data->size);
+	assert_true(DPACK_UINT32_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.uint32);
 }
 
 static void
@@ -1128,8 +1183,13 @@ dpack_scalar_utest_unpack_int32(struct dpack_decoder *                 decoder,
 	int32_t val;
 
 	assert_int_equal(dpack_decode_int32(decoder, &val), data->error);
-	if (!data->error)
-		assert_int_equal(val, data->value.int32);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_INT32_SIZE_MIN <= data->size);
+	assert_true(DPACK_INT32_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.int32);
 }
 
 static void
@@ -1196,8 +1256,13 @@ dpack_scalar_utest_unpack_int32_min(
 
 	assert_int_equal(dpack_decode_int32_min(decoder, data->low.int32, &val),
 	                 data->error);
-	if (!data->error)
-		assert_int_equal(val, data->value.int32);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_INT32_SIZE_MIN <= data->size);
+	assert_true(DPACK_INT32_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.int32);
 }
 
 static void
@@ -1320,8 +1385,13 @@ dpack_scalar_utest_unpack_uint64(struct dpack_decoder *                 decoder,
 	uint64_t val;
 
 	assert_int_equal(dpack_decode_uint64(decoder, &val), data->error);
-	if (!data->error)
-		assert_int_equal(val, data->value.uint64);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_UINT64_SIZE_MIN <= data->size);
+	assert_true(DPACK_UINT64_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.uint64);
 }
 
 static void
@@ -1378,8 +1448,13 @@ dpack_scalar_utest_unpack_uint64_min(
 	                                         data->low.uint64,
 	                                         &val),
 	                 data->error);
-	if (!data->error)
-		assert_int_equal(val, data->value.uint64);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_UINT64_SIZE_MIN <= data->size);
+	assert_true(DPACK_UINT64_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.uint64);
 }
 
 static void
@@ -1520,8 +1595,13 @@ dpack_scalar_utest_unpack_int64(struct dpack_decoder *                 decoder,
 	int64_t val;
 
 	assert_int_equal(dpack_decode_int64(decoder, &val), data->error);
-	if (!data->error)
-		assert_int_equal(val, data->value.int64);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_INT64_SIZE_MIN <= data->size);
+	assert_true(DPACK_INT64_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.int64);
 }
 
 static void
@@ -1588,8 +1668,13 @@ dpack_scalar_utest_unpack_int64_min(
 
 	assert_int_equal(dpack_decode_int64_min(decoder, data->low.int64, &val),
 	                 data->error);
-	if (!data->error)
-		assert_int_equal(val, data->value.int64);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_INT64_SIZE_MIN <= data->size);
+	assert_true(DPACK_INT64_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.int64);
 }
 
 static void
