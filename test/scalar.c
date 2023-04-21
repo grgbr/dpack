@@ -68,7 +68,7 @@ dpack_scalar_utest_unpack_bool(struct dpack_decoder *                 decoder,
 }
 
 static void
-dpack_scalar_utest_bool(void ** state __unused)
+dpack_scalar_utest_decode_bool(void ** state __unused)
 {
 	static const struct dpack_scalar_utest_data data[] = {
 		/* 1 */
@@ -119,7 +119,7 @@ dpack_scalar_utest_unpack_uint8(struct dpack_decoder *                 decoder,
 }
 
 static void
-dpack_scalar_utest_uint8(void ** state __unused)
+dpack_scalar_utest_decode_uint8(void ** state __unused)
 {
 	static const struct dpack_scalar_utest_data data[] = {
 		/* -1 */
@@ -175,7 +175,7 @@ dpack_scalar_utest_unpack_uint8_min(
 }
 
 static void
-dpack_scalar_utest_uint8_min(void ** state __unused)
+dpack_scalar_utest_decode_uint8_min(void ** state __unused)
 {
 	static const struct dpack_scalar_utest_data data[] = {
 		/* -1 */
@@ -252,7 +252,7 @@ dpack_scalar_utest_unpack_int8(struct dpack_decoder *                 decoder,
 }
 
 static void
-dpack_scalar_utest_int8(void ** state __unused)
+dpack_scalar_utest_decode_int8(void ** state __unused)
 {
 	static const struct dpack_scalar_utest_data data[] = {
 		/* -129 */
@@ -314,7 +314,7 @@ dpack_scalar_utest_unpack_int8_min(
 }
 
 static void
-dpack_scalar_utest_int8_min(void ** state __unused)
+dpack_scalar_utest_decode_int8_min(void ** state __unused)
 {
 	static const struct dpack_scalar_utest_data data[] = {
 		/* -129 */
@@ -387,7 +387,7 @@ dpack_scalar_utest_unpack_uint16(struct dpack_decoder *                 decoder,
 }
 
 static void
-dpack_scalar_utest_uint16(void ** state __unused)
+dpack_scalar_utest_decode_uint16(void ** state __unused)
 {
 	static const struct dpack_scalar_utest_data data[] = {
 		/* -1 */
@@ -445,7 +445,7 @@ dpack_scalar_utest_unpack_uint16_min(
 }
 
 static void
-dpack_scalar_utest_uint16_min(void ** state __unused)
+dpack_scalar_utest_decode_uint16_min(void ** state __unused)
 {
 	static const struct dpack_scalar_utest_data data[] = {
 		/* -1 */
@@ -531,7 +531,7 @@ dpack_scalar_utest_unpack_int16(struct dpack_decoder *                 decoder,
 }
 
 static void
-dpack_scalar_utest_int16(void ** state __unused)
+dpack_scalar_utest_decode_int16(void ** state __unused)
 {
 	static const struct dpack_scalar_utest_data data[] = {
 		/* -32769 */
@@ -594,7 +594,7 @@ dpack_scalar_utest_unpack_int16_min(
 }
 
 static void
-dpack_scalar_utest_int16_min(void ** state __unused)
+dpack_scalar_utest_decode_int16_min(void ** state __unused)
 {
 	static const struct dpack_scalar_utest_data data[] = {
 		/* -32769 */
@@ -672,7 +672,7 @@ dpack_scalar_utest_unpack_uint32(struct dpack_decoder *                 decoder,
 }
 
 static void
-dpack_scalar_utest_uint32(void ** state __unused)
+dpack_scalar_utest_decode_uint32(void ** state __unused)
 {
 	static const struct dpack_scalar_utest_data data[] = {
 		/* -1 */
@@ -733,7 +733,7 @@ dpack_scalar_utest_unpack_uint32_min(
 }
 
 static void
-dpack_scalar_utest_uint32_min(void ** state __unused)
+dpack_scalar_utest_decode_uint32_min(void ** state __unused)
 {
 	static const struct dpack_scalar_utest_data data[] = {
 		/* -1 */
@@ -829,7 +829,7 @@ dpack_scalar_utest_unpack_int32(struct dpack_decoder *                 decoder,
 }
 
 static void
-dpack_scalar_utest_int32(void ** state __unused)
+dpack_scalar_utest_decode_int32(void ** state __unused)
 {
 	static const struct dpack_scalar_utest_data data[] = {
 		/* -32769 */
@@ -897,7 +897,7 @@ dpack_scalar_utest_unpack_int32_min(
 }
 
 static void
-dpack_scalar_utest_int32_min(void ** state __unused)
+dpack_scalar_utest_decode_int32_min(void ** state __unused)
 {
 	static const struct dpack_scalar_utest_data data[] = {
 		/* -2147483649 */
@@ -983,7 +983,7 @@ dpack_scalar_utest_unpack_uint64(struct dpack_decoder *                 decoder,
 }
 
 static void
-dpack_scalar_utest_uint64(void ** state __unused)
+dpack_scalar_utest_decode_uint64(void ** state __unused)
 {
 	static const struct dpack_scalar_utest_data data[] = {
 		/* -1 */
@@ -1001,18 +1001,118 @@ dpack_scalar_utest_uint64(void ** state __unused)
 #if defined(CONFIG_DPACK_ASSERT_API)
 	uint64_t             val;
 	struct dpack_decoder dec = { 0, };
+	int                  ret __unused;
 
-	expect_assert_failure(dpack_decode_uint64(NULL, &val));
-	expect_assert_failure(dpack_decode_uint64(&dec, &val));
+	expect_assert_failure(ret = dpack_decode_uint64(NULL, &val));
+	expect_assert_failure(ret = dpack_decode_uint64(&dec, &val));
 
 	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
-	expect_assert_failure(dpack_decode_uint64(&dec, NULL));
+	expect_assert_failure(ret = dpack_decode_uint64(&dec, NULL));
 	dpack_decoder_fini(&dec);
 #endif
 
 	dpack_scalar_utest(data,
 	                   array_nr(data),
 	                   dpack_scalar_utest_unpack_uint64);
+}
+
+#define DPACK_UTEST_UINT64_MIN(_packed, _error, _value, _low) \
+	{ \
+		.packed       = _packed, \
+		.size         = sizeof(_packed) - 1, \
+		.error        = _error, \
+		.value.uint64 = _value, \
+		.low.uint64   = _low \
+	}
+
+static void
+dpack_scalar_utest_unpack_uint64_min(
+	struct dpack_decoder *                 decoder,
+	const struct dpack_scalar_utest_data * data)
+{
+	uint64_t val;
+
+	assert_int_equal(dpack_decode_uint64_min(decoder,
+	                                         data->low.uint64,
+	                                         &val),
+	                 data->error);
+	if (!data->error)
+		assert_int_equal(val, data->value.uint64);
+}
+
+static void
+dpack_scalar_utest_decode_uint64_min(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* -1 */
+		DPACK_UTEST_UINT64_MIN("\xff",             -ENOMSG, 0,              UINT64_C(1)),
+		/* 0 */
+		DPACK_UTEST_UINT64_MIN("\x00",             -ERANGE, 0,              UINT64_C(1)),
+		/* 1 */
+		DPACK_UTEST_UINT64_MIN("\x01",             0,       UINT64_C(1),    UINT64_C(1)),
+		/* 9223372036854775807 */
+		DPACK_UTEST_UINT64_MIN("\xcf"
+		                       "\x7f\xff\xff\xff"
+		                       "\xff\xff\xff\xff", 0,       UINT64_MAX / 2, UINT64_C(1)),
+		/* 18446744073709551615 */
+		DPACK_UTEST_UINT64_MIN("\xcf"
+		                       "\xff\xff\xff\xff"
+		                       "\xff\xff\xff\xff", 0,       UINT64_MAX,     UINT64_C(1)),
+
+		/* -1 */
+		DPACK_UTEST_UINT64_MIN("\xff",             -ENOMSG, 0,              UINT64_MAX / 2),
+		/* 0 */
+		DPACK_UTEST_UINT64_MIN("\x00",             -ERANGE, 0,              UINT64_MAX / 2),
+		/* 1 */
+		DPACK_UTEST_UINT64_MIN("\x01",             -ERANGE, 0,              UINT64_MAX / 2),
+
+		/* 9223372036854775806 */
+		DPACK_UTEST_UINT64_MIN("\xcf"
+		                       "\x7f\xff\xff\xff"
+		                       "\xff\xff\xff\xfe", -ERANGE, 0,              UINT64_MAX / 2),
+		/* 9223372036854775807 */
+		DPACK_UTEST_UINT64_MIN("\xcf"
+		                       "\x7f\xff\xff\xff"
+		                       "\xff\xff\xff\xff", 0,       UINT64_MAX / 2, UINT64_MAX / 2),
+		/* 18446744073709551615 */
+		DPACK_UTEST_UINT64_MIN("\xcf"
+		                       "\xff\xff\xff\xff"
+		                       "\xff\xff\xff\xff", 0,       UINT64_MAX,     UINT64_MAX / 2),
+
+		/* 18446744073709551613 */
+		DPACK_UTEST_UINT64_MIN("\xcf"
+		                       "\xff\xff\xff\xff"
+		                       "\xff\xff\xff\xfd", -ERANGE, 0,              UINT64_MAX - 1),
+		/* 18446744073709551614 */
+		DPACK_UTEST_UINT64_MIN("\xcf"
+		                       "\xff\xff\xff\xff"
+		                       "\xff\xff\xff\xfe", 0,       UINT64_MAX - 1, UINT64_MAX - 1),
+		/* 18446744073709551615 */
+		DPACK_UTEST_UINT64_MIN("\xcf"
+		                       "\xff\xff\xff\xff"
+		                       "\xff\xff\xff\xff", 0,       UINT64_MAX,     UINT64_MAX - 1)
+	};
+
+#if defined(CONFIG_DPACK_ASSERT_API)
+	uint64_t             val;
+	struct dpack_decoder dec = { 0, };
+	int                  ret __unused;
+
+	expect_assert_failure(ret = dpack_decode_uint64_min(NULL, 1, &val));
+	expect_assert_failure(ret = dpack_decode_uint64_min(&dec, 1, &val));
+	expect_assert_failure(ret = dpack_decode_uint64_min(NULL, 0, &val));
+	expect_assert_failure(ret = dpack_decode_uint64_min(NULL,
+	                                                    UINT64_MAX,
+	                                                    &val));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(ret = dpack_decode_uint64_min(&dec, 1, NULL));
+	dpack_decoder_fini(&dec);
+#endif
+
+	dpack_scalar_utest(data,
+	                   array_nr(data),
+	                   dpack_scalar_utest_unpack_uint64_min);
 }
 
 #define DPACK_UTEST_INT64(_packed, _error, _value) \
@@ -1035,7 +1135,7 @@ dpack_scalar_utest_unpack_int64(struct dpack_decoder *                 decoder,
 }
 
 static void
-dpack_scalar_utest_int64(void ** state __unused)
+dpack_scalar_utest_decode_int64(void ** state __unused)
 {
 	static const struct dpack_scalar_utest_data data[] = {
 		/* 9223372036854775808 */
@@ -1065,12 +1165,13 @@ dpack_scalar_utest_int64(void ** state __unused)
 #if defined(CONFIG_DPACK_ASSERT_API)
 	int64_t               val;
 	struct dpack_decoder dec = { 0, };
+	int                  ret __unused;
 
-	expect_assert_failure(dpack_decode_int64(NULL, &val));
-	expect_assert_failure(dpack_decode_int64(&dec, &val));
+	expect_assert_failure(ret = dpack_decode_int64(NULL, &val));
+	expect_assert_failure(ret = dpack_decode_int64(&dec, &val));
 
 	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
-	expect_assert_failure(dpack_decode_int64(&dec, NULL));
+	expect_assert_failure(ret = dpack_decode_int64(&dec, NULL));
 	dpack_decoder_fini(&dec);
 #endif
 
@@ -1079,22 +1180,117 @@ dpack_scalar_utest_int64(void ** state __unused)
 	                   dpack_scalar_utest_unpack_int64);
 }
 
+#define DPACK_UTEST_INT64_MIN(_packed, _error, _value, _low) \
+	{ \
+		.packed      = _packed, \
+		.size        = sizeof(_packed) - 1, \
+		.error       = _error, \
+		.value.int64 = _value, \
+		.low.int64   = _low \
+	}
+
+static void
+dpack_scalar_utest_unpack_int64_min(
+	struct dpack_decoder *                 decoder,
+	const struct dpack_scalar_utest_data * data)
+{
+	int64_t val;
+
+	assert_int_equal(dpack_decode_int64_min(decoder, data->low.int64, &val),
+	                 data->error);
+	if (!data->error)
+		assert_int_equal(val, data->value.int64);
+}
+
+static void
+dpack_scalar_utest_decode_int64_min(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* -9223372036854775808 */
+		DPACK_UTEST_INT64_MIN("\xd3"
+		                      "\x80\x00\x00\x00"
+		                      "\x00\x00\x00\x00", -ERANGE, 0,             INT64_MIN + 1),
+		/* -9223372036854775807 */
+		DPACK_UTEST_INT64_MIN("\xd3"
+		                      "\x80\x00\x00\x00"
+		                      "\x00\x00\x00\x01", 0,       INT64_MIN + 1, INT64_MIN + 1),
+		/* -9223372036854775806 */
+		DPACK_UTEST_INT64_MIN("\xd3"
+		                      "\x80\x00\x00\x00"
+		                      "\x00\x00\x00\x02", 0,       INT64_MIN + 2, INT64_MIN + 1),
+
+		/* -1 */
+		DPACK_UTEST_INT64_MIN("\xff",             -ERANGE, 0,             INT64_C(0)),
+		/* 0 */
+		DPACK_UTEST_INT64_MIN("\x00",             0,       INT64_C(0),    INT64_C(0)),
+		/* 1 */
+		DPACK_UTEST_INT64_MIN("\x01",             0,       INT64_C(1),    INT64_C(0)),
+
+		/* 9223372036854775807 */
+		DPACK_UTEST_INT64_MIN("\xcf"
+		                      "\x7f\xff\xff\xff"
+		                      "\xff\xff\xff\xff", 0,       INT64_MAX,     INT64_C(0)),
+		/* 9223372036854775808 */
+		DPACK_UTEST_INT64_MIN("\xcf"
+		                      "\x80\x00\x00\x00"
+		                      "\x00\x00\x00\x00", -ERANGE, 0,             INT64_C(0)),
+
+		/* 9223372036854775805 */
+		DPACK_UTEST_INT64_MIN("\xcf"
+		                      "\x7f\xff\xff\xff"
+		                      "\xff\xff\xff\xfd", -ERANGE, 0,             INT64_MAX - 1),
+		/* 9223372036854775806 */
+		DPACK_UTEST_INT64_MIN("\xcf"
+		                      "\x7f\xff\xff\xff"
+		                      "\xff\xff\xff\xfe", 0,       INT64_MAX - 1, INT64_MAX - 1),
+		/* 9223372036854775807 */
+		DPACK_UTEST_INT64_MIN("\xcf"
+		                      "\x7f\xff\xff\xff"
+		                      "\xff\xff\xff\xff", 0,       INT64_MAX,     INT64_MAX - 1),
+	};
+
+#if defined(CONFIG_DPACK_ASSERT_API)
+	int64_t               val;
+	struct dpack_decoder dec = { 0, };
+	int                  ret __unused;
+
+	expect_assert_failure(ret = dpack_decode_int64_min(NULL, 1, &val));
+	expect_assert_failure(ret = dpack_decode_int64_min(&dec, 1, &val));
+	expect_assert_failure(ret = dpack_decode_int64_min(NULL,
+                                                           INT64_MIN,
+                                                           &val));
+	expect_assert_failure(ret = dpack_decode_int64_min(NULL,
+                                                           INT64_MAX,
+                                                           &val));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(ret = dpack_decode_int64_min(&dec, 1, NULL));
+	dpack_decoder_fini(&dec);
+#endif
+
+	dpack_scalar_utest(data,
+	                   array_nr(data),
+	                   dpack_scalar_utest_unpack_int64_min);
+}
+
 static const struct CMUnitTest dpack_stdint_utests[] = {
-	cmocka_unit_test(dpack_scalar_utest_bool),
-	cmocka_unit_test(dpack_scalar_utest_uint8),
-	cmocka_unit_test(dpack_scalar_utest_uint8_min),
-	cmocka_unit_test(dpack_scalar_utest_int8),
-	cmocka_unit_test(dpack_scalar_utest_int8_min),
-	cmocka_unit_test(dpack_scalar_utest_uint16),
-	cmocka_unit_test(dpack_scalar_utest_uint16_min),
-	cmocka_unit_test(dpack_scalar_utest_int16),
-	cmocka_unit_test(dpack_scalar_utest_int16_min),
-	cmocka_unit_test(dpack_scalar_utest_uint32),
-	cmocka_unit_test(dpack_scalar_utest_uint32_min),
-	cmocka_unit_test(dpack_scalar_utest_int32),
-	cmocka_unit_test(dpack_scalar_utest_int32_min),
-	cmocka_unit_test(dpack_scalar_utest_uint64),
-	cmocka_unit_test(dpack_scalar_utest_int64)
+	cmocka_unit_test(dpack_scalar_utest_decode_bool),
+	cmocka_unit_test(dpack_scalar_utest_decode_uint8),
+	cmocka_unit_test(dpack_scalar_utest_decode_uint8_min),
+	cmocka_unit_test(dpack_scalar_utest_decode_int8),
+	cmocka_unit_test(dpack_scalar_utest_decode_int8_min),
+	cmocka_unit_test(dpack_scalar_utest_decode_uint16),
+	cmocka_unit_test(dpack_scalar_utest_decode_uint16_min),
+	cmocka_unit_test(dpack_scalar_utest_decode_int16),
+	cmocka_unit_test(dpack_scalar_utest_decode_int16_min),
+	cmocka_unit_test(dpack_scalar_utest_decode_uint32),
+	cmocka_unit_test(dpack_scalar_utest_decode_uint32_min),
+	cmocka_unit_test(dpack_scalar_utest_decode_int32),
+	cmocka_unit_test(dpack_scalar_utest_decode_int32_min),
+	cmocka_unit_test(dpack_scalar_utest_decode_uint64),
+	cmocka_unit_test(dpack_scalar_utest_decode_uint64_min),
+	cmocka_unit_test(dpack_scalar_utest_decode_int64),
+	cmocka_unit_test(dpack_scalar_utest_decode_int64_min)
 };
 
 int

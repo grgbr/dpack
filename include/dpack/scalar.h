@@ -318,11 +318,19 @@ dpack_encode_uint64(struct dpack_encoder * encoder,
                     uint64_t               value) __dpack_export;
 extern int
 dpack_decode_uint64(struct dpack_decoder * decoder,
-                    uint64_t             * value) __dpack_export;
+                    uint64_t * __restrict  value) __dpack_nonull(1, 2)
+                                                  __dpack_nothrow
+                                                  __leaf
+                                                  __warn_result
+                                                  __dpack_export;
 extern int
 dpack_decode_uint64_min(struct dpack_decoder * decoder,
                         uint64_t               low,
-                        uint64_t             * value) __dpack_export;
+                        uint64_t * __restrict  value) __dpack_nonull(1, 3)
+                                                      __dpack_nothrow
+                                                      __leaf
+                                                      __warn_result
+                                                      __dpack_export;
 extern int
 dpack_decode_uint64_max(struct dpack_decoder * decoder,
                         uint64_t               high,
@@ -341,11 +349,19 @@ dpack_encode_int64(struct dpack_encoder * encoder,
                    int64_t                value) __dpack_export;
 extern int
 dpack_decode_int64(struct dpack_decoder * decoder,
-                   int64_t              * value) __dpack_export;
+                   int64_t * __restrict   value) __dpack_nonull(1, 2)
+                                                 __dpack_nothrow
+                                                 __leaf
+                                                 __warn_result
+                                                 __dpack_export;
 extern int
 dpack_decode_int64_min(struct dpack_decoder * decoder,
                        int64_t                low,
-                       int64_t              * value) __dpack_export;
+                       int64_t * __restrict   value) __dpack_nonull(1, 3)
+                                                     __dpack_nothrow
+                                                     __leaf
+                                                     __warn_result
+                                                     __dpack_export;
 extern int
 dpack_decode_int64_max(struct dpack_decoder * decoder,
                        int64_t                high,

@@ -471,7 +471,7 @@ DPACK_INT_DEFINE_DECODE_RANGE(dpack_decode_int32_range,
 DPACK_SCALAR_DEFINE_ENCODE(dpack_encode_uint64, uint64_t, mpack_write_u64)
 
 int
-dpack_decode_uint64(struct dpack_decoder * decoder, uint64_t * value)
+dpack_decode_uint64(struct dpack_decoder * decoder, uint64_t * __restrict value)
 {
 	dpack_assert_api_decoder(decoder);
 	dpack_assert_api(value);
@@ -491,7 +491,7 @@ dpack_decode_uint64(struct dpack_decoder * decoder, uint64_t * value)
 int
 dpack_decode_uint64_min(struct dpack_decoder * decoder,
                         uint64_t               low,
-                        uint64_t             * value)
+                        uint64_t * __restrict  value)
 {
 	dpack_assert_api_decoder(decoder);
 	dpack_assert_api(low);
@@ -532,7 +532,7 @@ dpack_decode_uint64_range(struct dpack_decoder * decoder,
 DPACK_SCALAR_DEFINE_ENCODE(dpack_encode_int64, int64_t, mpack_write_i64)
 
 int
-dpack_decode_int64(struct dpack_decoder * decoder, int64_t * value)
+dpack_decode_int64(struct dpack_decoder * decoder, int64_t * __restrict value)
 {
 	dpack_assert_api_decoder(decoder);
 	dpack_assert_api(value);
@@ -543,7 +543,7 @@ dpack_decode_int64(struct dpack_decoder * decoder, int64_t * value)
 int
 dpack_decode_int64_min(struct dpack_decoder * decoder,
                        int64_t                low,
-                       int64_t              * value)
+                       int64_t * __restrict   value)
 {
 	dpack_assert_api_decoder(decoder);
 	dpack_assert_api(low > INT64_MIN);
