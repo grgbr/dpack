@@ -5,9 +5,6 @@
 
 struct dpack_scalar_utest_data;
 
-typedef void (dpack_utest_unpack_fn)(struct dpack_decoder *,
-                                     const struct dpack_scalar_utest_data *);
-
 union dpack_scalar_utest_value {
 	bool     boolean;
 	uint8_t  uint8;
@@ -30,10 +27,13 @@ struct dpack_scalar_utest_data {
 	union dpack_scalar_utest_value low;
 };
 
+typedef void (dpack_utest_unpack_fn)(struct dpack_decoder *,
+                                     const struct dpack_scalar_utest_data *);
+
 static void
-dpack_scalar_utest(const struct dpack_scalar_utest_data * data,
-                   unsigned int                           nr,
-                   dpack_utest_unpack_fn *                unpack)
+dpack_scalar_utest_decode(const struct dpack_scalar_utest_data * data,
+                          unsigned int                           nr,
+                          dpack_utest_unpack_fn *                unpack)
 
 {
 	struct dpack_decoder dec = { 0, };
@@ -43,8 +43,41 @@ dpack_scalar_utest(const struct dpack_scalar_utest_data * data,
 		dpack_decoder_init_buffer(&dec, data[d].packed, data[d].size);
 
 		unpack(&dec, &data[d]);
+		if (!data[d].error)
+			assert_int_equal(dpack_decoder_data_left(&dec), 0);
 
 		dpack_decoder_fini(&dec);
+	}
+}
+
+typedef int (dpack_utest_pack_fn)(struct dpack_encoder *,
+                                  const struct dpack_scalar_utest_data *);
+
+static void
+dpack_scalar_utest_encode(const struct dpack_scalar_utest_data * data,
+                          unsigned int                           nr,
+                          dpack_utest_pack_fn *                  pack)
+
+{
+	struct dpack_encoder enc = { 0, };
+	unsigned int         d;
+
+	for (d = 0; d < nr; d++) {
+		size_t sz = data[d].size;
+		char   buff[sz];
+		int    err;
+
+		memset(buff, 0xa5, sz);
+		dpack_encoder_init_buffer(&enc, buff, sz);
+
+		err = pack(&enc, &data[d]);
+		assert_int_equal(err, data[d].error);
+		assert_memory_equal(buff, data[d].packed, sz);
+
+		assert_int_equal(dpack_encoder_space_used(&enc), sz);
+		assert_int_equal(dpack_encoder_space_left(&enc), 0);
+
+		dpack_encoder_fini(&enc);
 	}
 }
 
@@ -94,9 +127,40 @@ dpack_scalar_utest_decode_bool(void ** state __unused)
 	dpack_decoder_fini(&dec);
 #endif
 
-	dpack_scalar_utest(data,
-	                   array_nr(data),
-	                   dpack_scalar_utest_unpack_bool);
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_bool);
+}
+
+static int
+dpack_scalar_utest_pack_bool(struct dpack_encoder *                 encoder,
+                             const struct dpack_scalar_utest_data * data)
+{
+	return dpack_encode_bool(encoder, data->value.boolean);
+}
+
+static void
+dpack_scalar_utest_encode_bool(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* True */
+		DPACK_UTEST_BOOL("\xc3", 0, true),
+		/* False */
+		DPACK_UTEST_BOOL("\xc2", 0, false)
+	};
+
+#if defined(CONFIG_DPACK_ASSERT_API)
+	bool                 val = false;
+	struct dpack_encoder enc = { 0, };
+	int                  ret __unused;
+
+	expect_assert_failure(ret = dpack_encode_bool(NULL, val));
+	expect_assert_failure(ret = dpack_encode_bool(&enc, val));
+#endif
+
+	dpack_scalar_utest_encode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_pack_bool);
 }
 
 #define DPACK_UTEST_UINT8(_packed, _error, _value) \
@@ -147,9 +211,9 @@ dpack_scalar_utest_decode_uint8(void ** state __unused)
 	dpack_decoder_fini(&dec);
 #endif
 
-	dpack_scalar_utest(data,
-	                   array_nr(data),
-	                   dpack_scalar_utest_unpack_uint8);
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_uint8);
 }
 
 #define DPACK_UTEST_UINT8_MIN(_packed, _error, _value, _low) \
@@ -227,9 +291,9 @@ dpack_scalar_utest_decode_uint8_min(void ** state __unused)
 	dpack_decoder_fini(&dec);
 #endif
 
-	dpack_scalar_utest(data,
-	                   array_nr(data),
-	                   dpack_scalar_utest_unpack_uint8_min);
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_uint8_min);
 }
 
 #define DPACK_UTEST_INT8(_packed, _error, _value) \
@@ -286,9 +350,9 @@ dpack_scalar_utest_decode_int8(void ** state __unused)
 	dpack_decoder_fini(&dec);
 #endif
 
-	dpack_scalar_utest(data,
-	                   array_nr(data),
-	                   dpack_scalar_utest_unpack_int8);
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_int8);
 }
 
 #define DPACK_UTEST_INT8_MIN(_packed, _error, _value, _low) \
@@ -362,9 +426,9 @@ dpack_scalar_utest_decode_int8_min(void ** state __unused)
 	dpack_decoder_fini(&dec);
 #endif
 
-	dpack_scalar_utest(data,
-	                   array_nr(data),
-	                   dpack_scalar_utest_unpack_int8_min);
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_int8_min);
 }
 
 #define DPACK_UTEST_UINT16(_packed, _error, _value) \
@@ -415,9 +479,9 @@ dpack_scalar_utest_decode_uint16(void ** state __unused)
 	dpack_decoder_fini(&dec);
 #endif
 
-	dpack_scalar_utest(data,
-	                   array_nr(data),
-	                   dpack_scalar_utest_unpack_uint16);
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_uint16);
 }
 
 #define DPACK_UTEST_UINT16_MIN(_packed, _error, _value, _low) \
@@ -506,9 +570,9 @@ dpack_scalar_utest_decode_uint16_min(void ** state __unused)
 	dpack_decoder_fini(&dec);
 #endif
 
-	dpack_scalar_utest(data,
-	                   array_nr(data),
-	                   dpack_scalar_utest_unpack_uint16_min);
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_uint16_min);
 }
 
 #define DPACK_UTEST_INT16(_packed, _error, _value) \
@@ -566,9 +630,9 @@ dpack_scalar_utest_decode_int16(void ** state __unused)
 	dpack_decoder_fini(&dec);
 #endif
 
-	dpack_scalar_utest(data,
-	                   array_nr(data),
-	                   dpack_scalar_utest_unpack_int16);
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_int16);
 }
 
 #define DPACK_UTEST_INT16_MIN(_packed, _error, _value, _low) \
@@ -647,9 +711,9 @@ dpack_scalar_utest_decode_int16_min(void ** state __unused)
 	dpack_decoder_fini(&dec);
 #endif
 
-	dpack_scalar_utest(data,
-	                   array_nr(data),
-	                   dpack_scalar_utest_unpack_int16_min);
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_int16_min);
 }
 
 #define DPACK_UTEST_UINT32(_packed, _error, _value) \
@@ -703,9 +767,9 @@ dpack_scalar_utest_decode_uint32(void ** state __unused)
 	dpack_decoder_fini(&dec);
 #endif
 
-	dpack_scalar_utest(data,
-	                   array_nr(data),
-	                   dpack_scalar_utest_unpack_uint32);
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_uint32);
 }
 
 #define DPACK_UTEST_UINT32_MIN(_packed, _error, _value, _low) \
@@ -804,9 +868,9 @@ dpack_scalar_utest_decode_uint32_min(void ** state __unused)
 	dpack_decoder_fini(&dec);
 #endif
 
-	dpack_scalar_utest(data,
-	                   array_nr(data),
-	                   dpack_scalar_utest_unpack_uint32_min);
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_uint32_min);
 }
 
 #define DPACK_UTEST_INT32(_packed, _error, _value) \
@@ -869,9 +933,9 @@ dpack_scalar_utest_decode_int32(void ** state __unused)
 	dpack_decoder_fini(&dec);
 #endif
 
-	dpack_scalar_utest(data,
-	                   array_nr(data),
-	                   dpack_scalar_utest_unpack_int32);
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_int32);
 }
 
 #define DPACK_UTEST_INT32_MIN(_packed, _error, _value, _low) \
@@ -958,9 +1022,9 @@ dpack_scalar_utest_decode_int32_min(void ** state __unused)
 	dpack_decoder_fini(&dec);
 #endif
 
-	dpack_scalar_utest(data,
-	                   array_nr(data),
-	                   dpack_scalar_utest_unpack_int32_min);
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_int32_min);
 }
 
 #define DPACK_UTEST_UINT64(_packed, _error, _value) \
@@ -1011,9 +1075,9 @@ dpack_scalar_utest_decode_uint64(void ** state __unused)
 	dpack_decoder_fini(&dec);
 #endif
 
-	dpack_scalar_utest(data,
-	                   array_nr(data),
-	                   dpack_scalar_utest_unpack_uint64);
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_uint64);
 }
 
 #define DPACK_UTEST_UINT64_MIN(_packed, _error, _value, _low) \
@@ -1110,9 +1174,9 @@ dpack_scalar_utest_decode_uint64_min(void ** state __unused)
 	dpack_decoder_fini(&dec);
 #endif
 
-	dpack_scalar_utest(data,
-	                   array_nr(data),
-	                   dpack_scalar_utest_unpack_uint64_min);
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_uint64_min);
 }
 
 #define DPACK_UTEST_INT64(_packed, _error, _value) \
@@ -1175,9 +1239,9 @@ dpack_scalar_utest_decode_int64(void ** state __unused)
 	dpack_decoder_fini(&dec);
 #endif
 
-	dpack_scalar_utest(data,
-	                   array_nr(data),
-	                   dpack_scalar_utest_unpack_int64);
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_int64);
 }
 
 #define DPACK_UTEST_INT64_MIN(_packed, _error, _value, _low) \
@@ -1268,12 +1332,13 @@ dpack_scalar_utest_decode_int64_min(void ** state __unused)
 	dpack_decoder_fini(&dec);
 #endif
 
-	dpack_scalar_utest(data,
-	                   array_nr(data),
-	                   dpack_scalar_utest_unpack_int64_min);
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_int64_min);
 }
 
 static const struct CMUnitTest dpack_stdint_utests[] = {
+	cmocka_unit_test(dpack_scalar_utest_encode_bool),
 	cmocka_unit_test(dpack_scalar_utest_decode_bool),
 	cmocka_unit_test(dpack_scalar_utest_decode_uint8),
 	cmocka_unit_test(dpack_scalar_utest_decode_uint8_min),

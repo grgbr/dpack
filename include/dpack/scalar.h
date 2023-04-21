@@ -18,7 +18,11 @@ struct dpack_decoder;
 #define DPACK_BOOL_SIZE 1
 
 extern int
-dpack_encode_bool(struct dpack_encoder * encoder, bool value) __dpack_export;
+dpack_encode_bool(struct dpack_encoder * encoder, bool value) __dpack_nonull(1)
+                                                              __dpack_nothrow
+                                                              __leaf
+                                                              __warn_result
+                                                              __dpack_export;
 
 extern int
 dpack_decode_bool(struct dpack_decoder * decoder,

@@ -68,22 +68,9 @@ dpack_errno_from_mpack(enum mpack_error_t err)
 }
 
 extern int
-dpack_encoder_error_state(struct mpack_writer_t * writer);
+dpack_encoder_error_state(struct mpack_writer_t * writer)
+	__dpack_nonull(1) __dpack_pure __dpack_nothrow __leaf __warn_result;
 
-/*
- * Watch out !!
- *
- * This function is marked as __leaf for now. However, it calls
- * mpack_reader_flag_error() which in turn may call a function from the current
- * compilation unit thanks to the reader error_fn() function pointer of mpack.
- * 
- * If modifying dpack_decoder_error_state() and / or registering an error
- * function (thanks to 	mpack_reader_set_error_handler()) is required for
- * internal DPack purposes, MAKE SURE you return to current compilation unit
- * only by return or by exception handling.
- *
- * See Stroll's __leaf documentation for more infos.
- */
 extern int
 dpack_decoder_error_state(struct mpack_reader_t * reader)
 	__dpack_nonull(1) __dpack_pure __dpack_nothrow __leaf __warn_result;

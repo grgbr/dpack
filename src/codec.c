@@ -35,6 +35,20 @@ dpack_encoder_space_left(struct dpack_encoder * encoder)
 	return mpack_writer_buffer_left(&encoder->mpack);
 }
 
+/*
+ * Watch out !!
+ *
+ * This function is marked as __leaf for now. However, it calls
+ * mpack_writer_flag_error() which in turn may call a function from the current
+ * compilation unit thanks to the writer error_fn() function pointer of mpack.
+ *
+ * If modifying dpack_encoder_init_buffer() and / or registering an error
+ * function (thanks to mpack_writer_set_error_handler()) is required for
+ * internal DPack purposes, MAKE SURE you return to current compilation unit
+ * only by return or by exception handling.
+ *
+ * See Stroll's __leaf documentation for more infos.
+ */
 void
 dpack_encoder_init_buffer(struct dpack_encoder * encoder,
                           char *                 buffer,
@@ -47,6 +61,19 @@ dpack_encoder_init_buffer(struct dpack_encoder * encoder,
 	mpack_writer_init(&encoder->mpack, buffer, size);
 }
 
+/*
+ * Watch out !!
+ *
+ * This function is marked as __leaf for now. However, it may call multiple
+ * function pointers registered by the caller. See writer's flush(), teardown,
+ * error_fn() function pointers.
+ *
+ * If modifying dpack_encoder_fini() and / or registering function pointers is
+ * required for internal DPack purposes, MAKE SURE you return to current
+ * compilation unit only by return or by exception handling.
+ *
+ * See Stroll's __leaf documentation for more infos.
+ */
 void
 dpack_encoder_fini(struct dpack_encoder * encoder)
 {
@@ -78,6 +105,20 @@ dpack_decoder_error_state(struct mpack_reader_t * reader)
 	return 0;
 }
 
+/*
+ * Watch out !!
+ *
+ * This function is marked as __leaf for now. However, it calls
+ * mpack_reader_flag_error() which in turn may call a function from the current
+ * compilation unit thanks to the reader error_fn() function pointer of mpack.
+ *
+ * If modifying dpack_decode_tag() and / or registering an error
+ * function (thanks to mpack_reader_set_error_handler()) is required for
+ * internal DPack purposes, MAKE SURE you return to current compilation unit
+ * only by return or by exception handling.
+ *
+ * See Stroll's __leaf documentation for more infos.
+ */
 int
 dpack_decode_tag(struct mpack_reader_t *         reader,
                  enum mpack_type_t               type,
@@ -102,6 +143,21 @@ dpack_decode_tag(struct mpack_reader_t *         reader,
 	return 0;
 }
 
+/*
+ * Watch out !!
+ *
+ * This function is marked as __leaf for now. However, when mpack read tracking
+ * is enabled, it calls mpack_reader_flag_error() which in turn may call a
+ * function from the current compilation unit thanks to the reader error_fn()
+ * function pointer of mpack.
+ *
+ * If modifying dpack_decoder_data_left() and / or registering an error
+ * function (thanks to mpack_reader_set_error_handler()) is required for
+ * internal DPack purposes, MAKE SURE you return to current compilation unit
+ * only by return or by exception handling.
+ *
+ * See Stroll's __leaf documentation for more infos.
+ */
 size_t
 dpack_decoder_data_left(struct dpack_decoder * decoder)
 {
@@ -110,7 +166,7 @@ dpack_decoder_data_left(struct dpack_decoder * decoder)
 	return mpack_reader_remaining(&decoder->mpack, NULL);
 }
 
-static void
+static void __dpack_nonull(1) __dpack_nothrow
 dpack_decoder_discard(struct dpack_decoder * decoder,
                       enum mpack_type_t      type,
                       unsigned int           nr)
@@ -140,6 +196,21 @@ dpack_decoder_skip(struct dpack_decoder * decoder)
 	return dpack_decoder_error_state(&decoder->mpack);
 }
 
+/*
+ * Watch out !!
+ *
+ * This function is marked as __leaf for now. However, when mpack read tracking
+ * is enabled, it calls mpack_reader_flag_error() which in turn may call a
+ * function from the current compilation unit thanks to the reader error_fn()
+ * function pointer of mpack.
+ *
+ * If modifying dpack_decoder_init_skip_buffer() and / or registering an error
+ * function (thanks to mpack_reader_set_error_handler()) is required for
+ * internal DPack purposes, MAKE SURE you return to current compilation unit
+ * only by return or by exception handling.
+ *
+ * See Stroll's __leaf documentation for more infos.
+ */
 void
 dpack_decoder_init_skip_buffer(struct dpack_decoder * decoder,
                                const char *           buffer,
@@ -153,7 +224,7 @@ dpack_decoder_init_skip_buffer(struct dpack_decoder * decoder,
 	decoder->intr = dpack_decoder_discard;
 }
 
-static void
+static void __dpack_nonull(1) __dpack_nothrow
 dpack_decoder_abort(struct dpack_decoder * decoder,
                     enum mpack_type_t      type __unused,
                     unsigned int           nr __unused)
@@ -163,6 +234,21 @@ dpack_decoder_abort(struct dpack_decoder * decoder,
 	mpack_reader_flag_error(&decoder->mpack, mpack_error_data);
 }
 
+/*
+ * Watch out !!
+ *
+ * This function is marked as __leaf for now. However, when mpack read tracking
+ * is enabled, it calls mpack_reader_flag_error() which in turn may call a
+ * function from the current compilation unit thanks to the reader error_fn()
+ * function pointer of mpack.
+ *
+ * If modifying dpack_decoder_init_buffer() and / or registering an error
+ * function (thanks to mpack_reader_set_error_handler()) is required for
+ * internal DPack purposes, MAKE SURE you return to current compilation unit
+ * only by return or by exception handling.
+ *
+ * See Stroll's __leaf documentation for more infos.
+ */
 void
 dpack_decoder_init_buffer(struct dpack_decoder * decoder,
                           const char *           buffer,
@@ -176,6 +262,19 @@ dpack_decoder_init_buffer(struct dpack_decoder * decoder,
 	decoder->intr = dpack_decoder_abort;
 }
 
+/*
+ * Watch out !!
+ *
+ * This function is marked as __leaf for now. However, it may call multiple
+ * function pointers registered by the caller. See reader's teardown and
+ * error_fn() function pointers.
+ *
+ * If modifying dpack_decoder_fini() and / or registering function pointers is
+ * required for internal DPack purposes, MAKE SURE you return to current
+ * compilation unit only by return or by exception handling.
+ *
+ * See Stroll's __leaf documentation for more infos.
+ */
 void
 dpack_decoder_fini(struct dpack_decoder * decoder)
 {
