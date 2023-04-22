@@ -25,6 +25,7 @@ struct dpack_scalar_utest_data {
 	int                            error;
 	union dpack_scalar_utest_value value;
 	union dpack_scalar_utest_value low;
+	union dpack_scalar_utest_value high;
 };
 
 typedef void (dpack_utest_unpack_fn)(struct dpack_decoder *,
@@ -331,8 +332,8 @@ dpack_scalar_utest_decode_uint8_min(void ** state __unused)
 
 	expect_assert_failure(ret = dpack_decode_uint8_min(NULL, 1, &val));
 	expect_assert_failure(ret = dpack_decode_uint8_min(&dec, 1, &val));
-	expect_assert_failure(ret = dpack_decode_uint8_min(NULL, 0, &val));
-	expect_assert_failure(ret = dpack_decode_uint8_min(NULL,
+	expect_assert_failure(ret = dpack_decode_uint8_min(&dec, 0, &val));
+	expect_assert_failure(ret = dpack_decode_uint8_min(&dec,
 	                                                   UINT8_MAX,
 	                                                   &val));
 
@@ -344,6 +345,93 @@ dpack_scalar_utest_decode_uint8_min(void ** state __unused)
 	dpack_scalar_utest_decode(data,
 	                          array_nr(data),
 	                          dpack_scalar_utest_unpack_uint8_min);
+}
+
+#define DPACK_UTEST_UINT8_MAX(_packed, _error, _value, _high) \
+	{ \
+		.packed      = _packed, \
+		.size        = sizeof(_packed) - 1, \
+		.error       = _error, \
+		.value.uint8 = _value, \
+		.high.uint8  = _high \
+	}
+
+static void
+dpack_scalar_utest_unpack_uint8_max(
+	struct dpack_decoder *                 decoder,
+	const struct dpack_scalar_utest_data * data)
+{
+	uint8_t val;
+
+	assert_int_equal(dpack_decode_uint8_max(decoder,
+	                                        data->high.uint8,
+	                                        &val),
+	                 data->error);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_UINT8_SIZE_MIN <= data->size);
+	assert_true(DPACK_UINT8_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.uint8);
+}
+
+static void
+dpack_scalar_utest_decode_uint8_max(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* -1 */
+		DPACK_UTEST_UINT8_MAX("\xff",         -ENOMSG, 0,            UINT8_C(1)),
+		/* 0 */
+		DPACK_UTEST_UINT8_MAX("\x00",         0,       UINT8_C(0),   UINT8_C(1)),
+		/* 1 */
+		DPACK_UTEST_UINT8_MAX("\x01",         0,       UINT8_C(1),   UINT8_C(1)),
+		/* 255 */
+		DPACK_UTEST_UINT8_MAX("\xcc\xff",     -ERANGE, 0,            UINT8_C(1)),
+		/* 256 */
+		DPACK_UTEST_UINT8_MAX("\xcd\x01\x00", -ERANGE, 0,            UINT8_C(1)),
+
+		/* 1 */
+		DPACK_UTEST_UINT8_MAX("\x01",         0,       UINT8_C(1),   UINT8_C(64)),
+		/* 63 */
+		DPACK_UTEST_UINT8_MAX("\x3f",         0,       UINT8_C(63),  UINT8_C(64)),
+		/* 64 */
+		DPACK_UTEST_UINT8_MAX("\x40",         0,       UINT8_C(64),  UINT8_C(64)),
+		/* 65 */
+		DPACK_UTEST_UINT8_MAX("\x41",         -ERANGE, 0,            UINT8_C(64)),
+		/* 255 */
+		DPACK_UTEST_UINT8_MAX("\xcc\xff",     -ERANGE, 0,            UINT8_C(64)),
+
+		/* 253 */
+		DPACK_UTEST_UINT8_MAX("\xcc\xfd",     0,       UINT8_C(253), UINT8_C(254)),
+		/* 254 */
+		DPACK_UTEST_UINT8_MAX("\xcc\xfe",     0,       UINT8_C(254), UINT8_C(254)),
+		/* 255 */
+		DPACK_UTEST_UINT8_MAX("\xcc\xff",     -ERANGE, 0,            UINT8_C(254)),
+		/* 256 */
+		DPACK_UTEST_UINT8_MAX("\xcd\x01\x00", -ERANGE, 0,            UINT8_C(254))
+	};
+
+#if defined(CONFIG_DPACK_ASSERT_API)
+	uint8_t              val;
+	struct dpack_decoder dec = { 0, };
+	int                  ret __unused;
+
+	expect_assert_failure(ret = dpack_decode_uint8_max(NULL, 1, &val));
+	expect_assert_failure(ret = dpack_decode_uint8_max(&dec, 1, &val));
+	expect_assert_failure(ret = dpack_decode_uint8_max(&dec, 0, &val));
+	expect_assert_failure(ret = dpack_decode_uint8_max(&dec,
+	                                                   UINT8_MAX,
+	                                                   &val));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(ret = dpack_decode_uint8_max(&dec, 1, NULL));
+	dpack_decoder_fini(&dec);
+#endif
+
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_uint8_max);
 }
 
 #define DPACK_UTEST_INT8(_packed, _error, _value) \
@@ -521,8 +609,12 @@ dpack_scalar_utest_decode_int8_min(void ** state __unused)
 
 	expect_assert_failure(ret = dpack_decode_int8_min(NULL, 1, &val));
 	expect_assert_failure(ret = dpack_decode_int8_min(&dec, 1, &val));
-	expect_assert_failure(ret = dpack_decode_int8_min(NULL, INT8_MIN, &val));
-	expect_assert_failure(ret = dpack_decode_int8_min(NULL, INT8_MAX, &val));
+	expect_assert_failure(ret = dpack_decode_int8_min(&dec,
+	                                                  INT8_MIN,
+	                                                  &val));
+	expect_assert_failure(ret = dpack_decode_int8_min(&dec,
+	                                                  INT8_MAX,
+	                                                  &val));
 
 	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
 	expect_assert_failure(ret = dpack_decode_int8_min(&dec, 1, NULL));
@@ -532,6 +624,89 @@ dpack_scalar_utest_decode_int8_min(void ** state __unused)
 	dpack_scalar_utest_decode(data,
 	                          array_nr(data),
 	                          dpack_scalar_utest_unpack_int8_min);
+}
+
+#define DPACK_UTEST_INT8_MAX(_packed, _error, _value, _high) \
+	{ \
+		.packed     = _packed, \
+		.size       = sizeof(_packed) - 1, \
+		.error      = _error, \
+		.value.int8 = _value, \
+		.high.int8  = _high \
+	}
+
+static void
+dpack_scalar_utest_unpack_int8_max(
+	struct dpack_decoder *                 decoder,
+	const struct dpack_scalar_utest_data * data)
+{
+	int8_t val;
+
+	assert_int_equal(dpack_decode_int8_max(decoder, data->high.int8, &val),
+	                 data->error);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_INT8_SIZE_MIN <= data->size);
+	assert_true(DPACK_INT8_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.int8);
+}
+
+static void
+dpack_scalar_utest_decode_int8_max(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* -129 */
+		DPACK_UTEST_INT8_MAX("\xd1\xff\x7f", -ERANGE, 0,            INT8_C(0)),
+		/* -128 */
+		DPACK_UTEST_INT8_MAX("\xd0\x80",     0,       INT8_C(-128), INT8_C(0)),
+		/* -127 */
+		DPACK_UTEST_INT8_MAX("\xd0\x81",     0,       INT8_C(-127), INT8_C(-127)),
+		/* -126 */
+		DPACK_UTEST_INT8_MAX("\xd0\x82",     -ERANGE, 0,            INT8_C(-127)),
+
+		/* -1 */
+		DPACK_UTEST_INT8_MAX("\xff",         0,       INT8_C(-1),   INT8_C(0)),
+		/* 0 */
+		DPACK_UTEST_INT8_MAX("\x00",         0,       INT8_C(0),    INT8_C(0)),
+		/* 1 */
+		DPACK_UTEST_INT8_MAX("\x01",         -ERANGE, 0,            INT8_C(0)),
+		/* 127 */
+		DPACK_UTEST_INT8_MAX("\x7f",         -ERANGE, 0,            INT8_C(0)),
+		/* 128 */
+		DPACK_UTEST_INT8_MAX("\xcc\x80",     -ERANGE, 0,            INT8_C(0)),
+
+		/* 125 */
+		DPACK_UTEST_INT8_MAX("\x7d",         0,       INT8_C(125),  INT8_C(126)),
+		/* 126 */
+		DPACK_UTEST_INT8_MAX("\x7e",         0,       INT8_C(126),  INT8_C(126)),
+		/* 127 */
+		DPACK_UTEST_INT8_MAX("\x7f",         -ERANGE, 0,            INT8_C(126)),
+		/* 128 */
+		DPACK_UTEST_INT8_MAX("\xcc\x80",     -ERANGE, 0,            INT8_C(126))
+	};
+
+#if defined(CONFIG_DPACK_ASSERT_API)
+	int8_t               val;
+	struct dpack_decoder dec = { 0, };
+	int                  ret __unused;
+
+	expect_assert_failure(ret = dpack_decode_int8_max(NULL, 1, &val));
+	expect_assert_failure(ret = dpack_decode_int8_max(&dec, 1, &val));
+	expect_assert_failure(ret = dpack_decode_int8_max(&dec, 0, &val));
+	expect_assert_failure(ret = dpack_decode_int8_max(&dec,
+	                                                  INT8_MAX,
+	                                                  &val));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(ret = dpack_decode_int8_max(&dec, 1, NULL));
+	dpack_decoder_fini(&dec);
+#endif
+
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_int8_max);
 }
 
 #define DPACK_UTEST_UINT16(_packed, _error, _value) \
@@ -711,8 +886,8 @@ dpack_scalar_utest_decode_uint16_min(void ** state __unused)
 
 	expect_assert_failure(ret = dpack_decode_uint16_min(NULL, 1, &val));
 	expect_assert_failure(ret = dpack_decode_uint16_min(&dec, 1, &val));
-	expect_assert_failure(ret = dpack_decode_uint16_min(NULL, 0, &val));
-	expect_assert_failure(ret = dpack_decode_uint16_min(NULL,
+	expect_assert_failure(ret = dpack_decode_uint16_min(&dec, 0, &val));
+	expect_assert_failure(ret = dpack_decode_uint16_min(&dec,
 	                                                    UINT16_MAX,
 	                                                    &val));
 
@@ -724,6 +899,94 @@ dpack_scalar_utest_decode_uint16_min(void ** state __unused)
 	dpack_scalar_utest_decode(data,
 	                          array_nr(data),
 	                          dpack_scalar_utest_unpack_uint16_min);
+}
+
+#define DPACK_UTEST_UINT16_MAX(_packed, _error, _value, _high) \
+	{ \
+		.packed       = _packed, \
+		.size         = sizeof(_packed) - 1, \
+		.error        = _error, \
+		.value.uint16 = _value, \
+		.high.uint16  = _high \
+	}
+
+static void
+dpack_scalar_utest_unpack_uint16_max(
+	struct dpack_decoder *                 decoder,
+	const struct dpack_scalar_utest_data * data)
+{
+	uint16_t val;
+
+	assert_int_equal(dpack_decode_uint16_max(decoder,
+	                                         data->high.uint16,
+	                                         &val),
+	                 data->error);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_UINT16_SIZE_MIN <= data->size);
+	assert_true(DPACK_UINT16_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.uint16);
+}
+
+static void
+dpack_scalar_utest_decode_uint16_max(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* -1 */
+		DPACK_UTEST_UINT16_MAX("\xff",              -ENOMSG, 0,                    UINT16_C(1)),
+		/* 0 */
+		DPACK_UTEST_UINT16_MAX("\x00",              0,       UINT16_C(0),          UINT16_C(1)),
+		/* 1 */
+		DPACK_UTEST_UINT16_MAX("\x01",              0,       UINT16_C(1),          UINT16_C(1)),
+		/* 255 */
+		DPACK_UTEST_UINT16_MAX("\xcc\xff",          -ERANGE, 0,                    UINT16_C(1)),
+		/* 256 */
+		DPACK_UTEST_UINT16_MAX("\xcd\x01\x00",      -ERANGE, 0,                    UINT16_C(1)),
+
+		/* 1 */
+		DPACK_UTEST_UINT16_MAX("\x01",              0,       UINT16_C(1),          UINT16_MAX / 2),
+		/* 32766 */
+		DPACK_UTEST_UINT16_MAX("\xcd\x7f\xfe",      0,       (UINT16_MAX / 2) - 1, UINT16_MAX / 2),
+		/* 32767 */
+		DPACK_UTEST_UINT16_MAX("\xcd\x7f\xff",      0,       UINT16_MAX / 2,       UINT16_MAX / 2),
+		/* 32768 */
+		DPACK_UTEST_UINT16_MAX("\xcd\x80\x00",      -ERANGE, 0,                    UINT16_MAX / 2),
+		/* 65535 */
+		DPACK_UTEST_UINT16_MAX("\xcd\xff\xff",      -ERANGE, 0,                    UINT16_MAX / 2),
+
+		/* 65533 */
+		DPACK_UTEST_UINT16_MAX("\xcd\xff\xfd",      0,       UINT16_MAX - 2,       UINT16_MAX - 1),
+		/* 65534 */
+		DPACK_UTEST_UINT16_MAX("\xcd\xff\xfe",      0,       UINT16_MAX - 1,       UINT16_MAX - 1),
+		/* 65535 */
+		DPACK_UTEST_UINT16_MAX("\xcd\xff\xff",      -ERANGE, 0,                    UINT16_MAX - 1),
+		/* 65536 */
+		DPACK_UTEST_UINT16_MAX("\xce"
+		                       "\x00\x01\x00\x00" , -ERANGE, 0,                    UINT16_MAX - 1)
+	};
+
+#if defined(CONFIG_DPACK_ASSERT_API)
+	uint16_t             val;
+	struct dpack_decoder dec = { 0, };
+	int                  ret __unused;
+
+	expect_assert_failure(ret = dpack_decode_uint16_max(NULL, 1, &val));
+	expect_assert_failure(ret = dpack_decode_uint16_max(&dec, 1, &val));
+	expect_assert_failure(ret = dpack_decode_uint16_max(&dec, 0, &val));
+	expect_assert_failure(ret = dpack_decode_uint16_max(&dec,
+	                                                    UINT16_MAX,
+	                                                    &val));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(ret = dpack_decode_uint16_max(&dec, 1, NULL));
+	dpack_decoder_fini(&dec);
+#endif
+
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_uint16_max);
 }
 
 #define DPACK_UTEST_INT16(_packed, _error, _value) \
@@ -902,10 +1165,10 @@ dpack_scalar_utest_decode_int16_min(void ** state __unused)
 
 	expect_assert_failure(ret = dpack_decode_int16_min(NULL, 1, &val));
 	expect_assert_failure(ret = dpack_decode_int16_min(&dec, 1, &val));
-	expect_assert_failure(ret = dpack_decode_int16_min(NULL,
+	expect_assert_failure(ret = dpack_decode_int16_min(&dec,
                                                            INT16_MIN,
                                                            &val));
-	expect_assert_failure(ret = dpack_decode_int16_min(NULL,
+	expect_assert_failure(ret = dpack_decode_int16_min(&dec,
                                                            INT16_MAX,
                                                            &val));
 
@@ -917,6 +1180,92 @@ dpack_scalar_utest_decode_int16_min(void ** state __unused)
 	dpack_scalar_utest_decode(data,
 	                          array_nr(data),
 	                          dpack_scalar_utest_unpack_int16_min);
+}
+
+#define DPACK_UTEST_INT16_MAX(_packed, _error, _value, _high) \
+	{ \
+		.packed      = _packed, \
+		.size        = sizeof(_packed) - 1, \
+		.error       = _error, \
+		.value.int16 = _value, \
+		.high.int16  = _high \
+	}
+
+static void
+dpack_scalar_utest_unpack_int16_max(
+	struct dpack_decoder *                 decoder,
+	const struct dpack_scalar_utest_data * data)
+{
+	int16_t val;
+
+	assert_int_equal(dpack_decode_int16_max(decoder,
+	                                        data->high.int16,
+	                                        &val),
+	                 data->error);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_INT16_SIZE_MIN <= data->size);
+	assert_true(DPACK_INT16_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.int16);
+}
+
+static void
+dpack_scalar_utest_decode_int16_max(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* -32769 */
+		DPACK_UTEST_INT16_MAX("\xd2"
+		                      "\xff\xff\x7f\xff", -ERANGE, 0,             INT16_MIN + 1),
+		/* -32768 */
+		DPACK_UTEST_INT16_MAX("\xd1\x80\x00",     0,       INT16_MIN,     INT16_MIN + 1),
+		/* -32767 */
+		DPACK_UTEST_INT16_MAX("\xd1\x80\x01",     0,       INT16_MIN + 1, INT16_MIN + 1),
+		/* -32766 */
+		DPACK_UTEST_INT16_MAX("\xd1\x80\x02",     -ERANGE, 0,             INT16_MIN + 1),
+
+		/* -1 */
+		DPACK_UTEST_INT16_MAX("\xff",             0,       INT16_C(-1),   INT16_C(0)),
+		/* 0 */
+		DPACK_UTEST_INT16_MAX("\x00",             0,       INT16_C(0),    INT16_C(0)),
+		/* 1 */
+		DPACK_UTEST_INT16_MAX("\x01",             -ERANGE, 0,             INT16_C(0)),
+		/* 32767 */
+		DPACK_UTEST_INT16_MAX("\xcd\x7f\xff",     -ERANGE, 0,             INT16_C(0)),
+		/* 32768 */
+		DPACK_UTEST_INT16_MAX("\xcd\x80\x00",     -ERANGE, 0,             INT16_C(0)),
+
+		/* 32765 */
+		DPACK_UTEST_INT16_MAX("\xcd\x7f\xfd",     0,       INT16_MAX - 2, INT16_MAX - 1),
+		/* 32766 */
+		DPACK_UTEST_INT16_MAX("\xcd\x7f\xfe",     0,       INT16_MAX - 1, INT16_MAX - 1),
+		/* 32767 */
+		DPACK_UTEST_INT16_MAX("\xcd\x7f\xff",     -ERANGE, 0,             INT16_MAX - 1),
+		/* 32768 */
+		DPACK_UTEST_INT16_MAX("\xcd\x80\x00",     -ERANGE, 0,             INT16_MAX - 1)
+	};
+
+#if defined(CONFIG_DPACK_ASSERT_API)
+	int16_t              val;
+	struct dpack_decoder dec = { 0, };
+	int                  ret __unused;
+
+	expect_assert_failure(ret = dpack_decode_int16_max(NULL, 1, &val));
+	expect_assert_failure(ret = dpack_decode_int16_max(&dec, 1, &val));
+	expect_assert_failure(ret = dpack_decode_int16_max(&dec, 0, &val));
+	expect_assert_failure(ret = dpack_decode_int16_max(&dec,
+	                                                   INT16_MAX,
+	                                                   &val));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(ret = dpack_decode_int16_max(&dec, 1, NULL));
+	dpack_decoder_fini(&dec);
+#endif
+
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_int16_max);
 }
 
 #define DPACK_UTEST_UINT32(_packed, _error, _value) \
@@ -1083,7 +1432,7 @@ dpack_scalar_utest_decode_uint32_min(void ** state __unused)
 		DPACK_UTEST_UINT32_MIN("\xce"
 		                       "\xff\xff\xff\xff", 0,       UINT32_MAX,     UINT32_MAX / 2),
 		/* 4294967296 */
-		DPACK_UTEST_UINT32_MIN("\xce"
+		DPACK_UTEST_UINT32_MIN("\xcf"
 		                       "\x00\x00\x00\x01"
 		                       "\x00\x00\x00\x00", -ERANGE, 0,              UINT32_MAX / 2),
 		/* 4294967293 */
@@ -1096,7 +1445,7 @@ dpack_scalar_utest_decode_uint32_min(void ** state __unused)
 		DPACK_UTEST_UINT32_MIN("\xce"
 		                       "\xff\xff\xff\xff", 0,       UINT32_MAX,     UINT32_MAX - 1),
 		/* 4294967296 */
-		DPACK_UTEST_UINT32_MIN("\xce"
+		DPACK_UTEST_UINT32_MIN("\xcf"
 		                       "\x00\x00\x00\x01"
 		                       "\x00\x00\x00\x00", -ERANGE, 0,              UINT32_MAX - 1),
 	};
@@ -1108,8 +1457,8 @@ dpack_scalar_utest_decode_uint32_min(void ** state __unused)
 
 	expect_assert_failure(ret = dpack_decode_uint32_min(NULL, 1, &val));
 	expect_assert_failure(ret = dpack_decode_uint32_min(&dec, 1, &val));
-	expect_assert_failure(ret = dpack_decode_uint32_min(NULL, 0, &val));
-	expect_assert_failure(ret = dpack_decode_uint32_min(NULL,
+	expect_assert_failure(ret = dpack_decode_uint32_min(&dec, 0, &val));
+	expect_assert_failure(ret = dpack_decode_uint32_min(&dec,
 	                                                    UINT32_MAX,
 	                                                    &val));
 
@@ -1121,6 +1470,112 @@ dpack_scalar_utest_decode_uint32_min(void ** state __unused)
 	dpack_scalar_utest_decode(data,
 	                          array_nr(data),
 	                          dpack_scalar_utest_unpack_uint32_min);
+}
+
+#define DPACK_UTEST_UINT32_MAX(_packed, _error, _value, _high) \
+	{ \
+		.packed       = _packed, \
+		.size         = sizeof(_packed) - 1, \
+		.error        = _error, \
+		.value.uint32 = _value, \
+		.high.uint32  = _high \
+	}
+
+static void
+dpack_scalar_utest_unpack_uint32_max(
+	struct dpack_decoder *                 decoder,
+	const struct dpack_scalar_utest_data * data)
+{
+	uint32_t val;
+
+	assert_int_equal(dpack_decode_uint32_max(decoder,
+	                                         data->high.uint32,
+	                                         &val),
+	                 data->error);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_UINT32_SIZE_MIN <= data->size);
+	assert_true(DPACK_UINT32_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.uint32);
+}
+
+static void
+dpack_scalar_utest_decode_uint32_max(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* -1 */
+		DPACK_UTEST_UINT32_MAX("\xff",             -ENOMSG, 0,                    UINT32_C(1)),
+		/* 0 */
+		DPACK_UTEST_UINT32_MAX("\x00",             0,       UINT32_C(0),          UINT32_C(1)),
+		/* 1 */
+		DPACK_UTEST_UINT32_MAX("\x01",             0,       UINT32_C(1),          UINT32_C(1)),
+		/* 2147483647 */
+		DPACK_UTEST_UINT32_MAX("\xce"
+		                       "\x7f\xff\xff\xff", -ERANGE, 0,                    UINT32_C(1)),
+		/* 4294967295 */
+		DPACK_UTEST_UINT32_MAX("\xce"
+		                       "\xff\xff\xff\xff", -ERANGE, 0,                    UINT32_C(1)),
+		/* 4294967296 */
+		DPACK_UTEST_UINT32_MAX("\xcf"
+		                       "\x00\x00\x00\x01"
+		                       "\x00\x00\x00\x00", -ERANGE, 0,                    UINT32_C(1)),
+		/* -1 */
+		DPACK_UTEST_UINT32_MAX("\xff",             -ENOMSG, 0,                    UINT32_MAX / 2),
+		/* 0 */
+		DPACK_UTEST_UINT32_MAX("\x00",             0,       UINT32_C(0),          UINT32_MAX / 2),
+		/* 1 */
+		DPACK_UTEST_UINT32_MAX("\x01",             0,       UINT32_C(1),          UINT32_MAX / 2),
+
+		/* 2147483646 */
+		DPACK_UTEST_UINT32_MAX("\xce"
+		                       "\x7f\xff\xff\xfe", 0,       (UINT32_MAX / 2) - 1, UINT32_MAX / 2),
+		/* 2147483647 */
+		DPACK_UTEST_UINT32_MAX("\xce"
+		                       "\x7f\xff\xff\xff", 0,       UINT32_MAX / 2,       UINT32_MAX / 2),
+		/* 4294967295 */
+		DPACK_UTEST_UINT32_MAX("\xce"
+		                       "\xff\xff\xff\xff", -ERANGE, 0,                    UINT32_MAX / 2),
+		/* 4294967296 */
+		DPACK_UTEST_UINT32_MAX("\xcf"
+		                       "\x00\x00\x00\x01"
+		                       "\x00\x00\x00\x00", -ERANGE, 0,                    UINT32_MAX / 2),
+		/* 4294967293 */
+		DPACK_UTEST_UINT32_MAX("\xce"
+		                       "\xff\xff\xff\xfd", 0,       UINT32_MAX -2,        UINT32_MAX - 1),
+		/* 4294967294 */
+		DPACK_UTEST_UINT32_MAX("\xce"
+		                       "\xff\xff\xff\xfe", 0,       UINT32_MAX - 1,       UINT32_MAX - 1),
+		/* 4294967295 */
+		DPACK_UTEST_UINT32_MAX("\xce"
+		                       "\xff\xff\xff\xff", -ERANGE, 0,                    UINT32_MAX - 1),
+		/* 4294967296 */
+		DPACK_UTEST_UINT32_MAX("\xcf"
+		                       "\x00\x00\x00\x01"
+		                       "\x00\x00\x00\x00", -ERANGE, 0,                    UINT32_MAX - 1)
+	};
+
+#if defined(CONFIG_DPACK_ASSERT_API)
+	uint32_t             val;
+	struct dpack_decoder dec = { 0, };
+	int                  ret __unused;
+
+	expect_assert_failure(ret = dpack_decode_uint32_max(NULL, 1, &val));
+	expect_assert_failure(ret = dpack_decode_uint32_max(&dec, 1, &val));
+	expect_assert_failure(ret = dpack_decode_uint32_max(&dec, 0, &val));
+	expect_assert_failure(ret = dpack_decode_uint32_max(&dec,
+	                                                    UINT32_MAX,
+	                                                    &val));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(ret = dpack_decode_uint32_max(&dec, 1, NULL));
+	dpack_decoder_fini(&dec);
+#endif
+
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_uint32_max);
 }
 
 #define DPACK_UTEST_INT32(_packed, _error, _value) \
@@ -1315,10 +1770,10 @@ dpack_scalar_utest_decode_int32_min(void ** state __unused)
 
 	expect_assert_failure(ret = dpack_decode_int32_min(NULL, 1, &val));
 	expect_assert_failure(ret = dpack_decode_int32_min(&dec, 1, &val));
-	expect_assert_failure(ret = dpack_decode_int32_min(NULL,
+	expect_assert_failure(ret = dpack_decode_int32_min(&dec,
                                                            INT32_MIN,
                                                            &val));
-	expect_assert_failure(ret = dpack_decode_int32_min(NULL,
+	expect_assert_failure(ret = dpack_decode_int32_min(&dec,
                                                            INT32_MAX,
                                                            &val));
 
@@ -1330,6 +1785,100 @@ dpack_scalar_utest_decode_int32_min(void ** state __unused)
 	dpack_scalar_utest_decode(data,
 	                          array_nr(data),
 	                          dpack_scalar_utest_unpack_int32_min);
+}
+
+#define DPACK_UTEST_INT32_MAX(_packed, _error, _value, _high) \
+	{ \
+		.packed      = _packed, \
+		.size        = sizeof(_packed) - 1, \
+		.error       = _error, \
+		.value.int32 = _value, \
+		.high.int32  = _high \
+	}
+
+static void
+dpack_scalar_utest_unpack_int32_max(
+	struct dpack_decoder *                 decoder,
+	const struct dpack_scalar_utest_data * data)
+{
+	int32_t val;
+
+	assert_int_equal(dpack_decode_int32_max(decoder,
+	                                        data->high.int32,
+	                                        &val),
+	                 data->error);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_INT32_SIZE_MIN <= data->size);
+	assert_true(DPACK_INT32_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.int32);
+}
+
+static void
+dpack_scalar_utest_decode_int32_max(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* -2147483649 */
+		DPACK_UTEST_INT32_MAX("\xd3"
+		                      "\xff\xff\xff\xff"
+		                      "\x7f\xff\xff\xff", -ERANGE, 0,             INT32_MIN + 1),
+		/* -2147483648 */
+		DPACK_UTEST_INT32_MAX("\xd2"
+		                      "\x80\x00\x00\x00", 0,       INT32_MIN,     INT32_MIN + 1),
+		/* -2147483647 */
+		DPACK_UTEST_INT32_MAX("\xd2"
+		                      "\x80\x00\x00\x01", 0,       INT32_MIN + 1, INT32_MIN + 1),
+		/* -2147483646 */
+		DPACK_UTEST_INT32_MAX("\xd2"
+		                      "\x80\x00\x00\x02", -ERANGE, 0,             INT32_MIN + 1),
+		/* -1 */
+		DPACK_UTEST_INT32_MAX("\xff",             0,       INT32_C(-1),   INT32_C(0)),
+		/* 0 */
+		DPACK_UTEST_INT32_MAX("\x00",             0,       INT32_C(0),    INT32_C(0)),
+		/* 1 */
+		DPACK_UTEST_INT32_MAX("\x01",             -ERANGE, 0,             INT32_C(0)),
+		/* 2147483647 */
+		DPACK_UTEST_INT32_MAX("\xce"
+		                      "\x7f\xff\xff\xff", -ERANGE, 0,             INT32_C(0)),
+		/* 2147483648 */
+		DPACK_UTEST_INT32_MAX("\xce"
+		                      "\x80\x00\x00\x00", -ERANGE, 0,             INT32_C(0)),
+		/* 2147483645 */
+		DPACK_UTEST_INT32_MAX("\xce"
+		                      "\x7f\xff\xff\xfd", 0,       INT32_MAX - 2, INT32_MAX - 1),
+		/* 2147483646 */
+		DPACK_UTEST_INT32_MAX("\xce"
+		                      "\x7f\xff\xff\xfe", 0,       INT32_MAX - 1, INT32_MAX - 1),
+		/* 2147483647 */
+		DPACK_UTEST_INT32_MAX("\xce"
+		                      "\x7f\xff\xff\xff", -ERANGE, 0,             INT32_MAX - 1),
+		/* 2147483648 */
+		DPACK_UTEST_INT32_MAX("\xce"
+		                      "\x80\x00\x00\x00", -ERANGE, 0,             INT32_MAX - 1)
+	};
+
+#if defined(CONFIG_DPACK_ASSERT_API)
+	int32_t              val;
+	struct dpack_decoder dec = { 0, };
+	int                  ret __unused;
+
+	expect_assert_failure(ret = dpack_decode_int32_max(NULL, 1, &val));
+	expect_assert_failure(ret = dpack_decode_int32_max(&dec, 1, &val));
+	expect_assert_failure(ret = dpack_decode_int32_max(&dec, 0, &val));
+	expect_assert_failure(ret = dpack_decode_int32_max(&dec,
+	                                                   INT32_MAX,
+	                                                   &val));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(ret = dpack_decode_int32_max(&dec, 1, NULL));
+	dpack_decoder_fini(&dec);
+#endif
+
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_int32_max);
 }
 
 #define DPACK_UTEST_UINT64(_packed, _error, _value) \
@@ -1517,8 +2066,8 @@ dpack_scalar_utest_decode_uint64_min(void ** state __unused)
 
 	expect_assert_failure(ret = dpack_decode_uint64_min(NULL, 1, &val));
 	expect_assert_failure(ret = dpack_decode_uint64_min(&dec, 1, &val));
-	expect_assert_failure(ret = dpack_decode_uint64_min(NULL, 0, &val));
-	expect_assert_failure(ret = dpack_decode_uint64_min(NULL,
+	expect_assert_failure(ret = dpack_decode_uint64_min(&dec, 0, &val));
+	expect_assert_failure(ret = dpack_decode_uint64_min(&dec,
 	                                                    UINT64_MAX,
 	                                                    &val));
 
@@ -1530,6 +2079,110 @@ dpack_scalar_utest_decode_uint64_min(void ** state __unused)
 	dpack_scalar_utest_decode(data,
 	                          array_nr(data),
 	                          dpack_scalar_utest_unpack_uint64_min);
+}
+
+#define DPACK_UTEST_UINT64_MAX(_packed, _error, _value, _high) \
+	{ \
+		.packed       = _packed, \
+		.size         = sizeof(_packed) - 1, \
+		.error        = _error, \
+		.value.uint64 = _value, \
+		.high.uint64  = _high \
+	}
+
+static void
+dpack_scalar_utest_unpack_uint64_max(
+	struct dpack_decoder *                 decoder,
+	const struct dpack_scalar_utest_data * data)
+{
+	uint64_t val;
+
+	assert_int_equal(dpack_decode_uint64_max(decoder,
+	                                         data->high.uint64,
+	                                         &val),
+	                 data->error);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_UINT64_SIZE_MIN <= data->size);
+	assert_true(DPACK_UINT64_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.uint64);
+}
+
+static void
+dpack_scalar_utest_decode_uint64_max(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* -1 */
+		DPACK_UTEST_UINT64_MAX("\xff",             -ENOMSG, 0,                    UINT64_C(1)),
+		/* 0 */
+		DPACK_UTEST_UINT64_MAX("\x00",             0,       UINT64_C(0),          UINT64_C(1)),
+		/* 1 */
+		DPACK_UTEST_UINT64_MAX("\x01",             0,       UINT64_C(1),          UINT64_C(1)),
+		/* 9223372036854775807 */
+		DPACK_UTEST_UINT64_MAX("\xcf"
+		                       "\x7f\xff\xff\xff"
+		                       "\xff\xff\xff\xff", -ERANGE, 0,                    UINT64_C(1)),
+		/* 18446744073709551615 */
+		DPACK_UTEST_UINT64_MAX("\xcf"
+		                       "\xff\xff\xff\xff"
+		                       "\xff\xff\xff\xff", -ERANGE, 0,                    UINT64_C(1)),
+
+		/* -1 */
+		DPACK_UTEST_UINT64_MAX("\xff",             -ENOMSG, 0,                    UINT64_MAX / 2),
+		/* 0 */
+		DPACK_UTEST_UINT64_MAX("\x00",             0,       UINT64_C(0),          UINT64_MAX / 2),
+		/* 1 */
+		DPACK_UTEST_UINT64_MAX("\x01",             0,       UINT64_C(1),          UINT64_MAX / 2),
+
+		/* 9223372036854775806 */
+		DPACK_UTEST_UINT64_MAX("\xcf"
+		                       "\x7f\xff\xff\xff"
+		                       "\xff\xff\xff\xfe", 0,       (UINT64_MAX / 2) - 1, UINT64_MAX / 2),
+		/* 9223372036854775807 */
+		DPACK_UTEST_UINT64_MAX("\xcf"
+		                       "\x7f\xff\xff\xff"
+		                       "\xff\xff\xff\xff", 0,       UINT64_MAX / 2,       UINT64_MAX / 2),
+		/* 18446744073709551615 */
+		DPACK_UTEST_UINT64_MAX("\xcf"
+		                       "\xff\xff\xff\xff"
+		                       "\xff\xff\xff\xff", -ERANGE, 0,                    UINT64_MAX / 2),
+
+		/* 18446744073709551613 */
+		DPACK_UTEST_UINT64_MAX("\xcf"
+		                       "\xff\xff\xff\xff"
+		                       "\xff\xff\xff\xfd", 0,       UINT64_MAX - 2,       UINT64_MAX - 1),
+		/* 18446744073709551614 */
+		DPACK_UTEST_UINT64_MAX("\xcf"
+		                       "\xff\xff\xff\xff"
+		                       "\xff\xff\xff\xfe", 0,       UINT64_MAX - 1,       UINT64_MAX - 1),
+		/* 18446744073709551615 */
+		DPACK_UTEST_UINT64_MAX("\xcf"
+		                       "\xff\xff\xff\xff"
+		                       "\xff\xff\xff\xff", -ERANGE, 0,                    UINT64_MAX - 1)
+	};
+
+#if defined(CONFIG_DPACK_ASSERT_API)
+	uint64_t             val;
+	struct dpack_decoder dec = { 0, };
+	int                  ret __unused;
+
+	expect_assert_failure(ret = dpack_decode_uint64_max(NULL, 1, &val));
+	expect_assert_failure(ret = dpack_decode_uint64_max(&dec, 1, &val));
+	expect_assert_failure(ret = dpack_decode_uint64_max(&dec, 0, &val));
+	expect_assert_failure(ret = dpack_decode_uint64_max(&dec,
+	                                                    UINT64_MAX,
+	                                                    &val));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(ret = dpack_decode_uint64_max(&dec, 1, NULL));
+	dpack_decoder_fini(&dec);
+#endif
+
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_uint64_max);
 }
 
 #define DPACK_UTEST_INT64(_packed, _error, _value) \
@@ -1731,10 +2384,10 @@ dpack_scalar_utest_decode_int64_min(void ** state __unused)
 
 	expect_assert_failure(ret = dpack_decode_int64_min(NULL, 1, &val));
 	expect_assert_failure(ret = dpack_decode_int64_min(&dec, 1, &val));
-	expect_assert_failure(ret = dpack_decode_int64_min(NULL,
+	expect_assert_failure(ret = dpack_decode_int64_min(&dec,
                                                            INT64_MIN,
                                                            &val));
-	expect_assert_failure(ret = dpack_decode_int64_min(NULL,
+	expect_assert_failure(ret = dpack_decode_int64_min(&dec,
                                                            INT64_MAX,
                                                            &val));
 
@@ -1748,33 +2401,139 @@ dpack_scalar_utest_decode_int64_min(void ** state __unused)
 	                          dpack_scalar_utest_unpack_int64_min);
 }
 
+#define DPACK_UTEST_INT64_MAX(_packed, _error, _value, _high) \
+	{ \
+		.packed      = _packed, \
+		.size        = sizeof(_packed) - 1, \
+		.error       = _error, \
+		.value.int64 = _value, \
+		.high.int64  = _high \
+	}
+
+static void
+dpack_scalar_utest_unpack_int64_max(
+	struct dpack_decoder *                 decoder,
+	const struct dpack_scalar_utest_data * data)
+{
+	int64_t val;
+
+	assert_int_equal(dpack_decode_int64_max(decoder,
+	                                        data->high.int64,
+	                                        &val),
+	                 data->error);
+	if (data->error)
+		return;
+
+	assert_true(DPACK_INT64_SIZE_MIN <= data->size);
+	assert_true(DPACK_INT64_SIZE_MAX >= data->size);
+
+	assert_int_equal(val, data->value.int64);
+}
+
+static void
+dpack_scalar_utest_decode_int64_max(void ** state __unused)
+{
+	static const struct dpack_scalar_utest_data data[] = {
+		/* -9223372036854775808 */
+		DPACK_UTEST_INT64_MAX("\xd3"
+		                      "\x80\x00\x00\x00"
+		                      "\x00\x00\x00\x00", 0,       INT64_MIN,     INT64_MIN + 1),
+		/* -9223372036854775807 */
+		DPACK_UTEST_INT64_MAX("\xd3"
+		                      "\x80\x00\x00\x00"
+		                      "\x00\x00\x00\x01", 0,       INT64_MIN + 1, INT64_MIN + 1),
+		/* -9223372036854775806 */
+		DPACK_UTEST_INT64_MAX("\xd3"
+		                      "\x80\x00\x00\x00"
+		                      "\x00\x00\x00\x02", -ERANGE, 0,             INT64_MIN + 1),
+
+		/* -1 */
+		DPACK_UTEST_INT64_MAX("\xff",             0,       INT64_C(-1),   INT64_C(0)),
+		/* 0 */
+		DPACK_UTEST_INT64_MAX("\x00",             0,       INT64_C(0),    INT64_C(0)),
+		/* 1 */
+		DPACK_UTEST_INT64_MAX("\x01",             -ERANGE, 0,             INT64_C(0)),
+
+		/* 9223372036854775807 */
+		DPACK_UTEST_INT64_MAX("\xcf"
+		                      "\x7f\xff\xff\xff"
+		                      "\xff\xff\xff\xff", -ERANGE, 0,             INT64_C(0)),
+		/* 9223372036854775808 */
+		DPACK_UTEST_INT64_MAX("\xcf"
+		                      "\x80\x00\x00\x00"
+		                      "\x00\x00\x00\x00", -ERANGE, 0,             INT64_C(0)),
+
+		/* 9223372036854775805 */
+		DPACK_UTEST_INT64_MAX("\xcf"
+		                      "\x7f\xff\xff\xff"
+		                      "\xff\xff\xff\xfd", 0,       INT64_MAX - 2, INT64_MAX - 1),
+		/* 9223372036854775806 */
+		DPACK_UTEST_INT64_MAX("\xcf"
+		                      "\x7f\xff\xff\xff"
+		                      "\xff\xff\xff\xfe", 0,       INT64_MAX - 1, INT64_MAX - 1),
+		/* 9223372036854775807 */
+		DPACK_UTEST_INT64_MAX("\xcf"
+		                      "\x7f\xff\xff\xff"
+		                      "\xff\xff\xff\xff", -ERANGE, 0,             INT64_MAX - 1),
+	};
+
+#if defined(CONFIG_DPACK_ASSERT_API)
+	int64_t              val;
+	struct dpack_decoder dec = { 0, };
+	int                  ret __unused;
+
+	expect_assert_failure(ret = dpack_decode_int64_max(NULL, 1, &val));
+	expect_assert_failure(ret = dpack_decode_int64_max(&dec, 1, &val));
+	expect_assert_failure(ret = dpack_decode_int64_max(&dec, 0, &val));
+	expect_assert_failure(ret = dpack_decode_int64_max(&dec,
+	                                                   INT64_MAX,
+	                                                   &val));
+
+	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	expect_assert_failure(ret = dpack_decode_int64_max(&dec, 1, NULL));
+	dpack_decoder_fini(&dec);
+#endif
+
+	dpack_scalar_utest_decode(data,
+	                          array_nr(data),
+	                          dpack_scalar_utest_unpack_int64_max);
+}
+
 static const struct CMUnitTest dpack_stdint_utests[] = {
 	cmocka_unit_test(dpack_scalar_utest_encode_bool),
 	cmocka_unit_test(dpack_scalar_utest_decode_bool),
 	cmocka_unit_test(dpack_scalar_utest_encode_uint8),
 	cmocka_unit_test(dpack_scalar_utest_decode_uint8),
 	cmocka_unit_test(dpack_scalar_utest_decode_uint8_min),
+	cmocka_unit_test(dpack_scalar_utest_decode_uint8_max),
 	cmocka_unit_test(dpack_scalar_utest_encode_int8),
 	cmocka_unit_test(dpack_scalar_utest_decode_int8),
 	cmocka_unit_test(dpack_scalar_utest_decode_int8_min),
+	cmocka_unit_test(dpack_scalar_utest_decode_int8_max),
 	cmocka_unit_test(dpack_scalar_utest_encode_uint16),
 	cmocka_unit_test(dpack_scalar_utest_decode_uint16),
 	cmocka_unit_test(dpack_scalar_utest_decode_uint16_min),
+	cmocka_unit_test(dpack_scalar_utest_decode_uint16_max),
 	cmocka_unit_test(dpack_scalar_utest_encode_int16),
 	cmocka_unit_test(dpack_scalar_utest_decode_int16),
 	cmocka_unit_test(dpack_scalar_utest_decode_int16_min),
+	cmocka_unit_test(dpack_scalar_utest_decode_int16_max),
 	cmocka_unit_test(dpack_scalar_utest_encode_uint32),
 	cmocka_unit_test(dpack_scalar_utest_decode_uint32),
 	cmocka_unit_test(dpack_scalar_utest_decode_uint32_min),
+	cmocka_unit_test(dpack_scalar_utest_decode_uint32_max),
 	cmocka_unit_test(dpack_scalar_utest_encode_int32),
 	cmocka_unit_test(dpack_scalar_utest_decode_int32),
 	cmocka_unit_test(dpack_scalar_utest_decode_int32_min),
+	cmocka_unit_test(dpack_scalar_utest_decode_int32_max),
 	cmocka_unit_test(dpack_scalar_utest_encode_uint64),
 	cmocka_unit_test(dpack_scalar_utest_decode_uint64),
 	cmocka_unit_test(dpack_scalar_utest_decode_uint64_min),
+	cmocka_unit_test(dpack_scalar_utest_decode_uint64_max),
 	cmocka_unit_test(dpack_scalar_utest_encode_int64),
 	cmocka_unit_test(dpack_scalar_utest_decode_int64),
-	cmocka_unit_test(dpack_scalar_utest_decode_int64_min)
+	cmocka_unit_test(dpack_scalar_utest_decode_int64_min),
+	cmocka_unit_test(dpack_scalar_utest_decode_int64_max)
 };
 
 int

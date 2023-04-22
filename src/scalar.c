@@ -166,7 +166,9 @@ dpack_xtract_uint64_range(struct mpack_reader_t * reader,
 
 #define DPACK_UINT_DEFINE_DECODE_MAX(_name, _type, _high) \
 	int \
-	_name(struct dpack_decoder * decoder, _type high, _type * value) \
+	_name(struct dpack_decoder * decoder, \
+	      _type                  high, \
+	      _type * __restrict     value) \
 	{ \
 		dpack_assert_api_decoder(decoder); \
 		dpack_assert_api(high); \
