@@ -68,7 +68,11 @@ extern int
 dpack_decode_uint8_range(struct dpack_decoder * decoder,
                          uint8_t                low,
                          uint8_t                high,
-                         uint8_t              * value) __dpack_export;
+                         uint8_t * __restrict   value) __dpack_nonull(1, 4)
+                                                       __dpack_nothrow
+                                                       __leaf
+                                                       __warn_result
+                                                       __dpack_export;
 
 #define DPACK_INT8_SIZE_MIN (DPACK_STDINT_SIZE_MIN)
 #define DPACK_INT8_SIZE_MAX MPACK_TAG_SIZE_I8
@@ -105,7 +109,11 @@ extern int
 dpack_decode_int8_range(struct dpack_decoder * decoder,
                         int8_t                 low,
                         int8_t                 high,
-                        int8_t               * value) __dpack_export;
+                        int8_t * __restrict    value) __dpack_nonull(1, 4)
+                                                      __dpack_nothrow
+                                                      __leaf
+                                                      __warn_result
+                                                      __dpack_export;
 
 /******************************************************************************
  * 16 bits integers
@@ -145,7 +153,11 @@ extern int
 dpack_decode_uint16_range(struct dpack_decoder * decoder,
                           uint16_t               low,
                           uint16_t               high,
-                          uint16_t             * value) __dpack_export;
+                          uint16_t * __restrict  value) __dpack_nonull(1, 4)
+                                                        __dpack_nothrow
+                                                        __leaf
+                                                        __warn_result
+                                                        __dpack_export;
 
 #define DPACK_INT16_SIZE_MIN (DPACK_STDINT_SIZE_MIN)
 #define DPACK_INT16_SIZE_MAX MPACK_TAG_SIZE_I16
@@ -181,7 +193,11 @@ extern int
 dpack_decode_int16_range(struct dpack_decoder * decoder,
                          int16_t                low,
                          int16_t                high,
-                         int16_t              * value) __dpack_export;
+                         int16_t * __restrict   value) __dpack_nonull(1, 4)
+                                                       __dpack_nothrow
+                                                       __leaf
+                                                       __warn_result
+                                                       __dpack_export;
 
 /******************************************************************************
  * 32 bits integers
@@ -221,7 +237,11 @@ extern int
 dpack_decode_uint32_range(struct dpack_decoder * decoder,
                           uint32_t               low,
                           uint32_t               high,
-                          uint32_t             * value) __dpack_export;
+                          uint32_t * __restrict  value) __dpack_nonull(1, 4)
+                                                        __dpack_nothrow
+                                                        __leaf
+                                                        __warn_result
+                                                        __dpack_export;
 
 #define DPACK_UINT_SIZE_MIN DPACK_UINT32_SIZE_MIN
 #define DPACK_UINT_SIZE_MAX DPACK_UINT32_SIZE_MAX
@@ -233,32 +253,33 @@ dpack_encode_uint(struct dpack_encoder * encoder, unsigned int value)
 }
 
 static inline int __dpack_nonull(1, 2) __dpack_nothrow __warn_result
-dpack_decode_uint(struct dpack_decoder * decoder, unsigned int * value)
+dpack_decode_uint(struct dpack_decoder *    decoder,
+                  unsigned int * __restrict value)
 {
 	return dpack_decode_uint32(decoder, value);
 }
 
 static inline int __dpack_nonull(1, 3) __dpack_nothrow __warn_result
-dpack_decode_uint_min(struct dpack_decoder * decoder,
-                      unsigned int           low,
-                      unsigned int         * value)
+dpack_decode_uint_min(struct dpack_decoder *    decoder,
+                      unsigned int              low,
+                      unsigned int * __restrict value)
 {
 	return dpack_decode_uint32_min(decoder, low, value);
 }
 
 static inline int __dpack_nonull(1, 3) __dpack_nothrow __warn_result
-dpack_decode_uint_max(struct dpack_decoder * decoder,
-                      unsigned int           high,
-                      unsigned int         * value)
+dpack_decode_uint_max(struct dpack_decoder *    decoder,
+                      unsigned int              high,
+                      unsigned int * __restrict value)
 {
 	return dpack_decode_uint32_max(decoder, high, value);
 }
 
-static inline int
-dpack_decode_uint_range(struct dpack_decoder * decoder,
-                        unsigned int           low,
-                        unsigned int           high,
-                        unsigned int         * value)
+static inline int __dpack_nonull(1, 4) __dpack_nothrow __warn_result
+dpack_decode_uint_range(struct dpack_decoder *    decoder,
+                        unsigned int              low,
+                        unsigned int              high,
+                        unsigned int * __restrict value)
 {
 	return dpack_decode_uint32_range(decoder, low, high, value);
 }
@@ -297,7 +318,11 @@ extern int
 dpack_decode_int32_range(struct dpack_decoder * decoder,
                          int32_t                low,
                          int32_t                high,
-                         int32_t              * value) __dpack_export;
+                         int32_t * __restrict   value) __dpack_nonull(1, 4)
+                                                       __dpack_nothrow
+                                                       __leaf
+                                                       __warn_result
+                                                       __dpack_export;
 
 #define DPACK_INT_SIZE_MIN DPACK_INT32_SIZE_MIN
 #define DPACK_INT_SIZE_MAX DPACK_INT32_SIZE_MAX
@@ -309,7 +334,7 @@ dpack_encode_int(struct dpack_encoder * encoder, int value)
 }
 
 static inline int __dpack_nonull(1, 2) __dpack_nothrow __warn_result
-dpack_decode_int(struct dpack_decoder * decoder, int * value)
+dpack_decode_int(struct dpack_decoder * decoder, int * __restrict value)
 {
 	return dpack_decode_int32(decoder, value);
 }
@@ -317,7 +342,7 @@ dpack_decode_int(struct dpack_decoder * decoder, int * value)
 static inline int __dpack_nonull(1, 3) __dpack_nothrow __warn_result
 dpack_decode_int_min(struct dpack_decoder * decoder,
                      int                    low,
-                     int                  * value)
+                     int * __restrict       value)
 {
 	return dpack_decode_int32_min(decoder, low, value);
 }
@@ -325,16 +350,16 @@ dpack_decode_int_min(struct dpack_decoder * decoder,
 static inline int __dpack_nonull(1, 3) __dpack_nothrow __warn_result
 dpack_decode_int_max(struct dpack_decoder * decoder,
                      int                    high,
-                     int                  * value)
+                     int * __restrict       value)
 {
 	return dpack_decode_int32_max(decoder, high, value);
 }
 
-static inline int
+static inline int __dpack_nonull(1, 4) __dpack_nothrow __warn_result
 dpack_decode_int_range(struct dpack_decoder * decoder,
                        int                    low,
                        int                    high,
-                       int                  * value)
+                       int * __restrict       value)
 {
 	return dpack_decode_int32_range(decoder, low, high, value);
 }
@@ -377,7 +402,11 @@ extern int
 dpack_decode_uint64_range(struct dpack_decoder * decoder,
                           uint64_t               low,
                           uint64_t               high,
-                          uint64_t             * value) __dpack_export;
+                          uint64_t * __restrict  value) __dpack_nonull(1, 4)
+                                                        __dpack_nothrow
+                                                        __leaf
+                                                        __warn_result
+                                                        __dpack_export;
 
 #define DPACK_INT64_SIZE_MIN (DPACK_STDINT_SIZE_MIN)
 #define DPACK_INT64_SIZE_MAX MPACK_TAG_SIZE_I64
@@ -413,7 +442,11 @@ extern int
 dpack_decode_int64_range(struct dpack_decoder * decoder,
                          int64_t                low,
                          int64_t                high,
-                         int64_t              * value) __dpack_export;
+                         int64_t * __restrict   value) __dpack_nonull(1, 4)
+                                                       __dpack_nothrow
+                                                       __leaf
+                                                       __warn_result
+                                                       __dpack_export;
 
 /******************************************************************************
  * Single precision floating point

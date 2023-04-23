@@ -41,7 +41,7 @@ dpack_decode_bool(struct dpack_decoder * decoder, bool * __restrict value)
  * Unsigned integers common logic
  ******************************************************************************/
 
-static int
+static int __dpack_nonull(1, 3) __dpack_nothrow __warn_result
 dpack_xtract_uint64_min(struct mpack_reader_t * reader,
                         uint64_t                low,
                         uint64_t              * value)
@@ -194,7 +194,7 @@ dpack_xtract_uint64_range(struct mpack_reader_t * reader,
 	_name(struct dpack_decoder * decoder, \
 	      _type                  low, \
 	      _type                  high, \
-	      _type                * value) \
+	      _type * __restrict     value) \
 	{ \
 		dpack_assert_api_decoder(decoder); \
 		dpack_assert_api(low); \
@@ -506,7 +506,7 @@ dpack_decode_uint64_min(struct dpack_decoder * decoder,
 int
 dpack_decode_uint64_max(struct dpack_decoder * decoder,
                         uint64_t               high,
-                        uint64_t             * value)
+                        uint64_t * __restrict  value)
 {
 	dpack_assert_api_decoder(decoder);
 	dpack_assert_api(high);
@@ -520,7 +520,7 @@ int
 dpack_decode_uint64_range(struct dpack_decoder * decoder,
                           uint64_t               low,
                           uint64_t               high,
-                          uint64_t             * value)
+                          uint64_t * __restrict  value)
 {
 	dpack_assert_api_decoder(decoder);
 	dpack_assert_api(low);
@@ -567,7 +567,7 @@ dpack_decode_int64_min(struct dpack_decoder * decoder,
 int
 dpack_decode_int64_max(struct dpack_decoder * decoder,
                        int64_t                high,
-                       int64_t              * value)
+                       int64_t * __restrict   value)
 {
 	dpack_assert_api_decoder(decoder);
 	dpack_assert_api(high > INT64_MIN);
@@ -590,7 +590,7 @@ int
 dpack_decode_int64_range(struct dpack_decoder * decoder,
                          int64_t                low,
                          int64_t                high,
-                         int64_t              * value)
+                         int64_t * __restrict   value)
 {
 	dpack_assert_api_decoder(decoder);
 	dpack_assert_api(low > INT64_MIN);
