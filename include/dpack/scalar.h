@@ -503,14 +503,14 @@ dpack_decode_double_min(struct dpack_decoder * decoder,
 
 extern int
 dpack_decode_double_max(struct dpack_decoder * decoder,
-                       double                  high,
-                       double *                value) __dpack_export;
+                        double                 high,
+                        double *               value) __dpack_export;
 
 extern int
 dpack_decode_double_range(struct dpack_decoder * decoder,
-                         double                  low,
-                         double                  high,
-                         double *                value) __dpack_export;
+                          double                 low,
+                          double                 high,
+                          double *               value) __dpack_export;
 
 #endif /* defined(CONFIG_DPACK_DOUBLE) */
 
