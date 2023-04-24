@@ -1,0 +1,118 @@
+/**
+ * @def   CONFIG_DPACK_ASSERT_API
+ * @brief Enable DPack API assertions
+ * @details
+ * Build dpack library with high-level API assertions enabled to ensure that
+ * API functions exposed by DPack will perform full verification of arguments
+ * consistency.
+ */
+#define CONFIG_DPACK_ASSERT_API 1
+
+/**
+ * @def   CONFIG_DPACK_ASSERT_INTERN
+ * @brief Enable internal DPack assertions
+ * @details
+ * Build dpack library with internal assertions enabled to check for internal
+ * DPack behavioral consistency.
+ */
+#define CONFIG_DPACK_ASSERT_INTERN 1
+
+/**
+ * @def   CONFIG_DPACK_DEBUG
+ * @brief Enable debugging
+ * @details
+ * Build dpack library with internal debugging support enabled.
+ * This also enables @rstsubst{mpack} internal debug support with the following
+ * additional features:
+ * - reading / writing to / from STDIO files,
+ * - error strings,
+ * - custom dpack / mpack assertions,
+ * - reader / writer tracking.
+ */
+#define CONFIG_DPACK_DEBUG 1
+
+/**
+ * @def   CONFIG_DPACK_SCALAR
+ * @brief Enable scalars
+ * @details
+ * Build dpack library with scalar support allowing to (un)serialize, boolean,
+ * signed and unsigned integers.
+ */
+#define CONFIG_DPACK_SCALAR 1
+
+/**
+ * @def   CONFIG_DPACK_FLOAT
+ * @brief Enable single precision floating point numbers
+ * @details
+ * Build dpack library with single precision floating point number support
+ * allowing to (un)serialize floats.
+ */
+#define CONFIG_DPACK_FLOAT 1
+
+/**
+ * @def   CONFIG_DPACK_DOUBLE
+ * @brief Enable double precision floating point numbers
+ * @details
+ * Build dpack library with double precision floating point number support
+ * allowing to (un-)serialize doubles.
+ */
+#define CONFIG_DPACK_DOUBLE 1
+
+/**
+ *
+ * @def   CONFIG_DPACK_STRING
+ * @brief Enable strings
+ * @details
+ * Build dpack library with string support allowing to (un-)serialize
+ * strings according to duplicate and / or copy strategies.
+ */
+#define CONFIG_DPACK_STRING 1
+
+/**
+ *
+ * @def   CONFIG_DPACK_UTEST
+ * @brief Build DPack testsuite
+ * @details
+ * Build dpack library unit testsuite.
+ */
+#define CONFIG_DPACK_UTEST 1
+
+/**
+ * @def   CONFIG_DPACK_LVSTR
+ * @brief Enable Length-Value strings
+ * @details
+ * Build dpack library with length-value string support allowing to
+ * (un)serialize strings into rstsubst{Stroll}'s @rstsubst{lvstr} objects.
+ * @rstsubst{lvstr} objects are Length-Value strings that make the management of
+ * string life-cycle easier.
+ */
+#define CONFIG_DPACK_LVSTR 1
+
+/**
+ * @def   CONFIG_DPACK_VALGRIND
+ * @brief Enable Valgrind support
+ * @details
+ * Build dpack library unit test suite with Valgrind support enabled. For
+ * debugging purposes only: **do not use in production**.
+ */
+#define CONFIG_DPACK_VALGRIND 1
+
+/**
+ * @def   CONFIG_DPACK_BOPS
+ * @brief Enable bitwise operations framework
+ * @details
+ * Build dpack library bit operations framework exposing functions to perform
+ * bitwise operations upon words in memory.
+ */
+#define CONFIG_DPACK_BOPS 1
+
+/**
+ * @def   CONFIG_DPACK_BMAP
+ * @brief Enable bitmap framework
+ * @details
+ * Build dpack library with bitmap framework exposing functions to perform
+ * usual operations over bitmaps stored memory words.
+ */
+#define CONFIG_DPACK_BMAP 1
+
+# ex: ft=doxygen:

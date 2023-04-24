@@ -2,14 +2,17 @@ config DPACK_ASSERT_API
 	bool "API assertion"
 	default n
 	help
-	  Build dpack library with high-level API assertions enabled.
+	  Build dpack library with high-level API assertions enabled to ensure
+	  that API functions exposed by DPack will perform full verification of
+	  arguments consistency.
 
 config DPACK_ASSERT_INTERN
 	bool "Internal assertion"
 	select DPACK_ASSERT_API
 	default n
 	help
-	  Build dpack library with internal assertions enabled.
+	  Build dpack library with internal assertions enabled to check for
+	  internal DPack behavioral consistency.
 
 config DPACK_DEBUG
 	bool "Debug"
@@ -18,7 +21,8 @@ config DPACK_DEBUG
 	default n
 	help
 	  Build dpack library with internal debugging support enabled.
-	  enable internal mpack support for:
+	  This also enables mpack internal debug support with the following
+	  additional features:
 	  * reading / writing to / from STDIO files,
 	  * error strings,
 	  * custom dpack / mpack assertions,
@@ -28,8 +32,8 @@ config DPACK_SCALAR
 	bool "Scalars"
 	default y
 	help
-	  Build dpack library with scalar support, i.e., boolean, signed and
-	  unsigned integers.
+	  Build dpack library with scalar support allowing to (un)serialize,
+	  boolean, signed and unsigned integers.
 
 config DPACK_FLOAT
 	bool "Single precision floating point numbers"
@@ -37,28 +41,32 @@ config DPACK_FLOAT
 	default n
 	help
 	  Build dpack library with single precision floating point number
-	  support.
+	  support allowing to (un)serialize floats.
 
 config DPACK_DOUBLE
 	bool "Double precision floating point numbers"
 	depends on DPACK_SCALAR
 	default n
 	help
-	  Build dpack library with double precision floating point number
-	  support.
+	  Build dpack library with single precision floating point number
+	  support allowing to (un)serialize doubles.
 
 config DPACK_STRING
 	bool "Strings"
 	default y
 	help
-	  Build dpack library with string support.
+	  Build dpack library with string support allowing to (un)serialize
+	  strings according to duplicate and / or copy strategies.
 
 config DPACK_LVSTR
 	bool "Length-Value strings"
 	select DPACK_STRING
 	default y
 	help
-	  Build dpack library with string support.
+          Build dpack library with length-value string support allowing to
+          (un)serialize strings into Stroll's lvstr objects. lvstr objects are
+	  Length-Value strings that make the management of strings life-cycle
+	  easier.
 
 config DPACK_BIN
 	bool "Bins"

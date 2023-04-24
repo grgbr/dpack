@@ -43,11 +43,20 @@ libdpack.pc-tmpl := libdpack_pkgconf_tmpl
 # Documentation generation
 ################################################################################
 
-#doxyconf  := $(CURDIR)/sphinx/Doxyfile
-#doxyenv   := INCDIR="$(patsubst -I%,%,$(filter -I%,$(common-cflags)))" \
-#             VERSION="$(VERSION)"
-#
-#sphinxsrc := $(CURDIR)/sphinx
-#sphinxenv := VERSION="$(VERSION)"
+doxyconf  := $(CURDIR)/sphinx/Doxyfile
+doxyenv   := SRCDIR="$(HEADERDIR) $(SRCDIR)/src $(SRCDIR)/sphinx/config.dox" \
+             VERSION="$(VERSION)"
+
+sphinxsrc := $(CURDIR)/sphinx
+sphinxenv := \
+	VERSION="$(VERSION)" \
+	$(if $(strip $(EBUILDDOC_TARGET_PATH)), \
+	     EBUILDDOC_TARGET_PATH="$(strip $(EBUILDDOC_TARGET_PATH))") \
+	$(if $(strip $(EBUILDDOC_INVENTORY_PATH)), \
+	     EBUILDDOC_INVENTORY_PATH="$(strip $(EBUILDDOC_INVENTORY_PATH))") \
+	$(if $(strip $(STROLLDOC_TARGET_PATH)), \
+	     STROLLDOC_TARGET_PATH="$(strip $(STROLLDOC_TARGET_PATH))") \
+	$(if $(strip $(STROLLDOC_INVENTORY_PATH)), \
+	     STROLLDOC_INVENTORY_PATH="$(strip $(STROLLDOC_INVENTORY_PATH))")
 
 # vim: filetype=make :
