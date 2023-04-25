@@ -69,6 +69,45 @@
 #define CONFIG_DPACK_STRING 1
 
 /**
+ * @def   CONFIG_DPACK_LVSTR
+ * @brief Enable Length-Value strings
+ * @details
+ * Build dpack library with length-value string support allowing to
+ * (un)serialize strings into @rstsubst{Stroll}'s @rstsubst{lvstr} objects.
+ * @rstsubst{lvstr} objects are Length-Value strings that make the management of
+ * string life-cycle easier.
+ */
+#define CONFIG_DPACK_LVSTR 1
+
+/**
+ * @def   CONFIG_DPACK_BIN
+ * @brief Enable Bins
+ * @details
+ * Build dpack library with @rstsubst{MessagePack} bin support allowing to
+ * (un)serialize byte arrays / binary blobs according to duplicate and /
+ * or copy strategies.
+ */
+#define CONFIG_DPACK_BIN 1
+
+/**
+ * @def   CONFIG_DPACK_ARRAY
+ * @brief Enable arrays
+ * @details
+ * Build dpack library with @rstsubst{MessagePack} array support allowing to
+ * (un)serialize lists of objects.
+ */
+#define CONFIG_DPACK_ARRAY 1
+
+/**
+ * @def   CONFIG_DPACK_MAP
+ * @brief Enable maps
+ * @details
+ * Build dpack library with @rstsubst{MessagePack} map support allowing to
+ * (un)serialize structured aggregates of objects.
+ */
+#define CONFIG_DPACK_MAP 1
+
+/**
  *
  * @def   CONFIG_DPACK_UTEST
  * @brief Build DPack testsuite
@@ -76,17 +115,6 @@
  * Build dpack library unit testsuite.
  */
 #define CONFIG_DPACK_UTEST 1
-
-/**
- * @def   CONFIG_DPACK_LVSTR
- * @brief Enable Length-Value strings
- * @details
- * Build dpack library with length-value string support allowing to
- * (un)serialize strings into rstsubst{Stroll}'s @rstsubst{lvstr} objects.
- * @rstsubst{lvstr} objects are Length-Value strings that make the management of
- * string life-cycle easier.
- */
-#define CONFIG_DPACK_LVSTR 1
 
 /**
  * @def   CONFIG_DPACK_VALGRIND
@@ -98,21 +126,11 @@
 #define CONFIG_DPACK_VALGRIND 1
 
 /**
- * @def   CONFIG_DPACK_BOPS
- * @brief Enable bitwise operations framework
+ * @def   CONFIG_DPACK_SAMPLE
+ * @brief Enable examples
  * @details
- * Build dpack library bit operations framework exposing functions to perform
- * bitwise operations upon words in memory.
+ * Build dpack library code example binaries demonstrating basic usage.
  */
-#define CONFIG_DPACK_BOPS 1
-
-/**
- * @def   CONFIG_DPACK_BMAP
- * @brief Enable bitmap framework
- * @details
- * Build dpack library with bitmap framework exposing functions to perform
- * usual operations over bitmaps stored memory words.
- */
-#define CONFIG_DPACK_BMAP 1
+#define CONFIG_DPACK_SAMPLE 1
 
 # ex: ft=doxygen:

@@ -72,20 +72,24 @@ config DPACK_BIN
 	bool "Bins"
 	default n
 	help
-	  Build dpack library with msgpack bin, i.e. byte array / blob support.
+          Build dpack library with MessagePack bin support allowing to
+	  (un)serialize byte arrays / binary blobs according to duplicate and /
+	  or copy strategies.
 
 config DPACK_ARRAY
 	bool "Arrays"
 	default y
 	help
-	  Build dpack library with array support.
+          Build dpack library with MessagePack array support allowing to
+	  (un)serialize lists of objects.
 
 config DPACK_MAP
 	bool "Maps"
 	select DPACK_SCALAR
 	default y
 	help
-	  Build dpack library with map support.
+          Build dpack library with MessagePack map support allowing to
+	  (un)serialize structured aggregates of objects.
 
 config DPACK_UTEST
 	bool "Unit tests"
@@ -110,6 +114,6 @@ config DPACK_SAMPLE
 	select DPACK_FLOAT
 	default n
 	help
-	  Build dpack library code examples demonstrating basic usage.
+	  Build dpack library code example binaries demonstrating basic usage.
 
 # vim: ft=kconfig:

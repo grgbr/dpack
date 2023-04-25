@@ -6,29 +6,40 @@
    
 .. |Stroll|      replace:: :external+stroll:doc:`Stroll <index>`
    
-.. |lvstr|       replace:: :external+stroll:ref:`sect-api-lvstr`
+.. |lvstr|       replace:: :external+stroll:ref:`lvstr <sect-api-lvstr>`
+
+.. _glibc:       https://www.gnu.org/s/libc/
+.. |GLibc|       replace:: `GNU C library <glibc_>`_
 
 Overview
 ========
 
 What follows here provides a thorough description of how to use DPack library.
 
-Basically, DPack library is a C library wrapping the |MPack| library
+Basically, DPack library is a C library that wraps calls to |MPack| to serialize
+objects according to |Messagepack| format. As stated onto the home page:
 
-C framework that provides definitions
-usefull to carry out common C/C++ applicative tasks.
-The library is implemented to run on GNU Linux / glibc platforms only (although
-porting to alternate C library such as `musl libc <https://www.musl-libc.org/>`_
-should not be much of a hassle).
+   It's like JSON but fast and small.
+   
+   MessagePack is an efficient binary serialization format. It lets you exchange
+   data among multiple languages like JSON. But it's faster and smaller. Small
+   integers are encoded into a single byte, and typical short strings require
+   only one extra byte in addition to the strings themselves.
 
-Stroll library API is organized around the following functional areas which
+The library is implemented to run on GNU Linux / |GLibc| platforms only
+(although porting to alternate C library such as `musl libc
+<https://www.musl-libc.org/>`_ should not be much of a hassle).
+
+DPack library API is organized around the following functional areas which
 you can refer to for further details :
 
-* `Common definitions`_,
-* Assertions_,
-* `Bit operations`_,
-* `Bitmaps`_,
-* `Length-value strings`_.
+* Boolean_,
+* Integer_,
+* `Floating point number`_
+* String_,
+* `Length-Value string`_,
+* Array_,
+* Map_.
 
 .. index:: build configuration, configuration macros
    
@@ -53,286 +64,202 @@ eventually refer to the corresponding C macros listed below:
 * :c:macro:`CONFIG_DPACK_UTEST`
 * :c:macro:`CONFIG_DPACK_VALGRIND`
 * :c:macro:`CONFIG_DPACK_SAMPLE`
+  
+.. index:: encode, serialize, pack
 
-.. index:: common definitions, cdefs
+Encoder
+=======
 
-Common definitions
-==================
+The DPack library serialization interface is provided through to the
+:c:struct:`dpack_encoder` interface. The following operations are available:
 
-Stroll library exposes various C preprocessor macros used to implement Stroll
-internals and meant for application development purposes. These are:
+* :c:func:`dpack_encoder_init_buffer`
+* :c:func:`dpack_encoder_fini`
+* :c:func:`dpack_encoder_space_used`
+* :c:func:`dpack_encoder_space_left`
 
-.. hlist::
+.. index:: decode, unserialize, unpack
+   
+Decoder
+=======
 
-   * Compile time logic :
+The DPack library unserialization interface is provided through to the
+:c:struct:`dpack_decoder` interface. The following operations are available:
 
-      * :c:macro:`STROLL_CONCAT`
-      * :c:macro:`STROLL_CONST_ABS`
-      * :c:macro:`STROLL_CONST_MAX`
-      * :c:macro:`STROLL_CONST_MIN`
-      * :c:macro:`STROLL_STRING`
-      * :c:macro:`STROLL_UNIQ`
-      * :c:macro:`compile_assert`
-      * :c:macro:`compile_choose`
-      * :c:macro:`compile_eval`
+* :c:func:`dpack_decoder_init_buffer`
+* :c:func:`dpack_decoder_init_skip_buffer`
+* :c:func:`dpack_decoder_fini`
+* :c:func:`dpack_decoder_data_left`
+* :c:func:`dpack_decoder_skip`
 
-   * Various
+.. index:: boolean, bool
 
-      * :c:macro:`array_nr`
-      * :c:macro:`stroll_abs`
-      * :c:macro:`stroll_min`
-      * :c:macro:`stroll_max`
+Boolean
+=======
 
-   * Attribute wrappers :
+When compiled with the :c:macro:`CONFIG_DPACK_SCALAR` build configuration
+option enabled, the DPack library provides support for boolean (un)serialization
+operations. These are:
 
-      * :c:macro:`__align`
-      * :c:macro:`__const`
-      * :c:macro:`__ctor`
-      * :c:macro:`__dtor`
-      * :c:macro:`__export_public`
-      * :c:macro:`__export_protect`
-      * :c:macro:`__leaf`
-      * :c:macro:`__nonull`
-      * :c:macro:`__noreturn`
-      * :c:macro:`__nothrow`
-      * :c:macro:`__packed`
-      * :c:macro:`__printf`
-      * :c:macro:`__pure`
-      * :c:macro:`__returns_nonull`
-      * :c:macro:`__unused`
-      * :c:macro:`__warn_result`
+* :c:func:`dpack_encode_bool`
+* :c:func:`dpack_decode_bool`
 
-.. index:: assertions
+.. index:: integers, signed, unsigned, 8-bits, 16-bits, 32-bits, 64-bits
 
-Assertions
-==========
+Integer
+========
 
-When compiled with the :c:macro:`CONFIG_STROLL_ASSERT` build configuration
-option enabled, the Stroll library exposes the :c:macro:`stroll_assert` macro so
-that developper may perform standard assertion checking.
-
-.. index:: bit operations, bitops
-
-Bit operations
-==============
-
-When compiled with the :c:macro:`CONFIG_STROLL_BOPS` build configuration
-option enabled, the Stroll library provides support for bit manipulation
+When compiled with the :c:macro:`CONFIG_DPACK_SCALAR` build configuration
+option enabled, the DPack library provides support for integer (un)serialization
 operations. These are:
 
 .. hlist::
 
-   * Find First bit Set:
+   * 8-bits unsigned integers:
 
-      * :c:func:`stroll_bops_ffs`
-      * :c:func:`stroll_bops32_ffs`
-      * :c:func:`stroll_bops64_ffs`
+      * :c:macro:`DPACK_UINT8_SIZE_MIN`
+      * :c:macro:`DPACK_UINT8_SIZE_MAX`
+      * :c:func:`dpack_encode_uint8`
+      * :c:func:`dpack_decode_uint8`
+      * :c:func:`dpack_decode_uint8_min`
+      * :c:func:`dpack_decode_uint8_max`
+      * :c:func:`dpack_decode_uint8_range`
 
-   * Find Last bit Set:
+   * 8-bits signed integers:
 
-      * :c:func:`stroll_bops_fls`
-      * :c:func:`stroll_bops32_fls`
-      * :c:func:`stroll_bops64_fls`
+      * :c:macro:`DPACK_INT8_SIZE_MIN`
+      * :c:macro:`DPACK_INT8_SIZE_MAX`
+      * :c:func:`dpack_encode_int8`
+      * :c:func:`dpack_decode_int8`
+      * :c:func:`dpack_decode_int8_min`
+      * :c:func:`dpack_decode_int8_max`
+      * :c:func:`dpack_decode_int8_range`
 
-   * Find First bit Cleared:
+   * 16-bits unsigned integers:
 
-      * :c:func:`stroll_bops_ffc`
-      * :c:func:`stroll_bops32_ffc`
-      * :c:func:`stroll_bops64_ffc`
+      * :c:macro:`DPACK_UINT16_SIZE_MIN`
+      * :c:macro:`DPACK_UINT16_SIZE_MAX`
+      * :c:func:`dpack_encode_uint16`
+      * :c:func:`dpack_decode_uint16`
+      * :c:func:`dpack_decode_uint16_min`
+      * :c:func:`dpack_decode_uint16_max`
+      * :c:func:`dpack_decode_uint16_range`
 
-   * Find number of set bits (:index:`Hammimg weight`):
+   * 16-bits signed integers:
 
-      * :c:func:`stroll_bops_hweight`
-      * :c:func:`stroll_bops32_hweight`
-      * :c:func:`stroll_bops64_hweight`
+      * :c:macro:`DPACK_INT16_SIZE_MIN`
+      * :c:macro:`DPACK_INT16_SIZE_MAX`
+      * :c:func:`dpack_encode_int16`
+      * :c:func:`dpack_decode_int16`
+      * :c:func:`dpack_decode_int16_min`
+      * :c:func:`dpack_decode_int16_max`
+      * :c:func:`dpack_decode_int16_range`
 
-.. index:: bitmaps, bmap
+   * 32-bits unsigned integers:
 
-Bitmaps
-=======
+      * :c:macro:`DPACK_UINT32_SIZE_MIN`
+      * :c:macro:`DPACK_UINT32_SIZE_MAX`
+      * :c:func:`dpack_encode_uint32`
+      * :c:func:`dpack_decode_uint32`
+      * :c:func:`dpack_decode_uint32_min`
+      * :c:func:`dpack_decode_uint32_max`
+      * :c:func:`dpack_decode_uint32_range`
 
-When compiled with the :c:macro:`CONFIG_STROLL_BMAP` build configuration
-option enabled, the Stroll library provides support for bitmap operations.
-These are:
+   * 32-bits signed integers:
 
-.. hlist::
+      * :c:macro:`DPACK_INT32_SIZE_MIN`
+      * :c:macro:`DPACK_INT32_SIZE_MAX`
+      * :c:func:`dpack_encode_int32`
+      * :c:func:`dpack_decode_int32`
+      * :c:func:`dpack_decode_int32_min`
+      * :c:func:`dpack_decode_int32_max`
+      * :c:func:`dpack_decode_int32_range`
 
-   * Initialization:
+   * 64-bits unsigned integers:
 
-      * :c:macro:`STROLL_BMAP_INIT_CLEAR`
-      * :c:macro:`STROLL_BMAP_INIT_SET`
-      * :c:macro:`STROLL_BMAP32_INIT_CLEAR`
-      * :c:macro:`STROLL_BMAP32_INIT_SET`
-      * :c:macro:`STROLL_BMAP64_INIT_CLEAR`
-      * :c:macro:`STROLL_BMAP64_INIT_SET`
-      * :c:func:`stroll_bmap_setup_clear`
-      * :c:func:`stroll_bmap32_setup_clear`
-      * :c:func:`stroll_bmap64_setup_clear`
-      * :c:func:`stroll_bmap_setup_set`
-      * :c:func:`stroll_bmap32_setup_set`
-      * :c:func:`stroll_bmap64_setup_set`
+      * :c:macro:`DPACK_UINT64_SIZE_MIN`
+      * :c:macro:`DPACK_UINT64_SIZE_MAX`
+      * :c:func:`dpack_encode_uint64`
+      * :c:func:`dpack_decode_uint64`
+      * :c:func:`dpack_decode_uint64_min`
+      * :c:func:`dpack_decode_uint64_max`
+      * :c:func:`dpack_decode_uint64_range`
 
-   * Iteration:
+   * 64-bits signed integers:
 
-      * :c:macro:`stroll_bmap_foreach_clear`
-      * :c:macro:`stroll_bmap32_foreach_clear`
-      * :c:macro:`stroll_bmap64_foreach_clear`
-      * :c:macro:`stroll_bmap_foreach_set`
-      * :c:macro:`stroll_bmap32_foreach_set`
-      * :c:macro:`stroll_bmap64_foreach_set`
+      * :c:macro:`DPACK_INT64_SIZE_MIN`
+      * :c:macro:`DPACK_INT64_SIZE_MAX`
+      * :c:func:`dpack_encode_int64`
+      * :c:func:`dpack_decode_int64`
+      * :c:func:`dpack_decode_int64_min`
+      * :c:func:`dpack_decode_int64_max`
+      * :c:func:`dpack_decode_int64_range`
 
-   * Compute masks:
+   * Unsigned integers:
 
-      * :c:func:`stroll_bmap_mask`
-      * :c:func:`stroll_bmap32_mask`
-      * :c:func:`stroll_bmap64_mask`
+      * :c:macro:`DPACK_UINT_SIZE_MIN`
+      * :c:macro:`DPACK_UINT_SIZE_MAX`
+      * :c:func:`dpack_encode_uint`
+      * :c:func:`dpack_decode_uint`
+      * :c:func:`dpack_decode_uint_min`
+      * :c:func:`dpack_decode_uint_max`
+      * :c:func:`dpack_decode_uint_range`
 
-   * Compute number of bits set (:index:`Hammimg weight`):
+   * Signed integers:
 
-      * :c:func:`stroll_bmap_hweight`
-      * :c:func:`stroll_bmap32_hweight`
-      * :c:func:`stroll_bmap64_hweight`
+      * :c:macro:`DPACK_INT_SIZE_MIN`
+      * :c:macro:`DPACK_INT_SIZE_MAX`
+      * :c:func:`dpack_encode_int`
+      * :c:func:`dpack_decode_int`
+      * :c:func:`dpack_decode_int_min`
+      * :c:func:`dpack_decode_int_max`
+      * :c:func:`dpack_decode_int_range`
 
-   * Perform bitwise AND operation:
+.. index:: float, double, floating point number
+   
+Floating point number
+=====================
+   
+.. todo::
 
-      * :c:func:`stroll_bmap_and`
-      * :c:func:`stroll_bmap_and_range`
-      * :c:func:`stroll_bmap32_and`
-      * :c:func:`stroll_bmap32_and_range`
-      * :c:func:`stroll_bmap64_and`
-      * :c:func:`stroll_bmap64_and_range`
+   Document floats and doubles
 
-   * Perform bitwise OR operation:
+  
+.. index:: string
+   
+String
+======
+   
+.. todo::
 
-      * :c:func:`stroll_bmap_or`
-      * :c:func:`stroll_bmap_or_range`
-      * :c:func:`stroll_bmap32_or`
-      * :c:func:`stroll_bmap32_or_range`
-      * :c:func:`stroll_bmap64_or`
-      * :c:func:`stroll_bmap64_or_range`
+   Document strings
 
-   * Perform bitwise XOR operation:
+.. index:: Length-Value string, lvstr
 
-      * :c:func:`stroll_bmap_xor`
-      * :c:func:`stroll_bmap_xor_range`
-      * :c:func:`stroll_bmap32_xor`
-      * :c:func:`stroll_bmap32_xor_range`
-      * :c:func:`stroll_bmap64_xor`
-      * :c:func:`stroll_bmap64_xor_range`
+Length-Value string
+===================
 
-   * Test set bit(s):
+.. todo::
 
-      * :c:func:`stroll_bmap_test`
-      * :c:func:`stroll_bmap_test_all`
-      * :c:func:`stroll_bmap_test_mask`
-      * :c:func:`stroll_bmap_test_range`
-      * :c:func:`stroll_bmap32_test`
-      * :c:func:`stroll_bmap32_test_all`
-      * :c:func:`stroll_bmap32_test_mask`
-      * :c:func:`stroll_bmap32_test_range`
-      * :c:func:`stroll_bmap64_test`
-      * :c:func:`stroll_bmap64_test_all`
-      * :c:func:`stroll_bmap64_test_mask`
-      * :c:func:`stroll_bmap64_test_range`
+   Document lvstr
 
-   * Set bit(s):
+.. index:: list, collection, array
+   
+List
+====
+   
+.. todo::
 
-      * :c:func:`stroll_bmap_set`
-      * :c:func:`stroll_bmap_set_mask`
-      * :c:func:`stroll_bmap_set_range`
-      * :c:func:`stroll_bmap_set_all`
-      * :c:func:`stroll_bmap32_set`
-      * :c:func:`stroll_bmap32_set_mask`
-      * :c:func:`stroll_bmap32_set_range`
-      * :c:func:`stroll_bmap32_set_all`
-      * :c:func:`stroll_bmap64_set`
-      * :c:func:`stroll_bmap64_set_mask`
-      * :c:func:`stroll_bmap64_set_range`
-      * :c:func:`stroll_bmap64_set_all`
+   Document lists
 
-   * Clear bit(s):
+.. index:: map, structured aggregate, structured collection
+   
+Map
+===
 
-      * :c:func:`stroll_bmap_clear`
-      * :c:func:`stroll_bmap_clear_mask`
-      * :c:func:`stroll_bmap_clear_range`
-      * :c:func:`stroll_bmap_clear_all`
-      * :c:func:`stroll_bmap32_clear`
-      * :c:func:`stroll_bmap32_clear_mask`
-      * :c:func:`stroll_bmap32_clear_range`
-      * :c:func:`stroll_bmap32_clear_all`
-      * :c:func:`stroll_bmap64_clear`
-      * :c:func:`stroll_bmap64_clear_mask`
-      * :c:func:`stroll_bmap64_clear_range`
-      * :c:func:`stroll_bmap64_clear_all`
+.. todo::
 
-   * Toggle bit(s):
-
-      * :c:func:`stroll_bmap_toggle`
-      * :c:func:`stroll_bmap_toggle_mask`
-      * :c:func:`stroll_bmap_toggle_range`
-      * :c:func:`stroll_bmap_toggle_all`
-      * :c:func:`stroll_bmap32_toggle`
-      * :c:func:`stroll_bmap32_toggle_mask`
-      * :c:func:`stroll_bmap32_toggle_range`
-      * :c:func:`stroll_bmap32_toggle_all`
-      * :c:func:`stroll_bmap64_toggle`
-      * :c:func:`stroll_bmap64_toggle_mask`
-      * :c:func:`stroll_bmap64_toggle_range`
-      * :c:func:`stroll_bmap64_toggle_all`
-
-.. index:: length-value string, lvstr
-
-Length-Value Strings
-====================
-
-When compiled with the :c:macro:`CONFIG_STROLL_LVSTR` build configuration option
-enabled, the Stroll library provides support for :c:struct:`stroll_lvstr`
-length-value strings.
-
-This framework ease the management of C strings life-cycle. In addition,
-it caches the length of string registered into it to mitigate client code string
-length computation overhead.
-
-The following manipulations are available:
-
-.. hlist::
-
-   * Static initialization:
-
-      * :c:macro:`STROLL_LVSTR_INIT`
-      * :c:macro:`STROLL_LVSTR_INIT_LEND`
-      * :c:macro:`STROLL_LVSTR_INIT_NLEND`
-      * :c:macro:`STROLL_LVSTR_INIT_NCEDE`
-
-   * Initialization:
-
-      * :c:func:`stroll_lvstr_init`
-      * :c:func:`stroll_lvstr_init_cede`
-      * :c:func:`stroll_lvstr_init_dup`
-      * :c:func:`stroll_lvstr_init_lend`
-      * :c:func:`stroll_lvstr_init_ncede`
-      * :c:func:`stroll_lvstr_init_ndup`
-      * :c:func:`stroll_lvstr_init_nlend`
-
-   * C string registration:
-
-      * :c:func:`stroll_lvstr_cede`
-      * :c:func:`stroll_lvstr_drop`
-      * :c:func:`stroll_lvstr_dup`
-      * :c:func:`stroll_lvstr_lend`
-      * :c:func:`stroll_lvstr_ncede`
-      * :c:func:`stroll_lvstr_ndup`
-      * :c:func:`stroll_lvstr_nlend`
-
-   * Accessors:
-
-      * :c:macro:`STROLL_LVSTR_LEN_MAX`
-      * :c:func:`stroll_lvstr_cstr`
-      * :c:func:`stroll_lvstr_len`
-
-   * Finalization:
-
-      * :c:func:`stroll_lvstr_fini`
+   Document maps
 
 .. index:: API reference, reference
    
@@ -414,6 +341,106 @@ CONFIG_DPACK_SAMPLE
    
 Macros
 ------
+   
+DPACK_INT16_SIZE_MAX
+********************
+   
+.. doxygendefine:: DPACK_INT16_SIZE_MAX
+
+DPACK_INT16_SIZE_MIN
+********************
+
+.. doxygendefine:: DPACK_INT16_SIZE_MIN
+
+DPACK_INT32_SIZE_MAX
+********************
+
+.. doxygendefine:: DPACK_INT32_SIZE_MAX
+
+DPACK_INT32_SIZE_MIN
+********************
+
+.. doxygendefine:: DPACK_INT32_SIZE_MIN
+
+DPACK_INT64_SIZE_MAX
+********************
+
+.. doxygendefine:: DPACK_INT64_SIZE_MAX
+
+DPACK_INT64_SIZE_MIN
+********************
+
+.. doxygendefine:: DPACK_INT64_SIZE_MIN
+
+DPACK_INT8_SIZE_MAX
+*******************
+
+.. doxygendefine:: DPACK_INT8_SIZE_MAX
+
+DPACK_INT8_SIZE_MIN
+*******************
+
+.. doxygendefine:: DPACK_INT8_SIZE_MIN
+
+DPACK_INT_SIZE_MAX
+******************
+
+.. doxygendefine:: DPACK_INT_SIZE_MAX
+
+DPACK_INT_SIZE_MIN
+******************
+
+.. doxygendefine:: DPACK_INT_SIZE_MIN
+
+DPACK_UINT16_SIZE_MAX
+*********************
+
+.. doxygendefine:: DPACK_UINT16_SIZE_MAX
+
+DPACK_UINT16_SIZE_MIN
+*********************
+
+.. doxygendefine:: DPACK_UINT16_SIZE_MIN
+
+DPACK_UINT32_SIZE_MAX
+*********************
+
+.. doxygendefine:: DPACK_UINT32_SIZE_MAX
+
+DPACK_UINT32_SIZE_MIN
+*********************
+
+.. doxygendefine:: DPACK_UINT32_SIZE_MIN
+
+DPACK_UINT64_SIZE_MAX
+*********************
+
+.. doxygendefine:: DPACK_UINT64_SIZE_MAX
+
+DPACK_UINT64_SIZE_MIN
+*********************
+
+.. doxygendefine:: DPACK_UINT64_SIZE_MIN
+
+DPACK_UINT8_SIZE_MAX
+********************
+
+.. doxygendefine:: DPACK_UINT8_SIZE_MAX
+
+DPACK_UINT8_SIZE_MIN
+********************
+
+.. doxygendefine:: DPACK_UINT8_SIZE_MIN
+
+DPACK_UINT_SIZE_MAX
+*******************
+
+.. doxygendefine:: DPACK_UINT_SIZE_MAX
+
+DPACK_UINT_SIZE_MIN
+*******************
+
+.. doxygendefine:: DPACK_UINT_SIZE_MIN
 
 Structures
 ----------
@@ -431,3 +458,307 @@ dpack_encoder
 Functions
 ---------
 
+dpack_decode_bool
+*****************
+
+.. doxygenfunction:: dpack_decode_bool
+
+dpack_decode_int
+****************
+
+.. doxygenfunction:: dpack_decode_int
+
+dpack_decode_int16
+******************
+
+.. doxygenfunction:: dpack_decode_int16
+
+dpack_decode_int16_max
+**********************
+
+.. doxygenfunction:: dpack_decode_int16_max
+
+dpack_decode_int16_min
+**********************
+
+.. doxygenfunction:: dpack_decode_int16_min
+
+dpack_decode_int16_range
+************************
+
+.. doxygenfunction:: dpack_decode_int16_range
+
+dpack_decode_int32
+******************
+
+.. doxygenfunction:: dpack_decode_int32
+
+dpack_decode_int32_max
+**********************
+
+.. doxygenfunction:: dpack_decode_int32_max
+
+dpack_decode_int32_min
+**********************
+
+.. doxygenfunction:: dpack_decode_int32_min
+
+dpack_decode_int32_range
+************************
+
+.. doxygenfunction:: dpack_decode_int32_range
+
+dpack_decode_int64
+******************
+
+.. doxygenfunction:: dpack_decode_int64
+
+dpack_decode_int64_max
+**********************
+
+.. doxygenfunction:: dpack_decode_int64_max
+
+dpack_decode_int64_min
+**********************
+
+.. doxygenfunction:: dpack_decode_int64_min
+
+dpack_decode_int64_range
+************************
+
+.. doxygenfunction:: dpack_decode_int64_range
+
+dpack_decode_int8
+*****************
+
+.. doxygenfunction:: dpack_decode_int8
+
+dpack_decode_int8_max
+*********************
+
+.. doxygenfunction:: dpack_decode_int8_max
+
+dpack_decode_int8_min
+*********************
+
+.. doxygenfunction:: dpack_decode_int8_min
+
+dpack_decode_int8_range
+***********************
+
+.. doxygenfunction:: dpack_decode_int8_range
+
+dpack_decode_int_max
+********************
+
+.. doxygenfunction:: dpack_decode_int_max
+
+dpack_decode_int_min
+********************
+
+.. doxygenfunction:: dpack_decode_int_min
+
+dpack_decode_int_range
+**********************
+
+.. doxygenfunction:: dpack_decode_int_range
+
+dpack_decode_uint
+*****************
+
+.. doxygenfunction:: dpack_decode_uint
+
+dpack_decode_uint16
+*******************
+
+.. doxygenfunction:: dpack_decode_uint16
+
+dpack_decode_uint16_max
+***********************
+
+.. doxygenfunction:: dpack_decode_uint16_max
+
+dpack_decode_uint16_min
+***********************
+
+.. doxygenfunction:: dpack_decode_uint16_min
+
+dpack_decode_uint16_range
+*************************
+
+.. doxygenfunction:: dpack_decode_uint16_range
+
+dpack_decode_uint32
+*******************
+
+.. doxygenfunction:: dpack_decode_uint32
+
+dpack_decode_uint32_max
+***********************
+
+.. doxygenfunction:: dpack_decode_uint32_max
+
+dpack_decode_uint32_min
+***********************
+
+.. doxygenfunction:: dpack_decode_uint32_min
+
+dpack_decode_uint32_range
+*************************
+
+.. doxygenfunction:: dpack_decode_uint32_range
+
+dpack_decode_uint64
+*******************
+
+.. doxygenfunction:: dpack_decode_uint64
+
+dpack_decode_uint64_max
+***********************
+
+.. doxygenfunction:: dpack_decode_uint64_max
+
+dpack_decode_uint64_min
+***********************
+
+.. doxygenfunction:: dpack_decode_uint64_min
+
+dpack_decode_uint64_range
+*************************
+
+.. doxygenfunction:: dpack_decode_uint64_range
+
+dpack_decode_uint8
+******************
+
+.. doxygenfunction:: dpack_decode_uint8
+
+dpack_decode_uint8_max
+**********************
+
+.. doxygenfunction:: dpack_decode_uint8_max
+
+dpack_decode_uint8_min
+**********************
+
+.. doxygenfunction:: dpack_decode_uint8_min
+
+dpack_decode_uint8_range
+************************
+
+.. doxygenfunction:: dpack_decode_uint8_range
+
+dpack_decode_uint_max
+*********************
+
+.. doxygenfunction:: dpack_decode_uint_max
+
+dpack_decode_uint_min
+*********************
+
+.. doxygenfunction:: dpack_decode_uint_min
+
+dpack_decode_uint_range
+***********************
+
+.. doxygenfunction:: dpack_decode_uint_range
+
+dpack_decoder_data_left
+***********************
+
+.. doxygenfunction:: dpack_decoder_data_left
+
+dpack_decoder_fini
+******************
+
+.. doxygenfunction:: dpack_decoder_fini
+
+dpack_decoder_init_buffer
+*************************
+
+.. doxygenfunction:: dpack_decoder_init_buffer
+
+dpack_decoder_init_skip_buffer
+******************************
+
+.. doxygenfunction:: dpack_decoder_init_skip_buffer
+
+dpack_decoder_skip
+******************
+
+.. doxygenfunction:: dpack_decoder_skip
+
+dpack_encode_bool
+*****************
+
+.. doxygenfunction:: dpack_encode_bool
+
+dpack_encode_int
+****************
+
+.. doxygenfunction:: dpack_encode_int
+
+dpack_encode_int16
+******************
+
+.. doxygenfunction:: dpack_encode_int16
+
+dpack_encode_int32
+******************
+
+.. doxygenfunction:: dpack_encode_int32
+
+dpack_encode_int64
+******************
+
+.. doxygenfunction:: dpack_encode_int64
+
+dpack_encode_int8
+*****************
+
+.. doxygenfunction:: dpack_encode_int8
+
+dpack_encode_uint
+*****************
+
+.. doxygenfunction:: dpack_encode_uint
+
+dpack_encode_uint16
+*******************
+
+.. doxygenfunction:: dpack_encode_uint16
+
+dpack_encode_uint32
+*******************
+
+.. doxygenfunction:: dpack_encode_uint32
+
+dpack_encode_uint64
+*******************
+
+.. doxygenfunction:: dpack_encode_uint64
+
+dpack_encode_uint8
+******************
+
+.. doxygenfunction:: dpack_encode_uint8
+
+dpack_encoder_fini
+******************
+
+.. doxygenfunction:: dpack_encoder_fini
+
+dpack_encoder_init_buffer
+*************************
+
+.. doxygenfunction:: dpack_encoder_init_buffer
+
+dpack_encoder_space_left
+************************
+
+.. doxygenfunction:: dpack_encoder_space_left
+
+dpack_encoder_space_used
+************************
+
+.. doxygenfunction:: dpack_encoder_space_used
