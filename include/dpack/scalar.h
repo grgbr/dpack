@@ -9,6 +9,12 @@
 struct dpack_encoder;
 struct dpack_decoder;
 
+/**
+ * Minimum size of a serialized integer.
+ *
+ * Minimum size in bytes of an integer serialized according to the
+ * @rstsubst{MessagePack} format.
+ */
 #define DPACK_STDINT_SIZE_MIN MPACK_TAG_SIZE_FIXUINT
 
 /******************************************************************************

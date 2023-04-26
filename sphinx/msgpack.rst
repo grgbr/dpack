@@ -177,7 +177,7 @@ negative fixint 111xxxxx               0xe0 - 0xff
 Notation in diagrams
 ~~~~~~~~~~~~~~~~~~~~
 
-One byte:::
+One byte::
 
    +--------+
    |        |

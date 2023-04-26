@@ -43,6 +43,24 @@ struct dpack_encoder {
 	struct mpack_writer_t mpack;
 };
 
+/**
+ * Return buffer space used by encoded bytes.
+ *
+ * @param[in] encoder encoder
+ *
+ * @return Size of buffer space used in bytes
+ *
+ * Compute the number of bytes already encoded / packed / serialized into the
+ * buffer assigned to @p encoder at initialization time.
+ *
+ * @warning
+ * @p encoder *MUST* have been initialized using dpack_encoder_init_buffer()
+ * before calling this function. Result is undefined otherwise.
+ *
+ * @see
+ * - dpack_encoder_space_left()
+ * - dpack_encoder_init_buffer()
+ */
 extern size_t
 dpack_encoder_space_used(struct dpack_encoder * encoder) __dpack_nonull(1)
                                                          __dpack_pure
@@ -51,6 +69,24 @@ dpack_encoder_space_used(struct dpack_encoder * encoder) __dpack_nonull(1)
                                                          __warn_result
                                                          __dpack_export;
 
+/**
+ * Return buffer space left for encoding purpose.
+ *
+ * @param[in] encoder encoder
+ *
+ * @return Size of buffer space left in bytes
+ *
+ * Compute the number of bytes available for encoding / packing / serialization
+ * into the buffer assigned to @p encoder at initialization time.
+ *
+ * @warning
+ * @p encoder *MUST* have been initialized using dpack_encoder_init_buffer()
+ * before calling this function. Result is undefined otherwise.
+ *
+ * @see
+ * - dpack_encoder_space_used()
+ * - dpack_encoder_init_buffer()
+ */
 extern size_t
 dpack_encoder_space_left(struct dpack_encoder * encoder) __dpack_nonull(1)
                                                          __dpack_pure
@@ -59,12 +95,49 @@ dpack_encoder_space_left(struct dpack_encoder * encoder) __dpack_nonull(1)
                                                          __warn_result
                                                          __dpack_export;
 
+/**
+ * Initialize a MessagePack encoder with buffer space
+ *
+ * @param[in]    encoder encoder
+ * @param[inout] buffer  memory buffer
+ * @param[in]    size of @p buffer
+ *
+ * Initialize a MessagePack encoder for encoding / packing / serialization
+ * purpose.
+ *
+ * @p buffer is a previously allocated memory area of size @p size and owned by
+ * the caller. It is the responsibility of the caller to manage allocation and
+ * free of @p buffer.
+ *
+ * Owner of @p buffer *MUST* call dpack_encoder_fini() before @man{free(3)}'ing
+ * it.
+ *
+ * @warning
+ * When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ * @p size is zero, result is undefined. An assertion is triggered otherwise.
+ *
+ * @see
+ * dpack_encoder_fini()
+ */
 extern void
 dpack_encoder_init_buffer(struct dpack_encoder * encoder,
                           char *                 buffer,
                           size_t                 size)
 	__dpack_nonull(1, 2) __dpack_nothrow __leaf __dpack_export;
 
+/**
+ * Finalize a MessagePack encoder
+ *
+ * @param[in] encoder encoder
+ *
+ * Release resources allocated for @p encoder.
+ *
+ * @p buffer previously registered at dpack_encoder_init_buffer() time may
+ * safely be @man{free(3)}'ed once dpack_encoder_fini() has been called only.
+ *
+ * @see
+ * dpack_encoder_init_buffer()
+ */
 extern void
 dpack_encoder_fini(struct dpack_encoder * encoder)
 	__dpack_nonull(1) __dpack_nothrow __leaf __dpack_export;
@@ -77,7 +150,7 @@ struct dpack_decoder;
 
 typedef int (dpack_decode_item_fn)(struct dpack_decoder * decoder,
                                    unsigned int           id,
-                                   void                 * data);
+                                   void * __restrict      data);
 
 typedef void (dpack_decoder_intr_fn)(struct dpack_decoder * decoder,
                                      enum mpack_type_t      type,
