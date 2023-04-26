@@ -250,6 +250,8 @@ Length-Value string
 
 .. index:: list, collection, array
    
+.. _sect-api-list:
+   
 List
 ====
    
@@ -259,6 +261,8 @@ List
 
 .. index:: map, structured aggregate, structured collection
    
+.. _sect-api-map:
+
 Map
 ===
 

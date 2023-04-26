@@ -251,12 +251,12 @@ dpack_map_decode_fields(struct dpack_decoder * decoder,
 		err = dpack_map_decode_fldid(decoder, &fid);
 		nr--;
 		if (err)
-			goto done;
+			goto intr;
 
 		err = decode(decoder, fid, data);
 		nr--;
 		if (err)
-			goto done;
+			goto intr;
 	} while (nr);
 
 	/*
@@ -269,7 +269,7 @@ dpack_map_decode_fields(struct dpack_decoder * decoder,
 
 	return 0;
 
-done:
+intr:
 	dpack_decoder_intr(decoder, mpack_type_map, nr);
 
 	return err;

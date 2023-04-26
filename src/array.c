@@ -139,7 +139,7 @@ dpack_array_decode_elems(struct dpack_decoder * decoder,
 		err = decode(decoder, idx, data);
 		idx++;
 		if (err)
-			goto done;
+			goto intr;
 	} while (idx < nr);
 
 	/*
@@ -152,7 +152,7 @@ dpack_array_decode_elems(struct dpack_decoder * decoder,
 
 	return 0;
 
-done:
+intr:
 	dpack_decoder_intr(decoder, mpack_type_array, nr - idx);
 
 	return err;
