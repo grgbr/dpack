@@ -49,7 +49,7 @@ master_title = u'DPack Documentation'
 
 # General information about the project.
 project = u'DPack'
-copyright = u"Copyright (C) 2017-2033 Grégor Boirie"
+copyright = u"2017-2023 Grégor Boirie"
 author = u"Grégor Boirie"
 
 # The version info for the project you're documenting, acts as replacement for
@@ -99,7 +99,7 @@ breathe_domain_by_extension    = { "h" : "c", "c": "c" }
 breathe_show_include           = False
 breathe_order_parameters_first = True
 breathe_separate_member_pages  = False
-breathe_default_members        = ('members' )
+breathe_default_members        = tuple('members')
 
 # -- Options for HTML output ----------------------------------------------
 
@@ -155,7 +155,7 @@ latex_documents = [
 # entries into generated document.
 # See comments into latex.rst for more informations.
 latex_toplevel_sectioning = 'chapter'
-latex_appendices = [ 'todo' ]
+latex_appendices = [ 'msgpack', 'todo' ]
 latex_show_urls = 'footnote'
 latex_show_pagerefs = False
 
@@ -191,7 +191,7 @@ texinfo_documents = [
 
 # Request texinfo backend to generate the following appendix entries to benefit
 # from its appendix section numbering scheme.
-texinfo_appendices = [ 'todo' ]
+texinfo_appendices = [ 'msgpack', 'todo' ]
 texinfo_domain_indices = True
 texinfo_show_urls = 'footnote'
 texinfo_no_detailmenu = True

@@ -26,6 +26,9 @@ objects according to |Messagepack| format. As stated onto the home page:
    integers are encoded into a single byte, and typical short strings require
    only one extra byte in addition to the strings themselves.
 
+You may find a copy of the |MessagePack| format specification into section
+:doc:`msgpack`.
+
 The library is implemented to run on GNU Linux / |GLibc| platforms only
 (although porting to alternate C library such as `musl libc
 <https://www.musl-libc.org/>`_ should not be much of a hassle).
@@ -38,7 +41,7 @@ you can refer to for further details :
 * `Floating point number`_
 * String_,
 * `Length-Value string`_,
-* Array_,
+* List_,
 * Map_.
 
 .. index:: build configuration, configuration macros
@@ -215,6 +218,8 @@ operations. These are:
       * :c:func:`dpack_decode_int_max`
       * :c:func:`dpack_decode_int_range`
 
+   * :c:macro:`DPACK_STDINT_SIZE_MIN`
+
 .. index:: float, double, floating point number
    
 Floating point number
@@ -324,6 +329,8 @@ CONFIG_DPACK_MAP
 
 .. doxygendefine:: CONFIG_DPACK_MAP
    
+.. _CONFIG_DPACK_UTEST:
+
 CONFIG_DPACK_UTEST
 ******************
 
@@ -392,6 +399,11 @@ DPACK_INT_SIZE_MIN
 
 .. doxygendefine:: DPACK_INT_SIZE_MIN
 
+DPACK_STDINT_SIZE_MIN
+*********************
+
+.. doxygendefine:: DPACK_STDINT_SIZE_MIN
+   
 DPACK_UINT16_SIZE_MAX
 *********************
 

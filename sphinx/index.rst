@@ -49,5 +49,6 @@ Welcome to DPack documentation
    .. toctree::
       :caption: Appendix
 
+      msgpack
       todo
       genindex
