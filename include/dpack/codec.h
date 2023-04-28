@@ -37,7 +37,7 @@
  * A MessagePack encoder.
  *
  * An opaque structure allowing to encode data into an existing in-memory buffer
- * according to the @rstsubst{MessagePack} format.
+ * according to the @rstsubst{MessagePack format}.
  */
 struct dpack_encoder {
 	struct mpack_writer_t mpack;
@@ -102,8 +102,8 @@ dpack_encoder_space_left(struct dpack_encoder * encoder) __dpack_nonull(1)
  * @param[inout] buffer  memory buffer
  * @param[in]    size of @p buffer
  *
- * Initialize a MessagePack encoder for encoding / packing / serialization
- * purpose.
+ * Initialize a @rstsubst{MessagePack} encoder for encoding / packing /
+ * serialization purpose.
  *
  * @p buffer is a previously allocated memory area of size @p size and owned by
  * the caller. It is the responsibility of the caller to manage allocation and
@@ -160,7 +160,7 @@ typedef void (dpack_decoder_intr_fn)(struct dpack_decoder * decoder,
  * A MessagePack decoder.
  *
  * An opaque structure allowing to decode data packed according to the
- * @rstsubst{MessagePack} format from an existing in-memory buffer.
+ * @rstsubst{MessagePack format} from an existing in-memory buffer.
  */
 struct dpack_decoder {
 	struct mpack_reader_t   mpack;
@@ -225,8 +225,8 @@ dpack_decoder_skip(struct dpack_decoder * decoder)
  * @param[inout] buffer  memory buffer
  * @param[in]    size of @p buffer
  *
- * Initialize a MessagePack decoder for decoding / unpacking / deserialization
- * purpose.
+ * Initialize a @rstsubst{MessagePack} decoder for decoding / unpacking /
+ * deserialization purpose.
  *
  * @p buffer is a previously allocated memory area of size @p size and owned by
  * the caller. It is the responsibility of the caller to manage allocation and
@@ -256,9 +256,10 @@ dpack_decoder_init_buffer(struct dpack_decoder * decoder,
  * @param[inout] buffer  memory buffer
  * @param[in]    size of @p buffer
  *
- * Initialize a MessagePack decoder for decoding / unpacking / deserialization
- * purpose. The decoder will maintain internal state required to skip encoded
- * aggregates / structured data set (such as @rstref{map} or @rstref{list}).
+ * Initialize a @rstsubst{MessagePack} decoder for decoding / unpacking /
+ * deserialization purpose. The decoder will maintain internal state required to
+ * skip encoded aggregates / structured data set (such as @rstref{sect-api-map}
+ * or @rstref{sect-api-list}).
  *
  * @p buffer is a previously allocated memory area of size @p size and owned by
  * the caller. It is the responsibility of the caller to manage allocation and

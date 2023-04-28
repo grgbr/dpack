@@ -1,30 +1,34 @@
-.. _messagepack: https://msgpack.org/
-.. |MessagePack| replace:: `MessagePack <messagepack_>`_
+.. include:: _cdefs.rst
 
-.. _mpack:       https://github.com/ludocode/mpack
-.. |MPack|       replace:: `MPack <mpack_>`_
-   
-.. |Stroll|      replace:: :external+stroll:doc:`Stroll <index>`
-   
-.. |lvstr|       replace:: :external+stroll:ref:`lvstr <sect-api-lvstr>`
+.. |MessagePack format|      replace:: :doc:`msgpack`
+.. |MessagePack bool format| replace:: :ref:`MessagePack boolean format <sect-msgpack-bool>`
+.. |MessagePack int format|  replace:: :ref:`MessagePack integer format <sect-msgpack-int>`
 
-.. _glibc:       https://www.gnu.org/s/libc/
-.. |GLibc|       replace:: `GNU C library <glibc_>`_
+.. _mpack:                   https://github.com/ludocode/mpack
+.. |MPack|                   replace:: `MPack <mpack_>`_
+
+.. |Stroll|                  replace:: :external+stroll:doc:`Stroll <index>`
+
+.. |lvstr|                   replace:: :external+stroll:ref:`lvstr <sect-api-lvstr>`
+
+.. _glibc:                   https://www.gnu.org/s/libc/
+.. |GLibc|                   replace:: `GNU C library <glibc_>`_
 
 Overview
 ========
 
 What follows here provides a thorough description of how to use DPack library.
 
-Basically, DPack library is a C library that wraps calls to |MPack| to serialize
-objects according to |Messagepack| format. As stated onto the home page:
+Basically, DPack library is a C library that wraps calls to |MPack| to
+(de)serialize objects according to |MessagePack format|. As stated onto the home
+page:
 
    It's like JSON but fast and small.
    
-   MessagePack is an efficient binary serialization format. It lets you exchange
-   data among multiple languages like JSON. But it's faster and smaller. Small
-   integers are encoded into a single byte, and typical short strings require
-   only one extra byte in addition to the strings themselves.
+   |MessagePack| is an efficient binary serialization format. It lets you
+   exchange data among multiple languages like JSON. But it's faster and
+   smaller. Small integers are encoded into a single byte, and typical short
+   strings require only one extra byte in addition to the strings themselves.
 
 You may find a copy of the |MessagePack| format specification into section
 :doc:`msgpack`.
@@ -101,9 +105,10 @@ Boolean
 =======
 
 When compiled with the :c:macro:`CONFIG_DPACK_SCALAR` build configuration
-option enabled, the DPack library provides support for boolean (un)serialization
+option enabled, the DPack library provides support for boolean (de)serialization
 operations. These are:
 
+* :c:macro:`DPACK_BOOL_SIZE`
 * :c:func:`dpack_encode_bool`
 * :c:func:`dpack_decode_bool`
 
@@ -113,7 +118,7 @@ Integer
 ========
 
 When compiled with the :c:macro:`CONFIG_DPACK_SCALAR` build configuration
-option enabled, the DPack library provides support for integer (un)serialization
+option enabled, the DPack library provides support for integer (de)serialization
 operations. These are:
 
 .. hlist::
@@ -282,80 +287,85 @@ CONFIG_DPACK_ASSERT_API
 ***********************
 
 .. doxygendefine:: CONFIG_DPACK_ASSERT_API
-   
+
 CONFIG_DPACK_ASSERT_INTERN
 **************************
-   
+
 .. doxygendefine:: CONFIG_DPACK_ASSERT_INTERN
-   
+
 CONFIG_DPACK_DEBUG
 ******************
 
 .. doxygendefine:: CONFIG_DPACK_DEBUG
-   
+
 CONFIG_DPACK_SCALAR
 *******************
 
 .. doxygendefine:: CONFIG_DPACK_SCALAR
-   
+
 CONFIG_DPACK_FLOAT
 ******************
 
 .. doxygendefine:: CONFIG_DPACK_FLOAT
-   
+
 CONFIG_DPACK_DOUBLE
 *******************
 
 .. doxygendefine:: CONFIG_DPACK_DOUBLE
-   
+
 CONFIG_DPACK_STRING
 *******************
 
 .. doxygendefine:: CONFIG_DPACK_STRING
-   
+
 CONFIG_DPACK_LVSTR
 ******************
 
 .. doxygendefine:: CONFIG_DPACK_LVSTR
-   
+
 CONFIG_DPACK_BIN
 ****************
 
 .. doxygendefine:: CONFIG_DPACK_BIN
-   
+
 CONFIG_DPACK_ARRAY
 ******************
 
 .. doxygendefine:: CONFIG_DPACK_ARRAY
-   
+
 CONFIG_DPACK_MAP
 ****************
 
 .. doxygendefine:: CONFIG_DPACK_MAP
-   
+
 .. _CONFIG_DPACK_UTEST:
 
 CONFIG_DPACK_UTEST
 ******************
 
 .. doxygendefine:: CONFIG_DPACK_UTEST
-   
+
 CONFIG_DPACK_VALGRIND
 *********************
 
 .. doxygendefine:: CONFIG_DPACK_VALGRIND
-   
+
 CONFIG_DPACK_SAMPLE
 *******************
 
 .. doxygendefine:: CONFIG_DPACK_SAMPLE
-   
+
 Macros
 ------
-   
+
+DPACK_BOOL_SIZE
+***************
+
+.. doxygendefine:: DPACK_BOOL_SIZE
+
 DPACK_INT16_SIZE_MAX
 ********************
-   
+
 .. doxygendefine:: DPACK_INT16_SIZE_MAX
 
 DPACK_INT16_SIZE_MIN
@@ -407,7 +417,7 @@ DPACK_STDINT_SIZE_MIN
 *********************
 
 .. doxygendefine:: DPACK_STDINT_SIZE_MIN
-   
+
 DPACK_UINT16_SIZE_MAX
 *********************
 

@@ -1,3 +1,5 @@
+.. include:: _cdefs.rst
+
 .. sectionauthor:: Sadayuki Furuhashi
 
 .. index:: msgpack, MessagePack, specification
@@ -5,14 +7,14 @@
 MessagePack specification
 =========================
 
-MessagePack is an object serialization specification like JSON. MessagePack has
-two concepts: **type system** and **formats**.
+|MessagePack| is an object serialization specification like JSON. |MessagePack|
+has two concepts: **type system** and **formats**.
 
-Serialization_ is conversion from application objects into MessagePack formats
-via MessagePack type system.
+Serialization_ is conversion from application objects into |MessagePack| formats
+via |MessagePack| type system.
 
-Deserialization_ is conversion from MessagePack formats into application objects
-via MessagePack type system::
+Deserialization_ is conversion from |MessagePack| formats into application
+objects via |MessagePack| type system::
 
    Serialization:
        Application objects
@@ -24,7 +26,7 @@ via MessagePack type system::
        -->  MessagePack type system
        -->  Application objects
 
-This document describes the MessagePack type system, MessagePack formats and
+This document describes the |MessagePack| type system, |MessagePack| formats and
 conversion of them.
 
 .. contents:: Table of Contents
@@ -72,7 +74,7 @@ Map
 Extension
    represents a tuple of type information and a byte array where type
    information is an integer whose meaning is defined by applications or
-   MessagePack specification
+   |MessagePack| specification
 
    **Timestamp** represents an instantaneous point on the time-line in the world
    that is independent from time zones or calendars. Maximum precision is
@@ -95,7 +97,7 @@ Limitation
 Extension types
 ~~~~~~~~~~~~~~~
 
-MessagePack allows applications to define application-specific types using the
+|MessagePack| allows applications to define application-specific types using the
 Extension type. Extension type consists of an integer and a byte array where the
 integer represents a kind of types and the byte array represents data.
 
@@ -104,7 +106,7 @@ information. An example usage is that application defines ``type = 0`` as the
 application’s unique type system, and stores name of a type and values of the
 type at the payload.
 
-MessagePack reserves ``-1`` to ``-128`` for future extension to add predefined
+|MessagePack| reserves ``-1`` to ``-128`` for future extension to add predefined
 types. These types will be added to exchange more types without using pre-shared
 statically-typed schema across different programming environments:
 
@@ -189,7 +191,7 @@ A variable number of bytes::
    |        |
    +========+
 
-Variable number of objects stored in MessagePack format::
+Variable number of objects stored in |MessagePack| format::
 
    +~~~~~~~~~~~~~~~~~+
    |                 |
@@ -206,6 +208,8 @@ Nil format stores nil in 1 byte::
    +--------+
    |  0xc0  |
    +--------+
+
+.. _sect-msgpack-bool:
 
 bool format family
 ~~~~~~~~~~~~~~~~~~
@@ -224,6 +228,8 @@ True::
    +--------+
    |  0xc3  |
    +--------+
+
+.. _sect-msgpack-int:
 
 int format family
 ~~~~~~~~~~~~~~~~~
@@ -644,7 +650,7 @@ Pseudo code for deserialization:
 Serialization
 -------------
 
-MessagePack serializers convert MessagePack types into formats as following:
+|MessagePack| serializers convert |MessagePack| types into formats as following:
 
 +-----------+--------------------------------------------------------------+
 | source    | output format                                                |
@@ -676,7 +682,8 @@ SHOULD use the format which represents the data in the smallest number of bytes.
 Deserialization
 ---------------
 
-MessagePack deserializers convert MessagePack formats into types as following:
+|MessagePack| deserializers convert |MessagePack| formats into types as
+following:
 
 +------------------------------------------------------------+-----------+
 | source formats                                             | output    |
@@ -707,8 +714,8 @@ Future discussion
 
 .. rubric:: Profile
 
-Profile is an idea that Applications restrict the semantics of MessagePack
-while sharing the same syntax to adapt MessagePack for certain use cases.
+Profile is an idea that Applications restrict the semantics of |MessagePack|
+while sharing the same syntax to adapt |MessagePack| for certain use cases.
 
 For example, applications may remove Binary type, restrict keys of map
 objects to be String type, and put some restrictions to make the semantics
@@ -722,8 +729,8 @@ Implementation guidelines
 
 .. rubric:: Upgrading MessagePack specification
 
-MessagePack specification is changed at this time. Here is a guideline to
-upgrade existent MessagePack implementations:
+|MessagePack| specification is changed at this time. Here is a guideline to
+upgrade existent |MessagePack| implementations:
 
 * In a minor release, deserializers support the bin format family and str 8
   format. The type of deserialized objects should be same with raw 16 (== str
