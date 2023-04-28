@@ -81,7 +81,7 @@ dpack_encode_bool(struct dpack_encoder * encoder, bool value)
  *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
  *   undefined otherwise.
  * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
- *   @p dencoder is in error state before calling this function, result is
+ *   @p decoder is in error state before calling this function, result is
  *   undefined. An assertion is triggered otherwise.
  *
  * @see
@@ -171,7 +171,7 @@ dpack_encode_uint8(struct dpack_encoder * encoder,
  *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
  *   undefined otherwise.
  * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
- *   @p dencoder is in error state before calling this function, result is
+ *   @p decoder is in error state before calling this function, result is
  *   undefined. An assertion is triggered otherwise.
  *
  * @see
@@ -186,6 +186,47 @@ dpack_decode_uint8(struct dpack_decoder * decoder,
                                                  __leaf
                                                  __warn_result
                                                  __dpack_export;
+
+/**
+ * Decode an 8-bits unsigned integer encoded according to the MessagePack format
+ * with requested minimal value
+ *
+ * @param[in]  decoder decoder
+ * @param[in]  low     Minimum requested result value
+ * @param[out] value   Location where to store decoded value
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -ENOMSG   Invalid MessagePack stream data type
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ * @retval -ERANGE   Invalid MessagePack stream data range
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack int format} into @p value 8-bits unsigned integer from
+ * buffer assigned to @p encoder at initialization time.
+ *
+ * Decoding fails with a ``-ERANGE`` error code when decoded value is lower than
+ * the specified @p low value.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p low value is zero or ``>= UINT8_MAX``, result is undefined. An assertion
+ *   is triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_int8_min()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
 extern int
 dpack_decode_uint8_min(struct dpack_decoder * decoder,
                        uint8_t                low,
@@ -283,7 +324,7 @@ dpack_encode_int8(struct dpack_encoder * encoder,
  *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
  *   undefined otherwise.
  * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
- *   @p dencoder is in error state before calling this function, result is
+ *   @p decoder is in error state before calling this function, result is
  *   undefined. An assertion is triggered otherwise.
  *
  * @see
@@ -298,6 +339,47 @@ dpack_decode_int8(struct dpack_decoder * decoder,
                                                 __leaf
                                                 __warn_result
                                                 __dpack_export;
+
+/**
+ * Decode an 8-bits signed integer encoded according to the MessagePack format
+ * with requested minimal value
+ *
+ * @param[in]  decoder decoder
+ * @param[in]  low     Minimum requested result value
+ * @param[out] value   Location where to store decoded value
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -ENOMSG   Invalid MessagePack stream data type
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ * @retval -ERANGE   Invalid MessagePack stream data range
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack int format} into @p value 8-bits signed integer from
+ * buffer assigned to @p encoder at initialization time.
+ *
+ * Decoding fails with a ``-ERANGE`` error code when decoded value is lower than
+ * the specified @p low value.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p low value is ``<= INT8_MIN`` or ``>= INT8_MAX``, result is undefined. An
+ *   assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_uint8_min()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
 extern int
 dpack_decode_int8_min(struct dpack_decoder * decoder,
                       int8_t                 low,
@@ -400,7 +482,7 @@ dpack_encode_uint16(struct dpack_encoder * encoder,
  *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
  *   undefined otherwise.
  * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
- *   @p dencoder is in error state before calling this function, result is
+ *   @p decoder is in error state before calling this function, result is
  *   undefined. An assertion is triggered otherwise.
  *
  * @see
@@ -415,6 +497,47 @@ dpack_decode_uint16(struct dpack_decoder * decoder,
                                                   __leaf
                                                   __warn_result
                                                   __dpack_export;
+
+/**
+ * Decode an 16-bits unsigned integer encoded according to the MessagePack
+ * format with requested minimal value
+ *
+ * @param[in]  decoder decoder
+ * @param[in]  low     Minimum requested result value
+ * @param[out] value   Location where to store decoded value
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -ENOMSG   Invalid MessagePack stream data type
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ * @retval -ERANGE   Invalid MessagePack stream data range
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack int format} into @p value 16-bits unsigned integer from
+ * buffer assigned to @p encoder at initialization time.
+ *
+ * Decoding fails with a ``-ERANGE`` error code when decoded value is lower than
+ * the specified @p low value.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p low value is zero or ``>= UINT16_MAX``, result is undefined. An
+ *   assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_int16_min()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
 extern int
 dpack_decode_uint16_min(struct dpack_decoder * decoder,
                         uint16_t               low,
@@ -512,7 +635,7 @@ dpack_encode_int16(struct dpack_encoder * encoder,
  *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
  *   undefined otherwise.
  * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
- *   @p dencoder is in error state before calling this function, result is
+ *   @p decoder is in error state before calling this function, result is
  *   undefined. An assertion is triggered otherwise.
  *
  * @see
@@ -527,6 +650,47 @@ dpack_decode_int16(struct dpack_decoder * decoder,
                                                  __leaf
                                                  __warn_result
                                                  __dpack_export;
+
+/**
+ * Decode an 16-bits signed integer encoded according to the MessagePack format
+ * with requested minimal value
+ *
+ * @param[in]  decoder decoder
+ * @param[in]  low     Minimum requested result value
+ * @param[out] value   Location where to store decoded value
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -ENOMSG   Invalid MessagePack stream data type
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ * @retval -ERANGE   Invalid MessagePack stream data range
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack int format} into @p value 16-bits signed integer from
+ * buffer assigned to @p encoder at initialization time.
+ *
+ * Decoding fails with a ``-ERANGE`` error code when decoded value is lower than
+ * the specified @p low value.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p low value is ``<= INT16_MIN`` or ``>= INT16_MAX``, result is undefined.
+ *   An assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_uint16_min()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
 extern int
 dpack_decode_int16_min(struct dpack_decoder * decoder,
                        int16_t                low,
@@ -629,7 +793,7 @@ dpack_encode_uint32(struct dpack_encoder * encoder,
  *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
  *   undefined otherwise.
  * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
- *   @p dencoder is in error state before calling this function, result is
+ *   @p decoder is in error state before calling this function, result is
  *   undefined. An assertion is triggered otherwise.
  *
  * @see
@@ -644,6 +808,46 @@ dpack_decode_uint32(struct dpack_decoder * decoder,
                                                   __leaf
                                                   __warn_result
                                                   __dpack_export;
+/**
+ * Decode an 32-bits unsigned integer encoded according to the MessagePack
+ * format with requested minimal value
+ *
+ * @param[in]  decoder decoder
+ * @param[in]  low     Minimum requested result value
+ * @param[out] value   Location where to store decoded value
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -ENOMSG   Invalid MessagePack stream data type
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ * @retval -ERANGE   Invalid MessagePack stream data range
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack int format} into @p value 32-bits unsigned integer from
+ * buffer assigned to @p encoder at initialization time.
+ *
+ * Decoding fails with a ``-ERANGE`` error code when decoded value is lower than
+ * the specified @p low value.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p low value is zero or ``>= UINT32_MAX``, result is undefined. An
+ *   assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_int32_min()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
 extern int
 dpack_decode_uint32_min(struct dpack_decoder * decoder,
                         uint32_t               low,
@@ -742,7 +946,7 @@ dpack_encode_uint(struct dpack_encoder * encoder, unsigned int value)
  *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
  *   undefined otherwise.
  * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
- *   @p dencoder is in error state before calling this function, result is
+ *   @p decoder is in error state before calling this function, result is
  *   undefined. An assertion is triggered otherwise.
  *
  * @see
@@ -757,6 +961,46 @@ dpack_decode_uint(struct dpack_decoder *    decoder,
 	return dpack_decode_uint32(decoder, value);
 }
 
+/**
+ * Decode an unsigned integer encoded according to the MessagePack format with
+ * requested minimal value
+ *
+ * @param[in]  decoder decoder
+ * @param[in]  low     Minimum requested result value
+ * @param[out] value   Location where to store decoded value
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -ENOMSG   Invalid MessagePack stream data type
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ * @retval -ERANGE   Invalid MessagePack stream data range
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack int format} into @p value unsigned integer from buffer
+ * assigned to @p encoder at initialization time.
+ *
+ * Decoding fails with a ``-ERANGE`` error code when decoded value is lower than
+ * the specified @p low value.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p low value is zero or ``>= UINT_MAX``, result is undefined. An
+ *   assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_int_min()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
 static inline int __dpack_nonull(1, 3) __dpack_nothrow __warn_result
 dpack_decode_uint_min(struct dpack_decoder *    decoder,
                       unsigned int              low,
@@ -853,7 +1097,7 @@ dpack_encode_int32(struct dpack_encoder * encoder,
  *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
  *   undefined otherwise.
  * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
- *   @p dencoder is in error state before calling this function, result is
+ *   @p decoder is in error state before calling this function, result is
  *   undefined. An assertion is triggered otherwise.
  *
  * @see
@@ -868,6 +1112,47 @@ dpack_decode_int32(struct dpack_decoder * decoder,
                                                  __leaf
                                                  __warn_result
                                                  __dpack_export;
+
+/**
+ * Decode an 32-bits signed integer encoded according to the MessagePack format
+ * with requested minimal value
+ *
+ * @param[in]  decoder decoder
+ * @param[in]  low     Minimum requested result value
+ * @param[out] value   Location where to store decoded value
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -ENOMSG   Invalid MessagePack stream data type
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ * @retval -ERANGE   Invalid MessagePack stream data range
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack int format} into @p value 32-bits signed integer from
+ * buffer assigned to @p encoder at initialization time.
+ *
+ * Decoding fails with a ``-ERANGE`` error code when decoded value is lower than
+ * the specified @p low value.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p low value is ``<= INT32_MIN`` or ``>= INT32_MAX``, result is undefined.
+ *   An assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_uint32_min()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
 extern int
 dpack_decode_int32_min(struct dpack_decoder * decoder,
                        int32_t                low,
@@ -966,7 +1251,7 @@ dpack_encode_int(struct dpack_encoder * encoder, int value)
  *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
  *   undefined otherwise.
  * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
- *   @p dencoder is in error state before calling this function, result is
+ *   @p decoder is in error state before calling this function, result is
  *   undefined. An assertion is triggered otherwise.
  *
  * @see
@@ -980,6 +1265,46 @@ dpack_decode_int(struct dpack_decoder * decoder, int * __restrict value)
 	return dpack_decode_int32(decoder, value);
 }
 
+/**
+ * Decode an signed integer encoded according to the MessagePack format with
+ * requested minimal value
+ *
+ * @param[in]  decoder decoder
+ * @param[in]  low     Minimum requested result value
+ * @param[out] value   Location where to store decoded value
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -ENOMSG   Invalid MessagePack stream data type
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ * @retval -ERANGE   Invalid MessagePack stream data range
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack int format} into @p value signed integer from buffer
+ * assigned to @p encoder at initialization time.
+ *
+ * Decoding fails with a ``-ERANGE`` error code when decoded value is lower than
+ * the specified @p low value.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p low value is ``<= INT_MIN`` or ``>= INT_MAX``, result is undefined.  An
+ *   assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_uint_min()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
 static inline int __dpack_nonull(1, 3) __dpack_nothrow __warn_result
 dpack_decode_int_min(struct dpack_decoder * decoder,
                      int                    low,
@@ -1080,7 +1405,7 @@ dpack_encode_uint64(struct dpack_encoder * encoder,
  *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
  *   undefined otherwise.
  * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
- *   @p dencoder is in error state before calling this function, result is
+ *   @p decoder is in error state before calling this function, result is
  *   undefined. An assertion is triggered otherwise.
  *
  * @see
@@ -1095,6 +1420,47 @@ dpack_decode_uint64(struct dpack_decoder * decoder,
                                                   __leaf
                                                   __warn_result
                                                   __dpack_export;
+
+/**
+ * Decode an 64-bits unsigned integer encoded according to the MessagePack
+ * format with requested minimal value
+ *
+ * @param[in]  decoder decoder
+ * @param[in]  low     Minimum requested result value
+ * @param[out] value   Location where to store decoded value
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -ENOMSG   Invalid MessagePack stream data type
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ * @retval -ERANGE   Invalid MessagePack stream data range
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack int format} into @p value 64-bits unsigned integer from
+ * buffer assigned to @p encoder at initialization time.
+ *
+ * Decoding fails with a ``-ERANGE`` error code when decoded value is lower than
+ * the specified @p low value.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p low value is zero or ``>= UINT64_MAX``, result is undefined. An
+ *   assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_int64_min()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
 extern int
 dpack_decode_uint64_min(struct dpack_decoder * decoder,
                         uint64_t               low,
@@ -1192,7 +1558,7 @@ dpack_encode_int64(struct dpack_encoder * encoder,
  *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
  *   undefined otherwise.
  * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
- *   @p dencoder is in error state before calling this function, result is
+ *   @p decoder is in error state before calling this function, result is
  *   undefined. An assertion is triggered otherwise.
  *
  * @see
@@ -1207,6 +1573,47 @@ dpack_decode_int64(struct dpack_decoder * decoder,
                                                  __leaf
                                                  __warn_result
                                                  __dpack_export;
+
+/**
+ * Decode an 64-bits signed integer encoded according to the MessagePack format
+ * with requested minimal value
+ *
+ * @param[in]  decoder decoder
+ * @param[in]  low     Minimum requested result value
+ * @param[out] value   Location where to store decoded value
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -ENOMSG   Invalid MessagePack stream data type
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ * @retval -ERANGE   Invalid MessagePack stream data range
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack int format} into @p value 64-bits signed integer from
+ * buffer assigned to @p encoder at initialization time.
+ *
+ * Decoding fails with a ``-ERANGE`` error code when decoded value is lower than
+ * the specified @p low value.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p low value is ``<= INT64_MIN`` or ``>= INT64_MAX``, result is undefined.
+ *   An assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_uint64_min()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
 extern int
 dpack_decode_int64_min(struct dpack_decoder * decoder,
                        int64_t                low,
