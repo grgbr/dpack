@@ -40,6 +40,8 @@ The library is implemented to run on GNU Linux / |GLibc| platforms only
 DPack library API is organized around the following functional areas which
 you can refer to for further details :
 
+* Encoder_,
+* Decoder_,
 * Boolean_,
 * Integer_,
 * `Floating point number`_
@@ -84,6 +86,8 @@ The DPack library serialization interface is provided through to the
 * :c:func:`dpack_encoder_fini`
 * :c:func:`dpack_encoder_space_used`
 * :c:func:`dpack_encoder_space_left`
+  
+You *MUST* include :file:`dpack/codec.h` header to use this interface.
 
 .. index:: decode, unserialize, unpack
    
@@ -99,6 +103,8 @@ The DPack library unserialization interface is provided through to the
 * :c:func:`dpack_decoder_data_left`
 * :c:func:`dpack_decoder_skip`
 
+You *MUST* include :file:`dpack/codec.h` header to use this interface.
+
 .. index:: boolean, bool
 
 Boolean
@@ -111,6 +117,8 @@ operations. These are:
 * :c:macro:`DPACK_BOOL_SIZE`
 * :c:func:`dpack_encode_bool`
 * :c:func:`dpack_decode_bool`
+
+You *MUST* include :file:`dpack/scalar.h` header to use this interface.
 
 .. index:: integers, signed, unsigned, 8-bits, 16-bits, 32-bits, 64-bits
 
@@ -224,6 +232,8 @@ operations. These are:
       * :c:func:`dpack_decode_int_range`
 
    * :c:macro:`DPACK_STDINT_SIZE_MIN`
+
+You *MUST* include :file:`dpack/scalar.h` header to use this interface.
 
 .. index:: float, double, floating point number
    

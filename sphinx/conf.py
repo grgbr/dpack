@@ -96,7 +96,7 @@ if doxyxmldir and not os.path.isdir(doxyxmldir):
 breathe_default_project        = project
 breathe_projects               = { breathe_default_project: doxyxmldir }
 breathe_domain_by_extension    = { "h" : "c", "c": "c" }
-breathe_show_include           = False
+breathe_show_include           = True
 breathe_order_parameters_first = True
 breathe_separate_member_pages  = False
 breathe_default_members        = tuple('members')
