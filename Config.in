@@ -58,6 +58,14 @@ config DPACK_STRING
 	  Build dpack library with string support allowing to (un)serialize
 	  strings according to duplicate and / or copy strategies.
 
+config DPACK_STRING_MAXLEN
+	int "Maximum strings length"
+	default 4095
+	depends on DPACK_STRING
+	help
+	  Enforce a maximum length over strings excluding the terminating NULL
+	  byte.
+
 config DPACK_LVSTR
 	bool "Length-Value strings"
 	select DPACK_STRING

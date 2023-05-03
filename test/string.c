@@ -48,12 +48,16 @@ dpack_fixstr_sizes_utest(void ** state __unused)
 {
 	/* Msgpack fixstr sizes. */
 	assert_int_equal(DPACK_STR_SIZE(1),  2);
+	assert_int_equal(dpack_str_size(1),  2);
 	assert_int_equal(DPACK_STR_SIZE(2),  3);
+	assert_int_equal(dpack_str_size(2),  3);
 #if DPACK_STRLEN_MAX >= 30
 	assert_int_equal(DPACK_STR_SIZE(30), 31);
+	assert_int_equal(dpack_str_size(30), 31);
 #endif
 #if DPACK_STRLEN_MAX >= 31
 	assert_int_equal(DPACK_STR_SIZE(31), 32);
+	assert_int_equal(dpack_str_size(31), 32);
 #endif
 }
 
@@ -64,17 +68,22 @@ dpack_str8_sizes_utest(void ** state __unused)
 {
 	/* Msgpack 8 bits string sizes. */
 	assert_int_equal(DPACK_STR_SIZE(32),            34);
+	assert_int_equal(dpack_str_size(32),            34);
 #if DPACK_STRLEN_MAX >= 33
 	assert_int_equal(DPACK_STR_SIZE(33),            35);
+	assert_int_equal(dpack_str_size(33),            35);
 #endif
 #if DPACK_STRLEN_MAX >= (UINT8_MAX - 2)
 	assert_int_equal(DPACK_STR_SIZE(UINT8_MAX - 2), UINT8_MAX);
+	assert_int_equal(dpack_str_size(UINT8_MAX - 2), UINT8_MAX);
 #endif
 #if DPACK_STRLEN_MAX >= (UINT8_MAX - 1)
 	assert_int_equal(DPACK_STR_SIZE(UINT8_MAX - 1), UINT8_MAX + 1);
+	assert_int_equal(dpack_str_size(UINT8_MAX - 1), UINT8_MAX + 1);
 #endif
 #if DPACK_STRLEN_MAX >= UINT8_MAX
 	assert_int_equal(DPACK_STR_SIZE(UINT8_MAX),     UINT8_MAX + 2);
+	assert_int_equal(dpack_str_size(UINT8_MAX),     UINT8_MAX + 2);
 #endif
 }
 
@@ -95,17 +104,22 @@ dpack_str16_sizes_utest(void ** state __unused)
 {
 	/* Msgpack 16 bits string sizes. */
 	assert_int_equal(DPACK_STR_SIZE(UINT8_MAX + 1),  UINT8_MAX + 1 + 3);
+	assert_int_equal(dpack_str_size(UINT8_MAX + 1),  UINT8_MAX + 1 + 3);
 #if DPACK_STRLEN_MAX >= (UINT8_MAX + 2)
 	assert_int_equal(DPACK_STR_SIZE(UINT8_MAX + 2),  UINT8_MAX + 2 + 3);
+	assert_int_equal(dpack_str_size(UINT8_MAX + 2),  UINT8_MAX + 2 + 3);
 #endif
 #if DPACK_STRLEN_MAX >= (UINT16_MAX - 2)
 	assert_int_equal(DPACK_STR_SIZE(UINT16_MAX - 2), UINT16_MAX - 2 + 3);
+	assert_int_equal(dpack_str_size(UINT16_MAX - 2), UINT16_MAX - 2 + 3);
 #endif
 #if DPACK_STRLEN_MAX >= (UINT16_MAX - 1)
 	assert_int_equal(DPACK_STR_SIZE(UINT16_MAX - 1), UINT16_MAX - 1 + 3);
+	assert_int_equal(dpack_str_size(UINT16_MAX - 1), UINT16_MAX - 1 + 3);
 #endif
 #if DPACK_STRLEN_MAX >= UINT16_MAX
 	assert_int_equal(DPACK_STR_SIZE(UINT16_MAX),     UINT16_MAX + 3);
+	assert_int_equal(dpack_str_size(UINT16_MAX),     UINT16_MAX + 3);
 #endif
 }
 
@@ -126,17 +140,22 @@ dpack_str32_sizes_utest(void ** state __unused)
 {
 	/* Msgpack 32 bits string sizes. */
 	assert_int_equal(DPACK_STR_SIZE(UINT16_MAX + 1), UINT16_MAX + 1 + 5);
+	assert_int_equal(dpack_str_size(UINT16_MAX + 1), UINT16_MAX + 1 + 5);
 #if DPACK_STRLEN_MAX >= (UINT16_MAX + 2)
 	assert_int_equal(DPACK_STR_SIZE(UINT16_MAX + 2), UINT16_MAX + 2 + 5);
+	assert_int_equal(dpack_str_size(UINT16_MAX + 2), UINT16_MAX + 2 + 5);
 #endif
 #if DPACK_STRLEN_MAX >= (UINT32_MAX - 2)
 	assert_int_equal(DPACK_STR_SIZE(UINT32_MAX - 2), UINT32_MAX - 2 + 5);
+	assert_int_equal(dpack_str_size(UINT32_MAX - 2), UINT32_MAX - 2 + 5);
 #endif
 #if DPACK_STRLEN_MAX >= (UINT32_MAX - 1)
 	assert_int_equal(DPACK_STR_SIZE(UINT32_MAX - 1), UINT32_MAX - 1 + 5);
+	assert_int_equal(dpack_str_size(UINT32_MAX - 1), UINT32_MAX - 1 + 5);
 #endif
 #if DPACK_STRLEN_MAX >= UINT32_MAX
 	assert_int_equal(DPACK_STR_SIZE(UINT32_MAX),     UINT32_MAX + 5);
+	assert_int_equal(dpack_str_size(UINT32_MAX),     UINT32_MAX + 5);
 #endif
 }
 
@@ -150,11 +169,33 @@ dpack_str32_sizes_utest(void ** state __unused)
 
 #endif /* DPACK_STRLEN_MAX > DPACK_STR16_LEN_MAX */
 
+#if defined(CONFIG_DPACK_ASSERT_API)
+
+static void
+dpack_assert_sizes_utest(void ** state __unused)
+{
+	size_t sz __unused;
+
+	expect_assert_failure(sz = dpack_str_size(0));
+	expect_assert_failure(sz = dpack_str_size(DPACK_STRLEN_MAX + 1));
+}
+
+#else  /* !defined(CONFIG_DPACK_ASSERT_API) */
+
+static void
+dpack_assert_sizes_utest(void ** state __unused)
+{
+	skip();
+}
+
+#endif /* defined(CONFIG_DPACK_ASSERT_API) */
+
 static const struct CMUnitTest dpack_str_utests[] = {
 	cmocka_unit_test(dpack_fixstr_sizes_utest),
 	cmocka_unit_test(dpack_str8_sizes_utest),
 	cmocka_unit_test(dpack_str16_sizes_utest),
-	cmocka_unit_test(dpack_str32_sizes_utest)
+	cmocka_unit_test(dpack_str32_sizes_utest),
+	cmocka_unit_test(dpack_assert_sizes_utest),
 };
 
 int

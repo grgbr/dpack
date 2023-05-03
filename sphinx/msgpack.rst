@@ -341,6 +341,8 @@ Where:
 * YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY_YYYYYYYY is
   a big-endian IEEE 754 double precision floating point number.
 
+.. _sect-msgpack-str:
+
 str format family
 ~~~~~~~~~~~~~~~~~
 

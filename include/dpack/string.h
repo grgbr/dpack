@@ -10,8 +10,12 @@
 struct dpack_encoder;
 struct dpack_decoder;
 
-/* Leave room for the terminating NULL byte... */
-#define DPACK_STRLEN_MAX     (4095U)
+/**
+ * Maximum length of a string
+ *
+ * Maximum length in bytes of a string excluding the terminating NULL byte.
+ */
+#define DPACK_STRLEN_MAX     STROLL_CONCAT(CONFIG_DPACK_STRING_MAXLEN, U)
 
 /* Maximum number of characters an msgpack fixstr may encode */
 #define DPACK_FIXSTR_LEN_MAX (31U)
@@ -124,20 +128,53 @@ struct dpack_decoder;
 	             _DPACK_STR_CONST_SIZE(_len), \
 	             "invalid constant string length")
 
-/*
- * Given the length of a string, compute the size of the corresponding encoded
- * msgpack string.
+/**
+ * Return size of a serialized string
  *
+ * @param[in] _len deserialized string length
+ *
+ * Given the length of a deserialized string excluding the terminating NULL
+ * byte, compute the size of the corresponding string encoded according to the
+ * @rstsubst{MessagePack string format}.
+ *
+ * @note
+ * Use this function when @p _len is known at compile time. Use dpack_str_size()
+ * otherwise.
+ *
+ * @warning
  * Length value MUST be known at compile time, i.e., constant. Trigger a compile
  * time error otherwise.
+ *
+ * @see
+ * dpack_str_size()
  */
 #define DPACK_STR_SIZE(_len) \
 	compile_eval(__builtin_constant_p(_len), \
 	             DPACK_STR_CONST_SIZE(_len), \
 	             "constant string length expected")
 
+/**
+ * Return size of a serialized string
+ *
+ * @param[in] len deserialized string length
+ *
+ * Given the length of a deserialized string excluding the terminating NULL
+ * byte, compute the size of the corresponding string encoded according to the
+ * @rstsubst{MessagePack string format}.
+ *
+ * @note
+ * Use this function when @p len is not known at compile time. Use
+ * #DPACK_STR_SIZE otherwise.
+ *
+ * @see
+ * #DPACK_STR_SIZE
+ */
 extern size_t
-dpack_str_size(size_t len) __dpack_export;
+dpack_str_size(size_t len) __dpack_const
+                           __dpack_nothrow
+                           __leaf
+                           __warn_result
+                           __dpack_export;
 
 extern int
 dpack_encode_str(struct dpack_encoder * encoder,

@@ -1,23 +1,24 @@
 .. include:: _cdefs.rst
 
-.. |MessagePack format|       replace:: :doc:`msgpack`
-.. |MessagePack bool format|  replace:: :ref:`MessagePack boolean format <sect-msgpack-bool>`
-.. |MessagePack int format|   replace:: :ref:`MessagePack integer format <sect-msgpack-int>`
-.. |MessagePack float format| replace:: :ref:`MessagePack float format <sect-msgpack-float>`
+.. |MessagePack format|        replace:: :doc:`msgpack`
+.. |MessagePack bool format|   replace:: :ref:`MessagePack boolean format <sect-msgpack-bool>`
+.. |MessagePack int format|    replace:: :ref:`MessagePack integer format <sect-msgpack-int>`
+.. |MessagePack float format|  replace:: :ref:`MessagePack float format <sect-msgpack-float>`
+.. |MessagePack string format| replace:: :ref:`MessagePack string format <sect-msgpack-str>`
 
-.. _mpack:                    https://github.com/ludocode/mpack
-.. |MPack|                    replace:: `MPack <mpack_>`_
+.. _mpack:                     https://github.com/ludocode/mpack
+.. |MPack|                     replace:: `MPack <mpack_>`_
 
-.. |Stroll|                   replace:: :external+stroll:doc:`Stroll <index>`
+.. |Stroll|                    replace:: :external+stroll:doc:`Stroll <index>`
 
-.. |lvstr|                    replace:: :external+stroll:ref:`lvstr <sect-api-lvstr>`
+.. |lvstr|                     replace:: :external+stroll:ref:`lvstr <sect-api-lvstr>`
 
-.. _glibc:                    https://www.gnu.org/s/libc/
-.. |GLibc|                    replace:: `GNU C library <glibc_>`_
+.. _glibc:                     https://www.gnu.org/s/libc/
+.. |GLibc|                     replace:: `GNU C library <glibc_>`_
 
-.. _glibc_nan_infinity:       https://www.gnu.org/software/libc/manual/html_node/Infinity-and-NaN.html
-.. |NaN|                      replace:: `NaN <glibc_nan_infinity_>`_
-.. |Infinity|                 replace:: `Infinity <glibc_nan_infinity_>`_
+.. _glibc_nan_infinity:        https://www.gnu.org/software/libc/manual/html_node/Infinity-and-NaN.html
+.. |NaN|                       replace:: `NaN <glibc_nan_infinity_>`_
+.. |Infinity|                  replace:: `Infinity <glibc_nan_infinity_>`_
 
 Overview
 ========
@@ -56,7 +57,7 @@ you can refer to for further details :
 * Map_.
 
 .. index:: build configuration, configuration macros
-   
+
 Build configuration
 ===================
 
@@ -78,7 +79,7 @@ eventually refer to the corresponding C macros listed below:
 * :c:macro:`CONFIG_DPACK_UTEST`
 * :c:macro:`CONFIG_DPACK_VALGRIND`
 * :c:macro:`CONFIG_DPACK_SAMPLE`
-  
+
 .. index:: encode, serialize, pack
 
 Encoder
@@ -91,11 +92,11 @@ The DPack library serialization interface is provided through to the
 * :c:func:`dpack_encoder_fini`
 * :c:func:`dpack_encoder_space_used`
 * :c:func:`dpack_encoder_space_left`
-  
+
 You *MUST* include :file:`dpack/codec.h` header to use this interface.
 
 .. index:: decode, unserialize, unpack
-   
+
 Decoder
 =======
 
@@ -241,7 +242,7 @@ operations. These are:
 You *MUST* include :file:`dpack/scalar.h` header to use this interface.
 
 .. index:: float, double, floating point number
-   
+
 Floating point number
 =====================
 
@@ -270,13 +271,17 @@ point numbers (de)serialization operations. These are:
 You *MUST* include :file:`dpack/scalar.h` header to use these interfaces.
 
 .. index:: string
-   
+
 String
 ======
-   
-.. todo::
 
-   Document strings
+When compiled with the :c:macro:`CONFIG_DPACK_STRING` build configuration option
+enabled, the DPack library provides support for string (de)serialization
+operations. These are:
+
+* :c:macro:`DPACK_STRLEN_MAX`
+* :c:macro:`DPACK_STR_SIZE`
+* :c:func:`dpack_str_size`
 
 .. index:: Length-Value string, lvstr
 
@@ -288,18 +293,18 @@ Length-Value string
    Document lvstr
 
 .. index:: list, collection, array
-   
+
 .. _sect-api-list:
-   
+
 List
 ====
-   
+
 .. todo::
 
    Document lists
 
 .. index:: map, structured aggregate, structured collection
-   
+
 .. _sect-api-map:
 
 Map
@@ -310,7 +315,7 @@ Map
    Document maps
 
 .. index:: API reference, reference
-   
+
 Reference
 =========
 
@@ -395,7 +400,7 @@ CONFIG_DPACK_VALGRIND
 
 Macros
 ------
-  
+
 DPACK_BOOL_SIZE
 ***************
 
@@ -405,12 +410,12 @@ DPACK_DOUBLE_SIZE
 *****************
 
 .. doxygendefine:: DPACK_DOUBLE_SIZE
-  
+
 DPACK_FLOAT_SIZE
 ****************
 
 .. doxygendefine:: DPACK_FLOAT_SIZE
-  
+
 DPACK_INT16_SIZE_MAX
 ********************
 
@@ -465,6 +470,16 @@ DPACK_STDINT_SIZE_MIN
 *********************
 
 .. doxygendefine:: DPACK_STDINT_SIZE_MIN
+
+DPACK_STR_SIZE
+**************
+
+.. doxygendefine:: DPACK_STR_SIZE
+
+DPACK_STRLEN_MAX
+****************
+
+.. doxygendefine:: DPACK_STRLEN_MAX
 
 DPACK_UINT16_SIZE_MAX
 *********************
@@ -886,3 +901,8 @@ dpack_encoder_space_used
 ************************
 
 .. doxygenfunction:: dpack_encoder_space_used
+
+dpack_str_size
+**************
+
+.. doxygenfunction:: dpack_str_size
