@@ -15,6 +15,10 @@
 .. _glibc:                    https://www.gnu.org/s/libc/
 .. |GLibc|                    replace:: `GNU C library <glibc_>`_
 
+.. _glibc_nan_infinity:       https://www.gnu.org/software/libc/manual/html_node/Infinity-and-NaN.html
+.. |NaN|                      replace:: `NaN <glibc_nan_infinity_>`_
+.. |Infinity|                 replace:: `Infinity <glibc_nan_infinity_>`_
+
 Overview
 ========
 
@@ -25,7 +29,7 @@ Basically, DPack library is a C library that wraps calls to |MPack| to
 page:
 
    It's like JSON but fast and small.
-   
+
    |MessagePack| is an efficient binary serialization format. It lets you
    exchange data among multiple languages like JSON. But it's faster and
    smaller. Small integers are encoded into a single byte, and typical short
