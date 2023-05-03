@@ -23,10 +23,10 @@ config DPACK_DEBUG
 	  Build dpack library with internal debugging support enabled.
 	  This also enables mpack internal debug support with the following
 	  additional features:
-	  * reading / writing to / from STDIO files,
-	  * error strings,
-	  * custom dpack / mpack assertions,
-	  * reader / writer tracking.
+	  - reading / writing to / from STDIO files,
+	  - error strings,
+	  - custom dpack / mpack assertions,
+	  - reader / writer tracking.
 
 config DPACK_SCALAR
 	bool "Scalars"
@@ -116,4 +116,4 @@ config DPACK_SAMPLE
 	help
 	  Build dpack library code example binaries demonstrating basic usage.
 
-# vim: ft=kconfig:
+# ex: ft=kconfig:

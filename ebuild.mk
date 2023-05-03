@@ -44,8 +44,7 @@ libdpack.pc-tmpl := libdpack_pkgconf_tmpl
 ################################################################################
 
 doxyconf  := $(CURDIR)/sphinx/Doxyfile
-doxyenv   := SRCDIR="$(HEADERDIR) $(SRCDIR)/src $(SRCDIR)/sphinx/config.dox" \
-             VERSION="$(VERSION)"
+doxyenv   := SRCDIR="$(HEADERDIR) $(SRCDIR)/src"
 
 sphinxsrc := $(CURDIR)/sphinx
 sphinxenv := \
