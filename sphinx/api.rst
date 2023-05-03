@@ -1,18 +1,19 @@
 .. include:: _cdefs.rst
 
-.. |MessagePack format|      replace:: :doc:`msgpack`
-.. |MessagePack bool format| replace:: :ref:`MessagePack boolean format <sect-msgpack-bool>`
-.. |MessagePack int format|  replace:: :ref:`MessagePack integer format <sect-msgpack-int>`
+.. |MessagePack format|       replace:: :doc:`msgpack`
+.. |MessagePack bool format|  replace:: :ref:`MessagePack boolean format <sect-msgpack-bool>`
+.. |MessagePack int format|   replace:: :ref:`MessagePack integer format <sect-msgpack-int>`
+.. |MessagePack float format| replace:: :ref:`MessagePack float format <sect-msgpack-float>`
 
-.. _mpack:                   https://github.com/ludocode/mpack
-.. |MPack|                   replace:: `MPack <mpack_>`_
+.. _mpack:                    https://github.com/ludocode/mpack
+.. |MPack|                    replace:: `MPack <mpack_>`_
 
-.. |Stroll|                  replace:: :external+stroll:doc:`Stroll <index>`
+.. |Stroll|                   replace:: :external+stroll:doc:`Stroll <index>`
 
-.. |lvstr|                   replace:: :external+stroll:ref:`lvstr <sect-api-lvstr>`
+.. |lvstr|                    replace:: :external+stroll:ref:`lvstr <sect-api-lvstr>`
 
-.. _glibc:                   https://www.gnu.org/s/libc/
-.. |GLibc|                   replace:: `GNU C library <glibc_>`_
+.. _glibc:                    https://www.gnu.org/s/libc/
+.. |GLibc|                    replace:: `GNU C library <glibc_>`_
 
 Overview
 ========
@@ -239,12 +240,31 @@ You *MUST* include :file:`dpack/scalar.h` header to use this interface.
    
 Floating point number
 =====================
-   
-.. todo::
 
-   Document floats and doubles
+When compiled with the :c:macro:`CONFIG_DPACK_FLOAT` build configuration
+option enabled, the DPack library provides support for single precision floating
+point numbers (de)serialization operations. These are:
 
-  
+* :c:macro:`DPACK_FLOAT_SIZE`
+* :c:func:`dpack_encode_float`
+* :c:func:`dpack_decode_float`
+* :c:func:`dpack_decode_float_min`
+* :c:func:`dpack_decode_float_max`
+* :c:func:`dpack_decode_float_range`
+
+When compiled with the :c:macro:`CONFIG_DPACK_DOUBLE` build configuration
+option enabled, the DPack library provides support for double precision floating
+point numbers (de)serialization operations. These are:
+
+* :c:macro:`DPACK_DOUBLE_SIZE`
+* :c:func:`dpack_encode_double`
+* :c:func:`dpack_decode_double`
+* :c:func:`dpack_decode_double_min`
+* :c:func:`dpack_decode_double_max`
+* :c:func:`dpack_decode_double_range`
+
+You *MUST* include :file:`dpack/scalar.h` header to use these interfaces.
+
 .. index:: string
    
 String
@@ -293,6 +313,11 @@ Reference
 Configuration macros
 --------------------
 
+CONFIG_DPACK_ARRAY
+******************
+
+.. doxygendefine:: CONFIG_DPACK_ARRAY
+
 CONFIG_DPACK_ASSERT_API
 ***********************
 
@@ -303,50 +328,54 @@ CONFIG_DPACK_ASSERT_INTERN
 
 .. doxygendefine:: CONFIG_DPACK_ASSERT_INTERN
 
+CONFIG_DPACK_BIN
+****************
+
+.. doxygendefine:: CONFIG_DPACK_BIN
+
 CONFIG_DPACK_DEBUG
 ******************
 
 .. doxygendefine:: CONFIG_DPACK_DEBUG
 
-CONFIG_DPACK_SCALAR
-*******************
-
-.. doxygendefine:: CONFIG_DPACK_SCALAR
-
-CONFIG_DPACK_FLOAT
-******************
-
-.. doxygendefine:: CONFIG_DPACK_FLOAT
+.. _CONFIG_DPACK_DOUBLE:
 
 CONFIG_DPACK_DOUBLE
 *******************
 
 .. doxygendefine:: CONFIG_DPACK_DOUBLE
 
-CONFIG_DPACK_STRING
-*******************
+.. _CONFIG_DPACK_FLOAT:
 
-.. doxygendefine:: CONFIG_DPACK_STRING
+CONFIG_DPACK_FLOAT
+******************
+
+.. doxygendefine:: CONFIG_DPACK_FLOAT
 
 CONFIG_DPACK_LVSTR
 ******************
 
 .. doxygendefine:: CONFIG_DPACK_LVSTR
 
-CONFIG_DPACK_BIN
-****************
-
-.. doxygendefine:: CONFIG_DPACK_BIN
-
-CONFIG_DPACK_ARRAY
-******************
-
-.. doxygendefine:: CONFIG_DPACK_ARRAY
-
 CONFIG_DPACK_MAP
 ****************
 
 .. doxygendefine:: CONFIG_DPACK_MAP
+
+CONFIG_DPACK_SAMPLE
+*******************
+
+.. doxygendefine:: CONFIG_DPACK_SAMPLE
+
+CONFIG_DPACK_SCALAR
+*******************
+
+.. doxygendefine:: CONFIG_DPACK_SCALAR
+
+CONFIG_DPACK_STRING
+*******************
+
+.. doxygendefine:: CONFIG_DPACK_STRING
 
 .. _CONFIG_DPACK_UTEST:
 
@@ -360,19 +389,24 @@ CONFIG_DPACK_VALGRIND
 
 .. doxygendefine:: CONFIG_DPACK_VALGRIND
 
-CONFIG_DPACK_SAMPLE
-*******************
-
-.. doxygendefine:: CONFIG_DPACK_SAMPLE
-
 Macros
 ------
-
+  
 DPACK_BOOL_SIZE
 ***************
 
 .. doxygendefine:: DPACK_BOOL_SIZE
 
+DPACK_DOUBLE_SIZE
+*****************
+
+.. doxygendefine:: DPACK_DOUBLE_SIZE
+  
+DPACK_FLOAT_SIZE
+****************
+
+.. doxygendefine:: DPACK_FLOAT_SIZE
+  
 DPACK_INT16_SIZE_MAX
 ********************
 
@@ -498,6 +532,46 @@ dpack_decode_bool
 *****************
 
 .. doxygenfunction:: dpack_decode_bool
+
+dpack_decode_double
+*******************
+
+.. doxygenfunction:: dpack_decode_double
+
+dpack_decode_double_min
+***********************
+
+.. doxygenfunction:: dpack_decode_double_min
+
+dpack_decode_double_max
+***********************
+
+.. doxygenfunction:: dpack_decode_double_max
+
+dpack_decode_double_range
+*************************
+
+.. doxygenfunction:: dpack_decode_double_range
+
+dpack_decode_float
+******************
+
+.. doxygenfunction:: dpack_decode_float
+
+dpack_decode_float_min
+**********************
+
+.. doxygenfunction:: dpack_decode_float_min
+
+dpack_decode_float_max
+**********************
+
+.. doxygenfunction:: dpack_decode_float_max
+
+dpack_decode_float_range
+************************
+
+.. doxygenfunction:: dpack_decode_float_range
 
 dpack_decode_int
 ****************
@@ -728,6 +802,16 @@ dpack_encode_bool
 *****************
 
 .. doxygenfunction:: dpack_encode_bool
+
+dpack_encode_double
+*******************
+
+.. doxygenfunction:: dpack_encode_double
+
+dpack_encode_float
+******************
+
+.. doxygenfunction:: dpack_encode_float
 
 dpack_encode_int
 ****************

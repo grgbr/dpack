@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import sys
@@ -54,12 +54,18 @@ def main():
                         default=None,
                         metavar='EXPRESSION',
                         help='Python expression')
+    parser.add_argument('-s',
+                        '--single-float',
+                        action='store_true',
+                        dest='float',
+                        help='Use single precision floating point numbers')
 
     args = parser.parse_args()
 
     try:
         packer = msgpack.Packer(autoreset=True,
                                 use_bin_type=True,
+                                use_single_float=args.float,
                                 strict_types=True,
                                 datetime=False)
     except Exception as e:

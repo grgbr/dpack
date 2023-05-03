@@ -14,8 +14,15 @@ common-cflags         := -Wall \
 common-ldflags        := $(common-cflags) \
                          $(EXTRA_LDFLAGS)
 
+# When assertions are enabled:
+# * ensure NDEBUG macro is not set to enable glibc assertions ;
+# * disable -ffinite-math-only optimizations so that floating point number
+#   assertion checking works properly (since NaN and Infinity values are
+#   tested).
 ifneq ($(filter y,$(CONFIG_DPACK_ASSERT_API) $(CONFIG_DPACK_ASSERT_INTERN)),)
 common-cflags         := $(filter-out -DNDEBUG,$(common-cflags))
+common-cflags         := $(filter-out -ffinite-math-only,$(common-cflags)) \
+                         -fno-finite-math-only
 common-ldflags        := $(filter-out -DNDEBUG,$(common-ldflags))
 endif # ($(filter y,$(CONFIG_DPACK_ASSERT_API) $(CONFIG_DPACK_ASSERT_INTERN)),)
 

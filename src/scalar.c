@@ -1,6 +1,9 @@
 #include "dpack/scalar.h"
 #include "dpack/codec.h"
 #include "common.h"
+#if defined(CONFIG_DPACK_FLOAT) || defined(CONFIG_DPACK_DOUBLE)
+#include <math.h>
+#endif /* defined(CONFIG_DPACK_FLOAT) || defined(CONFIG_DPACK_DOUBLE) */
 
 #define DPACK_SCALAR_DEFINE_ENCODE(_name, _type, _func) \
 	int \
@@ -607,10 +610,19 @@ dpack_decode_int64_range(struct dpack_decoder * decoder,
 
 #if defined(CONFIG_DPACK_FLOAT)
 
-DPACK_SCALAR_DEFINE_ENCODE(dpack_encode_float, float, mpack_write_float)
+int
+dpack_encode_float(struct dpack_encoder * encoder, float value)
+{
+	dpack_assert_api_encoder(encoder);
+	dpack_assert_api(!isnan(value));
+
+	mpack_write_float(&encoder->mpack, value);
+
+	return dpack_encoder_error_state(&encoder->mpack);
+}
 
 int
-dpack_decode_float(struct dpack_decoder * decoder, float * value)
+dpack_decode_float(struct dpack_decoder * decoder, float * __restrict value)
 {
 	dpack_assert_api_decoder(decoder);
 	dpack_assert_api(value);
@@ -623,16 +635,19 @@ dpack_decode_float(struct dpack_decoder * decoder, float * value)
 		return err;
 
 	*value = mpack_tag_float_value(&tag);
+	if (isnan(*value))
+		return -ENOMSG;
 
 	return 0;
 }
 
 int
-dpack_decode_float_min(struct dpack_decoder * decoder, float low, float * value)
+dpack_decode_float_min(struct dpack_decoder * decoder,
+                       float                  low,
+                       float * __restrict     value)
 {
 	dpack_assert_api_decoder(decoder);
-	dpack_assert_api(low > MINFLOAT);
-	dpack_assert_api(low < MAXFLOAT);
+	dpack_assert_api(isfinite(low));
 	dpack_assert_api(value);
 
 	int err;
@@ -650,11 +665,10 @@ dpack_decode_float_min(struct dpack_decoder * decoder, float low, float * value)
 int
 dpack_decode_float_max(struct dpack_decoder * decoder,
                        float                  high,
-                       float *                value)
+                       float * __restrict     value)
 {
 	dpack_assert_api_decoder(decoder);
-	dpack_assert_api(high > MINFLOAT);
-	dpack_assert_api(high < MAXFLOAT);
+	dpack_assert_api(isfinite(high));
 	dpack_assert_api(value);
 
 	int err;
@@ -673,12 +687,12 @@ int
 dpack_decode_float_range(struct dpack_decoder * decoder,
                          float                  low,
                          float                  high,
-                         float *                value)
+                         float * __restrict     value)
 {
 	dpack_assert_api_decoder(decoder);
-	dpack_assert_api(low > MINFLOAT);
+	dpack_assert_api(isfinite(low));
+	dpack_assert_api(isfinite(high));
 	dpack_assert_api(low < high);
-	dpack_assert_api(high < MAXFLOAT);
 	dpack_assert_api(value);
 
 	int err;
@@ -701,10 +715,19 @@ dpack_decode_float_range(struct dpack_decoder * decoder,
 
 #if defined(CONFIG_DPACK_DOUBLE)
 
-DPACK_SCALAR_DEFINE_ENCODE(dpack_encode_double, double, mpack_write_double)
+int
+dpack_encode_double(struct dpack_encoder * encoder, double value)
+{
+	dpack_assert_api_encoder(encoder);
+	dpack_assert_api(!isnan(value));
+
+	mpack_write_double(&encoder->mpack, value);
+
+	return dpack_encoder_error_state(&encoder->mpack);
+}
 
 int
-dpack_decode_double(struct dpack_decoder * decoder, double * value)
+dpack_decode_double(struct dpack_decoder * decoder, double * __restrict value)
 {
 	dpack_assert_api_decoder(decoder);
 	dpack_assert_api(value);
@@ -717,6 +740,8 @@ dpack_decode_double(struct dpack_decoder * decoder, double * value)
 		return err;
 
 	*value = mpack_tag_double_value(&tag);
+	if (isnan(*value))
+		return -ENOMSG;
 
 	return 0;
 }
@@ -724,12 +749,12 @@ dpack_decode_double(struct dpack_decoder * decoder, double * value)
 int
 dpack_decode_double_min(struct dpack_decoder * decoder,
                         double                 low,
-                        double *               value)
+                        double * __restrict    value)
 {
 	dpack_assert_api_decoder(decoder);
-	dpack_assert_api(low > MINDOUBLE);
-	dpack_assert_api(low < MAXDOUBLE);
+	dpack_assert_api(isfinite(low));
 	dpack_assert_api(value);
+
 
 	int err;
 
@@ -746,11 +771,10 @@ dpack_decode_double_min(struct dpack_decoder * decoder,
 int
 dpack_decode_double_max(struct dpack_decoder * decoder,
                         double                 high,
-                        double *               value)
+                        double * __restrict    value)
 {
 	dpack_assert_api_decoder(decoder);
-	dpack_assert_api(high > MINDOUBLE);
-	dpack_assert_api(high < MAXDOUBLE);
+	dpack_assert_api(isfinite(high));
 	dpack_assert_api(value);
 
 	int err;
@@ -769,12 +793,12 @@ int
 dpack_decode_double_range(struct dpack_decoder * decoder,
                           double                 low,
                           double                 high,
-                          double *               value)
+                          double * __restrict    value)
 {
 	dpack_assert_api_decoder(decoder);
-	dpack_assert_api(low > MINDOUBLE);
+	dpack_assert_api(isfinite(low));
+	dpack_assert_api(isfinite(high));
 	dpack_assert_api(low < high);
-	dpack_assert_api(high < MAXDOUBLE);
 	dpack_assert_api(value);
 
 	int err;

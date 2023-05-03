@@ -1,4 +1,5 @@
 #include "utest.h"
+#include "dpack/codec.h"
 #include <stroll/assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -168,3 +169,51 @@ dpack_utest_expect_free_arg(const void * arg, size_t size)
 	/* Instruct free() function above to perform checking of arguments. */
 	dpack_utest_free_wrapped = true;
 }
+
+void
+dpack_scalar_utest_decode(const struct dpack_scalar_utest_data * data,
+                          unsigned int                           nr,
+                          dpack_utest_unpack_fn *                unpack)
+{
+	struct dpack_decoder dec = { 0, };
+	unsigned int         d;
+
+	for (d = 0; d < nr; d++) {
+		dpack_decoder_init_buffer(&dec, data[d].packed, data[d].size);
+
+		unpack(&dec, &data[d]);
+		if (!data[d].error)
+			assert_int_equal(dpack_decoder_data_left(&dec), 0);
+
+		dpack_decoder_fini(&dec);
+	}
+}
+
+void
+dpack_scalar_utest_encode(const struct dpack_scalar_utest_data * data,
+                          unsigned int                           nr,
+                          dpack_utest_pack_fn *                  pack)
+{
+	struct dpack_encoder enc = { 0, };
+	unsigned int         d;
+
+	for (d = 0; d < nr; d++) {
+		size_t sz = data[d].size;
+		char   buff[sz];
+		int    err;
+
+		memset(buff, 0xa5, sz);
+		dpack_encoder_init_buffer(&enc, buff, sz);
+
+		err = pack(&enc, &data[d]);
+		assert_int_equal(err, data[d].error);
+		assert_memory_equal(buff, data[d].packed, sz);
+
+		assert_int_equal(dpack_encoder_space_used(&enc), sz);
+		assert_int_equal(dpack_encoder_space_left(&enc), 0);
+
+		dpack_encoder_fini(&enc);
+	}
+}
+
+

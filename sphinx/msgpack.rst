@@ -309,6 +309,8 @@ Int 64 stores a 64-bit big-endian signed integer::
    +--------+--------+--------+--------+--------+--------+--------+--------+
 
 
+.. _sect-msgpack-float:
+
 float format family
 ~~~~~~~~~~~~~~~~~~~
 

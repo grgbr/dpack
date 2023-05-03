@@ -2512,29 +2512,86 @@ dpack_decode_int64_range(struct dpack_decoder * decoder,
 
 #if defined(CONFIG_DPACK_FLOAT)
 
+/**
+ * Size of a serialized single precision floating point number.
+ *
+ * Size in bytes of a single precision floating point number serialized
+ * according to the @rstsubst{MessagePack float format}.
+ */
 #define DPACK_FLOAT_SIZE MPACK_TAG_SIZE_FLOAT
 
 extern int
-dpack_encode_float(struct dpack_encoder * encoder, float value) __dpack_export;
+dpack_encode_float(struct dpack_encoder * encoder, float value)
+	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+
+/**
+ * Decode a single precision floating point number encoded according to the
+ * MessagePack format
+ *
+ * @param[in]  decoder decoder
+ * @param[out] value   Location where to store decoded value
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -ENOMSG   Invalid MessagePack stream data type
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ * @retval -ERANGE   Invalid MessagePack stream data range
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack int format} into @p value 64-bits signed integer from
+ * buffer assigned to @p encoder at initialization time.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_uint64()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
+extern int
+dpack_decode_float(struct dpack_decoder * decoder,
+                   float * __restrict     value) __dpack_nonull(1, 2)
+                                                 __dpack_nothrow
+                                                 __leaf
+                                                 __warn_result
+                                                 __dpack_export;
 
 extern int
-dpack_decode_float(struct dpack_decoder * decoder, float * value)
-	__dpack_export;
-
-extern int
-dpack_decode_float_min(struct dpack_decoder * decoder, float low, float * value)
-	__dpack_export;
+dpack_decode_float_min(struct dpack_decoder * decoder,
+                       float                  low,
+                       float * __restrict     value) __dpack_nonull(1, 3)
+                                                     __dpack_nothrow
+                                                     __leaf
+                                                     __warn_result
+                                                     __dpack_export;
 
 extern int
 dpack_decode_float_max(struct dpack_decoder * decoder,
                        float                  high,
-                       float *                value) __dpack_export;
+                       float * __restrict     value) __dpack_nonull(1, 3)
+                                                     __dpack_nothrow
+                                                     __leaf
+                                                     __warn_result
+                                                     __dpack_export;
 
 extern int
 dpack_decode_float_range(struct dpack_decoder * decoder,
                          float                  low,
                          float                  high,
-                         float *                value) __dpack_export;
+                         float * __restrict     value) __dpack_nonull(1, 4)
+                                                       __dpack_nothrow
+                                                       __leaf
+                                                       __warn_result
+                                                       __dpack_export;
 
 #endif /* defined(CONFIG_DPACK_FLOAT) */
 
@@ -2544,31 +2601,53 @@ dpack_decode_float_range(struct dpack_decoder * decoder,
 
 #if defined(CONFIG_DPACK_DOUBLE)
 
+/**
+ * Size of a serialized double precision floating point number.
+ *
+ * Size in bytes of a double precision floating point number serialized
+ * according to the @rstsubst{MessagePack float format}.
+ */
 #define DPACK_DOUBLE_SIZE MPACK_TAG_SIZE_DOUBLE
 
 extern int
 dpack_encode_double(struct dpack_encoder * encoder, double value)
-	__dpack_export;
+	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
 
 extern int
-dpack_decode_double(struct dpack_decoder * decoder, double * value)
-	__dpack_export;
+dpack_decode_double(struct dpack_decoder * decoder,
+                    double * __restrict    value) __dpack_nonull(1, 2)
+                                                  __dpack_nothrow
+                                                  __leaf
+                                                  __warn_result
+                                                  __dpack_export;
 
 extern int
 dpack_decode_double_min(struct dpack_decoder * decoder,
                         double                 low,
-                        double *               value) __dpack_export;
+                        double * __restrict    value) __dpack_nonull(1, 3)
+                                                      __dpack_nothrow
+                                                      __leaf
+                                                      __warn_result
+                                                      __dpack_export;
 
 extern int
 dpack_decode_double_max(struct dpack_decoder * decoder,
                         double                 high,
-                        double *               value) __dpack_export;
+                        double * __restrict    value) __dpack_nonull(1, 3)
+                                                      __dpack_nothrow
+                                                      __leaf
+                                                      __warn_result
+                                                      __dpack_export;
 
 extern int
 dpack_decode_double_range(struct dpack_decoder * decoder,
                           double                 low,
                           double                 high,
-                          double *               value) __dpack_export;
+                          double * __restrict    value) __dpack_nonull(1, 4)
+                                                        __dpack_nothrow
+                                                        __leaf
+                                                        __warn_result
+                                                        __dpack_export;
 
 #endif /* defined(CONFIG_DPACK_DOUBLE) */
 

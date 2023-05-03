@@ -35,6 +35,22 @@ dpack-scalar-ut-ldflags := $(test-ldflags)
 dpack-scalar-ut-pkgconf := libstroll cmocka
 endif # ($(CONFIG_DPACK_SCALAR),y)
 
+ifeq ($(CONFIG_DPACK_FLOAT),y)
+bins                    += dpack-float-ut
+dpack-float-ut-objs     := float.o
+dpack-float-ut-cflags   := $(test-cflags)
+dpack-float-ut-ldflags  := $(test-ldflags)
+dpack-float-ut-pkgconf  := libstroll cmocka
+endif # ($(CONFIG_DPACK_FLOAT),y)
+
+ifeq ($(CONFIG_DPACK_DOUBLE),y)
+bins                    += dpack-double-ut
+dpack-double-ut-objs    := double.o
+dpack-double-ut-cflags  := $(test-cflags)
+dpack-double-ut-ldflags := $(test-ldflags)
+dpack-double-ut-pkgconf := libstroll cmocka
+endif # ($(CONFIG_DPACK_FLOAT),y)
+
 ifeq ($(CONFIG_DPACK_ARRAY),y)
 bins                    += dpack-array-ut
 dpack-array-ut-objs     := array.o
