@@ -36,7 +36,8 @@ def pack(packer, data):
         return pack_dict(packer, data)
     elif isinstance(data, int) or \
          isinstance(data, float) or \
-         isinstance(data, bool):
+         isinstance(data, bool) or \
+         isinstance(data, str):
         return pack_scalar(packer, data)
     else:
         raise TypeError("{}: Unsupported type.".format(type(data)))

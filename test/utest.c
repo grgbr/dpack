@@ -215,5 +215,3 @@ dpack_scalar_utest_encode(const struct dpack_scalar_utest_data * data,
 		dpack_encoder_fini(&enc);
 	}
 }
-
-
