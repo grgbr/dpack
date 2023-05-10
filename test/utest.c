@@ -4,6 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#if defined(CONFIG_DPACK_VALGRIND)
+#include <valgrind/valgrind.h>
+#endif
+
 static char dpack_utest_assert_msg[LINE_MAX];
 
 /*
@@ -100,7 +104,7 @@ stroll_assert_fail_msg(const char * __restrict prefix,
 	abort();
 }
 
-bool dpack_utest_free_wrapped;
+static bool dpack_utest_free_wrapped;
 
 /*
  * Mock Glibc's free(3) for verification purposes.
@@ -132,7 +136,7 @@ free(void * ptr)
 		check_expected_ptr(ptr);
 	}
 
-	/* Now call the original free(3) function. */
+	/* Now call the GLibc core free(3) function. */
 #if defined __GLIBC__
 	extern void __libc_free(void *);
 	__libc_free(ptr);
@@ -140,10 +144,6 @@ free(void * ptr)
 #error Glibc is the only C library supported for now !
 #endif
 }
-
-#if defined(CONFIG_DPACK_VALGRIND)
-#include <valgrind/valgrind.h>
-#endif
 
 void
 dpack_utest_expect_free_arg(const void * arg, size_t size)
@@ -168,6 +168,75 @@ dpack_utest_expect_free_arg(const void * arg, size_t size)
 	expect_memory(free, ptr, arg, size);
 	/* Instruct free() function above to perform checking of arguments. */
 	dpack_utest_free_wrapped = true;
+}
+
+static bool dpack_utest_malloc_wrapped;
+
+/*
+ * Mock Glibc's malloc(3) for verification purposes.
+ *
+ * Set dpack_utest_malloc_wrapped to true from client testing code to enable
+ * malloc(3) argument checking logic and simulate allocation failure.
+ */
+void *
+malloc(size_t size)
+{
+	if (dpack_utest_malloc_wrapped) {
+		/*
+		 * Disable checking logic implicitly. Client testing code will
+		 * have to re-enable it by setting dpack_utest_malloc_wrapped to
+		 * true to perform subsequent validation.
+		 *
+		 * Watch out ! This MUST be done before calling any
+		 * check_expected...() function is called since they all rely
+		 * upon a working malloc(3). We would otherwise wrap cmocka
+		 * internal calls to malloc(3) !
+		 */
+		dpack_utest_malloc_wrapped = false;
+		/*
+		 * malloc(3) argument checking logic is enabled: do the check
+		 * using standard cmocka check_expected().
+		 * First check pointer value, then content of memory pointed to.
+		 */
+		check_expected(size);
+
+		/* Now simulate a malloc() failure */
+		return NULL;
+	}
+
+	/* Now call the GLibc core malloc(3) function. */
+#if defined __GLIBC__
+	extern void * __libc_malloc(size_t);
+	return __libc_malloc(size);
+#else
+#error Glibc is the only C library supported for now !
+#endif
+}
+
+void
+dpack_utest_expect_malloc_call(void)
+{
+#if defined(CONFIG_DPACK_VALGRIND)
+	/*
+	 * As Valgrind overrides C library's malloc(3) / realloc(3) / free(3)
+	 * functions, it bypasses our own malloc(3) wrapper implemented above.
+	 * This breaks our mocked malloc(3) testing mechanism and leads to test
+	 * failures.
+	 * Inhibit our mocked malloc(3) based tests when running testsuite under
+	 * Valgrind. We may still run the entire testsuite without Valgrind
+	 * anyway.
+	 */
+	if (RUNNING_ON_VALGRIND)
+		return;
+#endif
+
+	/* Request checking of malloc(3) argument value to ensure it is != 0. */
+	expect_not_value(malloc, size, 0);
+	/*
+	 * Instruct malloc() function above to check argument and simulate a
+	 * failure.
+	 */
+	dpack_utest_malloc_wrapped = true;
 }
 
 void

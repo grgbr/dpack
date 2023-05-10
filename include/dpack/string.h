@@ -285,13 +285,21 @@ dpack_encode_str_fix(struct dpack_encoder  * encoder,
                                                   __dpack_export;
 
 extern ssize_t
-dpack_decode_strdup(struct dpack_decoder  * decoder,
-                    char                 ** value) __dpack_export;
+dpack_decode_strdup(struct dpack_decoder * decoder,
+                    char ** __restrict     value) __dpack_nonull(1, 2)
+                                                  __dpack_nothrow
+                                                  __leaf
+                                                  __warn_result
+                                                  __dpack_export;
 
 extern ssize_t
 dpack_decode_strdup_max(struct dpack_decoder  * decoder,
                         size_t                  max_len,
-                        char                 ** value) __dpack_export;
+                        char ** __restrict      value) __dpack_nonull(1, 3)
+                                                       __dpack_nothrow
+                                                       __leaf
+                                                       __warn_result
+                                                       __dpack_export;
 
 extern ssize_t
 dpack_decode_strdup_range(struct dpack_decoder  * decoder,

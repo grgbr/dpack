@@ -51,8 +51,10 @@ dpack_scalar_utest_encode(const struct dpack_scalar_utest_data * data,
                           unsigned int                           nr,
                           dpack_utest_pack_fn *                  pack);
 
-extern bool dpack_utest_free_wrapped;
 extern void free(void * ptr);
 extern void dpack_utest_expect_free_arg(const void * data, size_t size);
+
+extern void * malloc(size_t size);
+extern void   dpack_utest_expect_malloc_call(void);
 
 #endif /* _DPACK_UTEST_H */

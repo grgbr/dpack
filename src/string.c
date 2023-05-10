@@ -60,7 +60,7 @@ dpack_encode_str_fix(struct dpack_encoder *  encoder,
 	return dpack_encoder_error_state(&encoder->mpack);
 }
 
-static ssize_t
+static ssize_t __dpack_nonull(1) __dpack_nothrow __warn_result
 dpack_decode_str_tag(struct mpack_reader_t * reader,
                      size_t                  min_len,
                      size_t                  max_len)
@@ -79,11 +79,7 @@ dpack_decode_str_tag(struct mpack_reader_t * reader,
 		return err;
 
 	len = mpack_tag_str_length(&tag);
-	if (len < min_len) {
-		mpack_reader_flag_error(reader, mpack_error_data);
-		return -EBADMSG;
-	}
-	else if (len > max_len) {
+	if ((len < min_len) || (len > max_len)) {
 		mpack_reader_flag_error(reader, mpack_error_data);
 		return -EMSGSIZE;
 	}
@@ -91,8 +87,10 @@ dpack_decode_str_tag(struct mpack_reader_t * reader,
 	return (ssize_t)len;
 }
 
-static ssize_t
-dpack_xtract_strdup(struct mpack_reader_t * reader, char ** value, uint32_t len)
+static ssize_t __dpack_nonull(1, 2) __dpack_nothrow __warn_result
+dpack_xtract_strdup(struct mpack_reader_t * reader,
+                    char ** __restrict      value,
+                    uint32_t                len)
 {
 	dpack_assert_intern(reader);
 	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
@@ -128,7 +126,7 @@ dpack_xtract_strdup(struct mpack_reader_t * reader, char ** value, uint32_t len)
 }
 
 ssize_t
-dpack_decode_strdup(struct dpack_decoder * decoder, char ** value)
+dpack_decode_strdup(struct dpack_decoder * decoder, char ** __restrict value)
 {
 	dpack_assert_api(decoder);
 	dpack_assert_api(value);
@@ -145,10 +143,10 @@ dpack_decode_strdup(struct dpack_decoder * decoder, char ** value)
 ssize_t
 dpack_decode_strdup_max(struct dpack_decoder  * decoder,
                         size_t                  max_len,
-                        char                 ** value)
+                        char ** __restrict      value)
 {
 	dpack_assert_api(decoder);
-	dpack_assert_api(max_len);
+	dpack_assert_api(max_len > 1);
 	dpack_assert_api(max_len <= DPACK_STRLEN_MAX);
 	dpack_assert_api(value);
 
