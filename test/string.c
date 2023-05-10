@@ -369,7 +369,6 @@ dpack_utest_encode_str(void ** state __unused)
 	struct dpack_encoder enc = { 0, };
 	char *               buff;
 	int                  ret __unused;
-	const char *         str = *state;
 
 	expect_assert_failure(ret = dpack_encode_str(NULL, "test"));
 	expect_assert_failure(ret = dpack_encode_str(&enc, "test"));
@@ -383,7 +382,6 @@ dpack_utest_encode_str(void ** state __unused)
 	expect_assert_failure(ret = dpack_encode_str(&enc, buff));
 	expect_assert_failure(ret = dpack_encode_str(&enc, NULL));
 	expect_assert_failure(ret = dpack_encode_str(&enc, ""));
-	expect_assert_failure(ret = dpack_encode_str(&enc, str));
 	dpack_encoder_fini(&enc);
 
 	free(buff);
@@ -432,10 +430,11 @@ dpack_utest_encode_str_fix(void ** state __unused)
 	struct dpack_encoder enc = { 0, };
 	char *               buff;
 	int                  ret __unused;
-	const char *         str = *state;
+	size_t               len = sizeof("test") - 1;
+	const char *         str = "test";
 
-	expect_assert_failure(ret = dpack_encode_str(NULL, "test"));
-	expect_assert_failure(ret = dpack_encode_str(&enc, "test"));
+	expect_assert_failure(ret = dpack_encode_str_fix(NULL, str, len));
+	expect_assert_failure(ret = dpack_encode_str_fix(&enc, str, len));
 
 	buff = malloc(DPACK_STRLEN_MAX + 2);
 	assert_non_null(buff);
@@ -443,10 +442,12 @@ dpack_utest_encode_str_fix(void ** state __unused)
 	buff[DPACK_STRLEN_MAX + 1] = '\0';
 
 	dpack_encoder_init_buffer(&enc, buff, DPACK_STRLEN_MAX + 2);
-	expect_assert_failure(ret = dpack_encode_str(&enc, buff));
-	expect_assert_failure(ret = dpack_encode_str(&enc, NULL));
-	expect_assert_failure(ret = dpack_encode_str(&enc, ""));
-	expect_assert_failure(ret = dpack_encode_str(&enc, str));
+	expect_assert_failure(ret = dpack_encode_str_fix(&enc, str, 0));
+	expect_assert_failure(ret = dpack_encode_str_fix(&enc,
+	                                                 buff,
+	                                                 DPACK_STRLEN_MAX + 1));
+	expect_assert_failure(ret = dpack_encode_str_fix(&enc, NULL, len));
+	expect_assert_failure(ret = dpack_encode_str_fix(&enc, "", 0));
 	dpack_encoder_fini(&enc);
 
 	free(buff);
@@ -470,7 +471,7 @@ static const struct CMUnitTest dpack_str_utests[] = {
 int
 main(void)
 {
-	return cmocka_run_group_tests_name("string size",
+	return cmocka_run_group_tests_name("strings",
 	                                   dpack_str_utests,
 	                                   NULL,
 	                                   NULL);

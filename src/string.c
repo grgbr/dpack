@@ -31,7 +31,7 @@ dpack_str_size(size_t len)
 }
 
 int
-dpack_encode_str(struct dpack_encoder * encoder, const char * value)
+dpack_encode_str(struct dpack_encoder * encoder, const char * __restrict value)
 {
 	dpack_assert_api_encoder(encoder);
 	dpack_assert_api(value);
@@ -45,16 +45,15 @@ dpack_encode_str(struct dpack_encoder * encoder, const char * value)
 }
 
 int
-dpack_encode_str_fix(struct dpack_encoder * encoder,
-                     const char           * value,
-                     size_t                 len)
+dpack_encode_str_fix(struct dpack_encoder *  encoder,
+                     const char * __restrict value,
+                     size_t                  len)
 {
 	dpack_assert_api_encoder(encoder);
 	dpack_assert_api(value);
 	dpack_assert_api(value[0]);
 	dpack_assert_api(len);
 	dpack_assert_api(len <= DPACK_STRLEN_MAX);
-	dpack_assert_api(strnlen(value, len) == len);
 
 	mpack_write_str(&encoder->mpack, value, (uint32_t)len);
 

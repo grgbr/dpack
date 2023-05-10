@@ -232,12 +232,12 @@ dpack_str_size(size_t len) __dpack_const
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_encode_str(struct dpack_encoder * encoder,
-                 const char           * value) __dpack_nonull(1, 2)
-                                               __dpack_nothrow
-                                               __leaf
-                                               __warn_result
-                                               __dpack_export;
+dpack_encode_str(struct dpack_encoder  * encoder,
+                 const char * __restrict value) __dpack_nonull(1, 2)
+                                                __dpack_nothrow
+                                                __leaf
+                                                __warn_result
+                                                __dpack_export;
 
 /**
  * Encode a string according to the MessagePack format
@@ -276,13 +276,13 @@ dpack_encode_str(struct dpack_encoder * encoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_encode_str_fix(struct dpack_encoder * encoder,
-                     const char           * value,
-                     size_t                 len) __dpack_nonull(1, 2)
-                                                 __dpack_nothrow
-                                                 __leaf
-                                                 __warn_result
-                                                 __dpack_export;
+dpack_encode_str_fix(struct dpack_encoder  * encoder,
+                     const char * __restrict value,
+                     size_t                  len) __dpack_nonull(1, 2)
+                                                  __dpack_nothrow
+                                                  __leaf
+                                                  __warn_result
+                                                  __dpack_export;
 
 extern ssize_t
 dpack_decode_strdup(struct dpack_decoder  * decoder,
