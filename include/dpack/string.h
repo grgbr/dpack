@@ -1,3 +1,28 @@
+/**
+ * @file
+ * String encoding / decoding interface
+ *
+ * @author       Grégor Boirie <gregor.boirie@free.fr>
+ * @date         10 May 2023
+ * @copyright    Copyright (C) 2017-2023 Grégor Boirie.
+ * @licensestart GNU Lesser General Public License (LGPL) v3
+ *
+ * This file is part of libdpack
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, If not, see <http://www.gnu.org/licenses/>.
+ * @licenseend
+ */
 #ifndef _DPACK_STRING_H
 #define _DPACK_STRING_H
 
@@ -176,14 +201,88 @@ dpack_str_size(size_t len) __dpack_const
                            __warn_result
                            __dpack_export;
 
+/**
+ * Encode a string according to the MessagePack format
+ *
+ * @param[in] encoder encoder
+ * @param[in] value   string to encode
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ *
+ * Encode / pack / serialize the NULL byte terminated string @p value into the
+ * buffer assigned to @p encoder at initialization time according to the
+ * @rstsubst{MessagePack string format}.
+ *
+ * @warning
+ * - @p encoder *MUST* have been initialized using dpack_encoder_init_buffer()
+ *   before calling this function. Result is undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p encoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p value string length is zero or greater than #DPACK_STRLEN_MAX, result is
+ *   undefined. An assertion is triggered otherwise.
+ *
+ *
+ * @see
+ * - dpack_encode_str_fix()
+ * - dpack_encoder_init_buffer()
+ */
 extern int
 dpack_encode_str(struct dpack_encoder * encoder,
-                 const char           * value) __dpack_export;
+                 const char           * value) __dpack_nonull(1, 2)
+                                               __dpack_nothrow
+                                               __leaf
+                                               __warn_result
+                                               __dpack_export;
 
+/**
+ * Encode a string according to the MessagePack format
+ *
+ * @param[in] encoder encoder
+ * @param[in] value   string to encode
+ * @param[in] len     length of @p value
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ *
+ * Encode / pack / serialize the @p value string into the buffer assigned to @p
+ * encoder at initialization time according to the
+ * @rstsubst{MessagePack string format}.
+ *
+ * This function is similar to dpack_encode_str() except that at most @p len
+ * bytes of @p value are encoded.
+ *
+ * @warning
+ * - @p encoder *MUST* have been initialized using dpack_encoder_init_buffer()
+ *   before calling this function. Result is undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p encoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p len is zero or greater than #DPACK_STRLEN_MAX, result is undefined. An
+ *   assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p value string length is different from @p len argument, result is
+ *   undefined. An assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_encode_str()
+ * - dpack_encoder_init_buffer()
+ */
 extern int
 dpack_encode_str_fix(struct dpack_encoder * encoder,
                      const char           * value,
-                     size_t                 len) __dpack_export;
+                     size_t                 len) __dpack_nonull(1, 2)
+                                                 __dpack_nothrow
+                                                 __leaf
+                                                 __warn_result
+                                                 __dpack_export;
 
 extern ssize_t
 dpack_decode_strdup(struct dpack_decoder  * decoder,

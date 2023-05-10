@@ -282,6 +282,10 @@ operations. These are:
 * :c:macro:`DPACK_STRLEN_MAX`
 * :c:macro:`DPACK_STR_SIZE`
 * :c:func:`dpack_str_size`
+* :c:func:`dpack_encode_str`
+* :c:func:`dpack_encode_str_fix`
+
+You *MUST* include :file:`dpack/string.h` header to use these interfaces.
 
 .. index:: Length-Value string, lvstr
 
@@ -856,6 +860,16 @@ dpack_encode_int8
 *****************
 
 .. doxygenfunction:: dpack_encode_int8
+
+dpack_encode_str
+****************
+
+.. doxygenfunction:: dpack_encode_str
+
+dpack_encode_str_fix
+********************
+
+.. doxygenfunction:: dpack_encode_str_fix
 
 dpack_encode_uint
 *****************

@@ -54,6 +54,7 @@ dpack_encode_str_fix(struct dpack_encoder * encoder,
 	dpack_assert_api(value[0]);
 	dpack_assert_api(len);
 	dpack_assert_api(len <= DPACK_STRLEN_MAX);
+	dpack_assert_api(strnlen(value, len) == len);
 
 	mpack_write_str(&encoder->mpack, value, (uint32_t)len);
 
