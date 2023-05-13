@@ -311,15 +311,24 @@ dpack_decode_strdup_max(struct dpack_decoder * decoder,
                                                       __dpack_export;
 
 extern ssize_t
-dpack_decode_strdup_range(struct dpack_decoder  * decoder,
-                          size_t                  min_len,
-                          size_t                  max_len,
-                          char                 ** value) __dpack_export;
+dpack_decode_strdup_range(struct dpack_decoder * decoder,
+                          size_t                 min_len,
+                          size_t                 max_len,
+                          char ** __restrict     value) __dpack_nonull(1, 4)
+                                                        __dpack_nothrow
+                                                        __leaf
+                                                        __warn_result
+                                                        __dpack_export;
 
 extern ssize_t
 dpack_decode_strcpy(struct dpack_decoder * decoder,
                     size_t                 size,
-                    char                 * value) __dpack_export;
+                    char *                 value) __dpack_nonull(1, 3)
+                                                  __dpack_nothrow
+                                                  __leaf
+                                                  __warn_result
+                                                  __dpack_export;
+
 extern ssize_t
 dpack_decode_strcpy_range(struct dpack_decoder * decoder,
                           size_t                 min_len,
