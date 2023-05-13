@@ -290,6 +290,24 @@ dpack_decode_strcpy(struct dpack_decoder * decoder,
 }
 
 ssize_t
+dpack_decode_strcpy_equ(struct dpack_decoder * decoder,
+                        size_t                 size,
+                        char                 * value)
+{
+	dpack_assert_api(decoder);
+	dpack_assert_api(size > 1);
+	dpack_assert_api(value);
+
+	int err;
+
+	err = dpack_decode_str_tag_equ(&decoder->mpack, size - 1);
+	if (err)
+		return err;
+
+	return dpack_xtract_strcpy(&decoder->mpack, value, (uint32_t)size - 1);
+}
+
+ssize_t
 dpack_decode_strcpy_range(struct dpack_decoder * decoder,
                           size_t                 min_len,
                           size_t                 size,
@@ -308,22 +326,4 @@ dpack_decode_strcpy_range(struct dpack_decoder * decoder,
 		return len;
 
 	return dpack_xtract_strcpy(&decoder->mpack, value, (uint32_t)len);
-}
-
-ssize_t
-dpack_decode_strcpy_equ(struct dpack_decoder * decoder,
-                        size_t                 size,
-                        char                 * value)
-{
-	dpack_assert_api(decoder);
-	dpack_assert_api(size > 1);
-	dpack_assert_api(value);
-
-	int err;
-
-	err = dpack_decode_str_tag_equ(&decoder->mpack, size - 1);
-	if (err)
-		return err;
-
-	return dpack_xtract_strcpy(&decoder->mpack, value, (uint32_t)size - 1);
 }
