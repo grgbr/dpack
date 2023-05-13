@@ -140,6 +140,48 @@ dpack_decode_strdup(struct dpack_decoder * decoder, char ** __restrict value)
 	return dpack_xtract_strdup(&decoder->mpack, value, (uint32_t)len);
 }
 
+static int __dpack_nonull(1) __dpack_nothrow __warn_result
+dpack_decode_str_tag_equ(struct mpack_reader_t * reader, size_t len)
+{
+	dpack_assert_intern(reader);
+	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
+	dpack_assert_intern(len);
+	dpack_assert_intern(len <= DPACK_STRLEN_MAX);
+
+	struct mpack_tag_t tag;
+	int                err;
+
+	err = dpack_decode_tag(reader, mpack_type_str, &tag);
+	if (err)
+		return err;
+
+	if (mpack_tag_str_length(&tag) != len) {
+		mpack_reader_flag_error(reader, mpack_error_data);
+		return -EMSGSIZE;
+	}
+
+	return 0;
+}
+
+ssize_t
+dpack_decode_strdup_equ(struct dpack_decoder * decoder,
+                        size_t                 len,
+                        char ** __restrict     value)
+{
+	dpack_assert_api(decoder);
+	dpack_assert_api(len);
+	dpack_assert_api(len <= DPACK_STRLEN_MAX);
+	dpack_assert_api(value);
+
+	int err;
+
+	err = dpack_decode_str_tag_equ(&decoder->mpack, len);
+	if (err)
+		return err;
+
+	return dpack_xtract_strdup(&decoder->mpack, value, (uint32_t)len);
+}
+
 ssize_t
 dpack_decode_strdup_max(struct dpack_decoder  * decoder,
                         size_t                  max_len,
@@ -176,48 +218,6 @@ dpack_decode_strdup_range(struct dpack_decoder  * decoder,
 	len = dpack_decode_str_tag(&decoder->mpack, min_len, max_len);
 	if (len < 0)
 		return len;
-
-	return dpack_xtract_strdup(&decoder->mpack, value, (uint32_t)len);
-}
-
-static int
-dpack_decode_str_tag_fix(struct mpack_reader_t * reader, size_t len)
-{
-	dpack_assert_intern(reader);
-	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
-	dpack_assert_intern(len);
-	dpack_assert_intern(len <= DPACK_STRLEN_MAX);
-
-	struct mpack_tag_t tag;
-	int                err;
-
-	err = dpack_decode_tag(reader, mpack_type_str, &tag);
-	if (err)
-		return err;
-
-	if (mpack_tag_str_length(&tag) != len) {
-		mpack_reader_flag_error(reader, mpack_error_data);
-		return -EBADMSG;
-	}
-
-	return 0;
-}
-
-ssize_t
-dpack_decode_strdup_fix(struct dpack_decoder  * decoder,
-                        size_t                  len,
-                        char                 ** value)
-{
-	dpack_assert_api(decoder);
-	dpack_assert_api(len);
-	dpack_assert_api(len <= DPACK_STRLEN_MAX);
-	dpack_assert_api(value);
-
-	int err;
-
-	err = dpack_decode_str_tag_fix(&decoder->mpack, len);
-	if (err)
-		return err;
 
 	return dpack_xtract_strdup(&decoder->mpack, value, (uint32_t)len);
 }
@@ -311,7 +311,7 @@ dpack_decode_strcpy_range(struct dpack_decoder * decoder,
 }
 
 ssize_t
-dpack_decode_strcpy_fix(struct dpack_decoder * decoder,
+dpack_decode_strcpy_equ(struct dpack_decoder * decoder,
                         size_t                 size,
                         char                 * value)
 {
@@ -321,7 +321,7 @@ dpack_decode_strcpy_fix(struct dpack_decoder * decoder,
 
 	int err;
 
-	err = dpack_decode_str_tag_fix(&decoder->mpack, size - 1);
+	err = dpack_decode_str_tag_equ(&decoder->mpack, size - 1);
 	if (err)
 		return err;
 

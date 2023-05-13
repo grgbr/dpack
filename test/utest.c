@@ -213,7 +213,7 @@ malloc(size_t size)
 #endif
 }
 
-void
+int
 dpack_utest_expect_malloc_call(void)
 {
 #if defined(CONFIG_DPACK_VALGRIND)
@@ -227,7 +227,11 @@ dpack_utest_expect_malloc_call(void)
 	 * anyway.
 	 */
 	if (RUNNING_ON_VALGRIND)
-		return;
+		/*
+		 * Tell the caller we cannot intercept malloc() calls since
+		 * Valgrind has already overridden malloc().
+		 */
+		return -ECANCELED;
 #endif
 
 	/* Request checking of malloc(3) argument value to ensure it is != 0. */
@@ -237,6 +241,8 @@ dpack_utest_expect_malloc_call(void)
 	 * failure.
 	 */
 	dpack_utest_malloc_wrapped = true;
+
+	return 0;
 }
 
 void

@@ -89,7 +89,7 @@ dpack_decode_lvstr_fix(struct dpack_decoder * decoder,
 	ssize_t ret;
 	char *  cstr;
 
-	ret = dpack_decode_strdup_fix(decoder, len, &cstr);
+	ret = dpack_decode_strdup_equ(decoder, len, &cstr);
 	if (ret < 0)
 		return (int)ret;
 

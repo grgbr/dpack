@@ -55,6 +55,6 @@ extern void free(void * ptr);
 extern void dpack_utest_expect_free_arg(const void * data, size_t size);
 
 extern void * malloc(size_t size);
-extern void   dpack_utest_expect_malloc_call(void);
+extern int    dpack_utest_expect_malloc_call(void);
 
 #endif /* _DPACK_UTEST_H */
