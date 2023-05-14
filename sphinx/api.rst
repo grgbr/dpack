@@ -50,7 +50,7 @@ you can refer to for further details :
 * Decoder_,
 * Boolean_,
 * Integer_,
-* `Floating point number`_
+* `Floating point number`_,
 * String_,
 * `Length-Value string`_,
 * List_,
@@ -279,11 +279,31 @@ When compiled with the :c:macro:`CONFIG_DPACK_STRING` build configuration option
 enabled, the DPack library provides support for string (de)serialization
 operations. These are:
 
-* :c:macro:`DPACK_STRLEN_MAX`
-* :c:macro:`DPACK_STR_SIZE`
-* :c:func:`dpack_str_size`
-* :c:func:`dpack_encode_str`
-* :c:func:`dpack_encode_str_fix`
+.. hlist::
+
+   * string serialization utilities:
+
+      * :c:macro:`DPACK_STRLEN_MAX`
+      * :c:macro:`DPACK_STR_SIZE()`
+      * :c:func:`dpack_str_size`
+
+   * string encoding:
+
+      * :c:func:`dpack_encode_str`
+      * :c:func:`dpack_encode_str_fix`
+
+   * string decoding with allocation:
+
+      * :c:func:`dpack_decode_strdup`
+      * :c:func:`dpack_decode_strdup_equ`
+      * :c:func:`dpack_decode_strdup_max`
+      * :c:func:`dpack_decode_strdup_range`
+
+   * string decoding with copy:
+
+      * :c:func:`dpack_decode_strcpy`
+      * :c:func:`dpack_decode_strcpy_equ`
+      * :c:func:`dpack_decode_strcpy_range`
 
 You *MUST* include :file:`dpack/string.h` header to use these interfaces.
 
@@ -695,6 +715,41 @@ dpack_decode_int_range
 **********************
 
 .. doxygenfunction:: dpack_decode_int_range
+   
+dpack_decode_strdup
+*******************
+
+.. doxygenfunction:: dpack_decode_strdup
+
+dpack_decode_strdup_equ
+***********************
+
+.. doxygenfunction:: dpack_decode_strdup_equ
+
+dpack_decode_strdup_max
+***********************
+
+.. doxygenfunction:: dpack_decode_strdup_max
+
+dpack_decode_strdup_range
+*************************
+
+.. doxygenfunction:: dpack_decode_strdup_range
+
+dpack_decode_strcpy
+*******************
+
+.. doxygenfunction:: dpack_decode_strcpy
+
+dpack_decode_strcpy_equ
+***********************
+
+.. doxygenfunction:: dpack_decode_strcpy_equ
+
+dpack_decode_strcpy_range
+*************************
+
+.. doxygenfunction:: dpack_decode_strcpy_range
 
 dpack_decode_uint
 *****************

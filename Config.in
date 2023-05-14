@@ -32,7 +32,7 @@ config DPACK_SCALAR
 	bool "Scalars"
 	default y
 	help
-	  Build dpack library with scalar support allowing to (un)serialize,
+	  Build dpack library with scalar support allowing to (de)serialize,
 	  boolean, signed and unsigned integers.
 
 config DPACK_FLOAT
@@ -41,21 +41,21 @@ config DPACK_FLOAT
 	default n
 	help
 	  Build dpack library with single precision floating point number
-	  support allowing to (un)serialize floats.
+	  support allowing to (de)serialize floats.
 
 config DPACK_DOUBLE
 	bool "Double precision floating point numbers"
 	depends on DPACK_SCALAR
 	default n
 	help
-	  Build dpack library with single precision floating point number
-	  support allowing to (un)serialize doubles.
+	  Build dpack library with double precision floating point number
+	  support allowing to (de)serialize doubles.
 
 config DPACK_STRING
 	bool "Strings"
 	default y
 	help
-	  Build dpack library with string support allowing to (un)serialize
+	  Build dpack library with string support allowing to (de)serialize
 	  strings according to duplicate and / or copy strategies.
 
 config DPACK_STRING_MAXLEN
@@ -72,7 +72,7 @@ config DPACK_LVSTR
 	default y
 	help
           Build dpack library with length-value string support allowing to
-          (un)serialize strings into Stroll's lvstr objects. lvstr objects are
+          (de)serialize strings into Stroll's lvstr objects. lvstr objects are
 	  Length-Value strings that make the management of strings life-cycle
 	  easier.
 
@@ -81,7 +81,7 @@ config DPACK_BIN
 	default n
 	help
           Build dpack library with MessagePack bin support allowing to
-	  (un)serialize byte arrays / binary blobs according to duplicate and /
+	  (de)serialize byte arrays / binary blobs according to duplicate and /
 	  or copy strategies.
 
 config DPACK_ARRAY
@@ -89,7 +89,7 @@ config DPACK_ARRAY
 	default y
 	help
           Build dpack library with MessagePack array support allowing to
-	  (un)serialize lists of objects.
+	  (de)serialize lists of objects.
 
 config DPACK_MAP
 	bool "Maps"
@@ -97,7 +97,7 @@ config DPACK_MAP
 	default y
 	help
           Build dpack library with MessagePack map support allowing to
-	  (un)serialize structured aggregates of objects.
+	  (de)serialize structured aggregates of objects.
 
 config DPACK_UTEST
 	bool "Unit tests"

@@ -310,18 +310,18 @@ dpack_decode_strcpy_equ(struct dpack_decoder * decoder,
 ssize_t
 dpack_decode_strcpy_range(struct dpack_decoder * decoder,
                           size_t                 min_len,
-                          size_t                 size,
+                          size_t                 max_size,
                           char                 * value)
 {
 	dpack_assert_api(decoder);
 	dpack_assert_api(min_len);
-	dpack_assert_api((min_len + 1) < size);
-	dpack_assert_api(size <= (DPACK_STRLEN_MAX + 1));
+	dpack_assert_api((min_len + 1) < max_size);
+	dpack_assert_api(max_size <= (DPACK_STRLEN_MAX + 1));
 	dpack_assert_api(value);
 
 	ssize_t len;
 
-	len = dpack_decode_str_tag(&decoder->mpack, min_len, size - 1);
+	len = dpack_decode_str_tag(&decoder->mpack, min_len, max_size - 1);
 	if (len < 0)
 		return len;
 

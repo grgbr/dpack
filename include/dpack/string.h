@@ -226,7 +226,6 @@ dpack_str_size(size_t len) __dpack_const
  *   @p value string length is zero or greater than #DPACK_STRLEN_MAX, result is
  *   undefined. An assertion is triggered otherwise.
  *
- *
  * @see
  * - dpack_encode_str_fix()
  * - dpack_encoder_init_buffer()
@@ -284,6 +283,46 @@ dpack_encode_str_fix(struct dpack_encoder  * encoder,
                                                   __warn_result
                                                   __dpack_export;
 
+/**
+ * Decode and allocate a string encoded according to the MessagePack format
+ *
+ * @param[in]  decoder decoder
+ * @param[out] value   location where to store pointer to allocated string
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -EBADMSG  Invalid MessagePack string data
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack string format} into @p value string from buffer
+ * assigned to @p decoder at initialization time.
+ *
+ * The decoded string will be allocated using @man{malloc(3)}. A pointer to the
+ * string is returned via the @p value argument. The allocated string should be
+ * released using @man{free(3)} once no longer needed.
+ *
+ * The allocated string is guaranteed to be ``NULL`` terminated.
+ * 
+ * Decoding a string longer than #DPACK_STRLEN_MAX will cause a ``-EMSGSIZE``
+ * error code to be returned.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_strcpy()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
 extern ssize_t
 dpack_decode_strdup(struct dpack_decoder * decoder,
                     char ** __restrict     value) __dpack_nonull(1, 2)
@@ -292,6 +331,51 @@ dpack_decode_strdup(struct dpack_decoder * decoder,
                                                   __warn_result
                                                   __dpack_export;
 
+/**
+ * Decode and allocate a string encoded according to the MessagePack format
+ * with requested length
+ *
+ * @param[in]  decoder decoder
+ * @param[in]  len     expected length of decoded string
+ * @param[out] value   location where to store pointer to allocated string
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -EBADMSG  Invalid MessagePack string data
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack string format} into @p value string from buffer
+ * assigned to @p decoder at initialization time.
+ *
+ * Decoding fails with a ``-EMSGSIZE`` error code when length of the decoded
+ * string is different from the specified @p len value.
+ *
+ * The decoded string will be allocated using @man{malloc(3)}. A pointer to the
+ * string is returned via the @p value argument. The allocated string should be
+ * released using @man{free(3)} once no longer needed.
+ *
+ * The allocated string is guaranteed to be ``NULL`` terminated.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p len value is zero or greater than #DPACK_STRLEN_MAX, result is
+ *   undefined. An assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_strcpy_equ()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
 extern ssize_t
 dpack_decode_strdup_equ(struct dpack_decoder * decoder,
                         size_t                 len,
@@ -301,6 +385,51 @@ dpack_decode_strdup_equ(struct dpack_decoder * decoder,
                                                       __warn_result
                                                       __dpack_export;
 
+/**
+ * Decode and allocate a string encoded according to the MessagePack format
+ * with requested maximum length
+ *
+ * @param[in]  decoder decoder
+ * @param[in]  max_len maximum length of decoded string
+ * @param[out] value   location where to store pointer to allocated string
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -EBADMSG  Invalid MessagePack string data
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack string format} into @p value string from buffer
+ * assigned to @p decoder at initialization time.
+ *
+ * Decoding fails with a ``-EMSGSIZE`` error code when length of the decoded
+ * string is larger than the specified @p max_len value.
+ *
+ * The decoded string will be allocated using @man{malloc(3)}. A pointer to the
+ * string is returned via the @p value argument. The allocated string should be
+ * released using @man{free(3)} once no longer needed.
+ *
+ * The allocated string is guaranteed to be ``NULL`` terminated.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p max_len value is ``<= 1`` or greater than #DPACK_STRLEN_MAX, result is
+ *   undefined. An assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_strcpy()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
 extern ssize_t
 dpack_decode_strdup_max(struct dpack_decoder * decoder,
                         size_t                 max_len,
@@ -310,6 +439,57 @@ dpack_decode_strdup_max(struct dpack_decoder * decoder,
                                                       __warn_result
                                                       __dpack_export;
 
+/**
+ * Decode and allocate a string encoded according to the MessagePack format
+ * with requested minimum and maximum length
+ *
+ * @param[in]  decoder decoder
+ * @param[in]  min_len minimum length of decoded string
+ * @param[in]  max_len maximum length of decoded string
+ * @param[out] value   location where to store pointer to allocated string
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -EBADMSG  Invalid MessagePack string data
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack string format} into @p value string from buffer
+ * assigned to @p decoder at initialization time.
+ *
+ * Decoding fails with a ``-EMSGSIZE`` error code when length of the decoded
+ * string:
+ * - is smaller than the specified @p min_len value,
+ * - or larger than the specified @p max_len value.
+ *
+ * The decoded string will be allocated using @man{malloc(3)}. A pointer to the
+ * string is returned via the @p value argument. The allocated string should be
+ * released using @man{free(3)} once no longer needed.
+ *
+ * The allocated string is guaranteed to be ``NULL`` terminated.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p min_len value is zero or greater than @p max_len, result is undefined.
+ *   An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p max_len value is ``<= 1`` or greater than #DPACK_STRLEN_MAX, result is
+ *   undefined.  An assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_strcpy_range()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
 extern ssize_t
 dpack_decode_strdup_range(struct dpack_decoder * decoder,
                           size_t                 min_len,
@@ -320,6 +500,49 @@ dpack_decode_strdup_range(struct dpack_decoder * decoder,
                                                         __warn_result
                                                         __dpack_export;
 
+/**
+ * Decode a string encoded according to the MessagePack format
+ *
+ * @param[in]  decoder decoder
+ * @param[in]  size    size of decoded string storage area
+ * @param[out] value   location where to store decoded string
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -EBADMSG  Invalid MessagePack string data
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack string format} into @p value string from buffer
+ * assigned to @p decoder at initialization time.
+ *
+ * The decoded string will be stored into the memory area specified by @p value.
+ * @p value should point to a memory area of size @p size bytes and should be
+ * large enough to hold a string which size is at most ``#DPACK_STRLEN_MAX + 1``
+ * bytes long including the usual terminating ``NULL`` byte.
+ * 
+ * Decoding a string which length is larger than #DPACK_STRLEN_MAX will cause a
+ * ``-EMSGSIZE`` error code to be returned.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p size is ``<= 1`` or greater than ``DPACK_STRLEN_MAX + 1``, result is
+ *   undefined. An assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_strdup()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
 extern ssize_t
 dpack_decode_strcpy(struct dpack_decoder * decoder,
                     size_t                 size,
@@ -329,6 +552,49 @@ dpack_decode_strcpy(struct dpack_decoder * decoder,
                                                   __warn_result
                                                   __dpack_export;
 
+/**
+ * Decode a string encoded according to the MessagePack format with requested
+ * size.
+ *
+ * @param[in]  decoder decoder
+ * @param[in]  size    expected size of decoded string
+ * @param[out] value   location where to store decoded string
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -EBADMSG  Invalid MessagePack string data
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack string format} into @p value string from buffer
+ * assigned to @p decoder at initialization time.
+ *
+ * The decoded string will be stored into the memory area specified by @p value
+ * including the usual terminating ``NULL`` byte. @p value should point to a
+ * memory area of size @p size bytes long.
+ * 
+ * Decoding a string which length is different from ``size - 1`` will cause a
+ * ``-EMSGSIZE`` error code to be returned.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p size is ``<= 1`` or greater than ``DPACK_STRLEN_MAX + 1``, result is
+ *   undefined. An assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_strdup_equ()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
 extern ssize_t
 dpack_decode_strcpy_equ(struct dpack_decoder * decoder,
                         size_t                 size,
@@ -338,10 +604,57 @@ dpack_decode_strcpy_equ(struct dpack_decoder * decoder,
                                                       __warn_result
                                                       __dpack_export;
 
+/**
+ * Decode a string encoded according to the MessagePack format with requested
+ * minimum length and maximum size.
+ *
+ * @param[in]  decoder  decoder
+ * @param[in]  min_len  minimum length of decoded string
+ * @param[in]  max_size maximum size of decoded string
+ * @param[out] value    location where to store decoded string
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -EBADMSG  Invalid MessagePack string data
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack string format} into @p value string from buffer
+ * assigned to @p decoder at initialization time.
+ *
+ * The decoded string will be stored into the memory area specified by @p value
+ * including the usual terminating ``NULL`` byte.  @p value should point to a
+ * memory area of size @p max_size.
+ * 
+ * Decoding a string which length is smaller than @p min_len or greater than
+ * ``max_size - 1`` will cause a ``-EMSGSIZE`` error code to be returned.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+  * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p min_len value is zero or greater than ``max_size - 1``, result is
+ *   undefined.  An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p max_size value is ``<= 2`` or greater than ``DPACK_STRLEN_MAX + 1``,
+ *   result is undefined. An assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_strdup_range()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
 extern ssize_t
 dpack_decode_strcpy_range(struct dpack_decoder * decoder,
                           size_t                 min_len,
-                          size_t                 size,
+                          size_t                 max_size,
                           char *                 value) __dpack_nonull(1, 4)
                                                         __dpack_nothrow
                                                         __leaf
