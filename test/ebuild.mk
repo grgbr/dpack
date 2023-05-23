@@ -67,4 +67,12 @@ dpack-string-ut-ldflags := $(test-ldflags)
 dpack-string-ut-pkgconf := libstroll cmocka
 endif # ($(CONFIG_DPACK_STRING),y)
 
+ifeq ($(CONFIG_DPACK_BIN),y)
+bins                    += dpack-bin-ut
+dpack-bin-ut-objs       := bin.o
+dpack-bin-ut-cflags     := $(test-cflags)
+dpack-bin-ut-ldflags    := $(test-ldflags)
+dpack-bin-ut-pkgconf    := libstroll cmocka
+endif # ($(CONFIG_DPACK_BIN),y)
+
 # vim: filetype=make :

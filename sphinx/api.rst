@@ -5,6 +5,7 @@
 .. |MessagePack int format|    replace:: :ref:`MessagePack integer format <sect-msgpack-int>`
 .. |MessagePack float format|  replace:: :ref:`MessagePack float format <sect-msgpack-float>`
 .. |MessagePack string format| replace:: :ref:`MessagePack string format <sect-msgpack-str>`
+.. |MessagePack bin format|    replace:: :ref:`MessagePack bin format <sect-msgpack-bin>`
 
 .. _mpack:                     https://github.com/ludocode/mpack
 .. |MPack|                     replace:: `MPack <mpack_>`_
@@ -53,6 +54,7 @@ you can refer to for further details :
 * `Floating point number`_,
 * String_,
 * `Length-Value string`_,
+* Bin_,
 * List_,
 * Map_.
 
@@ -118,7 +120,9 @@ Boolean
 
 When compiled with the :c:macro:`CONFIG_DPACK_SCALAR` build configuration
 option enabled, the DPack library provides support for boolean (de)serialization
-operations. These are:
+operations according to the |MessagePack bool format|.
+
+Available operations are:
 
 * :c:macro:`DPACK_BOOL_SIZE`
 * :c:func:`dpack_encode_bool`
@@ -133,7 +137,9 @@ Integer
 
 When compiled with the :c:macro:`CONFIG_DPACK_SCALAR` build configuration
 option enabled, the DPack library provides support for integer (de)serialization
-operations. These are:
+operations according to the |MessagePack int format|.
+
+Available operations are:
 
 .. hlist::
 
@@ -248,7 +254,10 @@ Floating point number
 
 When compiled with the :c:macro:`CONFIG_DPACK_FLOAT` build configuration
 option enabled, the DPack library provides support for single precision floating
-point numbers (de)serialization operations. These are:
+point numbers (de)serialization operations according to the |MessagePack float
+format|.
+
+Available operations are:
 
 * :c:macro:`DPACK_FLOAT_SIZE`
 * :c:func:`dpack_encode_float`
@@ -259,7 +268,10 @@ point numbers (de)serialization operations. These are:
 
 When compiled with the :c:macro:`CONFIG_DPACK_DOUBLE` build configuration
 option enabled, the DPack library provides support for double precision floating
-point numbers (de)serialization operations. These are:
+point numbers (de)serialization operations according to the |MessagePack float
+format|.
+
+Available operations are:
 
 * :c:macro:`DPACK_DOUBLE_SIZE`
 * :c:func:`dpack_encode_double`
@@ -277,7 +289,9 @@ String
 
 When compiled with the :c:macro:`CONFIG_DPACK_STRING` build configuration option
 enabled, the DPack library provides support for string (de)serialization
-operations. These are:
+according to the |MessagePack string format|.
+
+Available operations are:
 
 .. hlist::
 
@@ -315,6 +329,47 @@ Length-Value string
 .. todo::
 
    Document lvstr
+
+.. index:: bin, blob, byte array
+
+Bin
+===
+
+When compiled with the :c:macro:`CONFIG_DPACK_BIN` build configuration option
+enabled, the DPack library provides support for bin (de)serialization
+operations.
+
+*Bins* are binary objects / bytes array that |MessagePack| can serialize
+according to the |MessagePack bin format|.
+
+Available operations are:
+
+.. hlist::
+
+   * bin serialization utilities:
+
+      * :c:macro:`DPACK_BINSZ_MAX`
+      * :c:macro:`DPACK_BIN_SIZE()`
+      * :c:func:`dpack_bin_size`
+
+   * bin encoding:
+
+      * :c:func:`dpack_encode_bin`
+
+   * bin decoding with allocation:
+
+      * :c:func:`dpack_decode_bindup`
+      * :c:func:`dpack_decode_bindup_equ`
+      * :c:func:`dpack_decode_bindup_max`
+      * :c:func:`dpack_decode_bindup_range`
+
+   * bin decoding with copy:
+
+      * :c:func:`dpack_decode_bincpy`
+      * :c:func:`dpack_decode_bincpy_equ`
+      * :c:func:`dpack_decode_bincpy_range`
+
+You *MUST* include :file:`dpack/bin.h` header to use these interfaces.
 
 .. index:: list, collection, array
 
@@ -425,6 +480,16 @@ CONFIG_DPACK_VALGRIND
 Macros
 ------
 
+DPACK_BIN_SIZE
+**************
+
+.. doxygendefine:: DPACK_BIN_SIZE
+
+DPACK_BINSZ_MAX
+***************
+
+.. doxygendefine:: DPACK_BINSZ_MAX
+   
 DPACK_BOOL_SIZE
 ***************
 
@@ -570,6 +635,46 @@ dpack_encoder
 
 Functions
 ---------
+
+dpack_bin_size
+**************
+
+.. doxygenfunction:: dpack_bin_size
+
+dpack_decode_bincpy
+*******************
+
+.. doxygenfunction:: dpack_decode_bincpy
+
+dpack_decode_bincpy_equ
+***********************
+
+.. doxygenfunction:: dpack_decode_bincpy_equ
+
+dpack_decode_bincpy_range
+*************************
+
+.. doxygenfunction:: dpack_decode_bincpy_range
+
+dpack_decode_bindup
+*******************
+
+.. doxygenfunction:: dpack_decode_bindup
+
+dpack_decode_bindup_equ
+***********************
+
+.. doxygenfunction:: dpack_decode_bindup_equ
+
+dpack_decode_bindup_max
+***********************
+
+.. doxygenfunction:: dpack_decode_bindup_max
+
+dpack_decode_bindup_range
+*************************
+
+.. doxygenfunction:: dpack_decode_bindup_range
 
 dpack_decode_bool
 *****************
@@ -875,6 +980,11 @@ dpack_decoder_skip
 ******************
 
 .. doxygenfunction:: dpack_decoder_skip
+
+dpack_encode_bin
+****************
+
+.. doxygenfunction:: dpack_encode_bin
 
 dpack_encode_bool
 *****************

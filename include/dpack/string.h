@@ -28,9 +28,6 @@
 
 #include <dpack/cdefs.h>
 #include <dpack/mpack.h>
-#include <stdint.h>
-#include <limits.h>
-#include <sys/types.h>
 
 struct dpack_encoder;
 struct dpack_decoder;

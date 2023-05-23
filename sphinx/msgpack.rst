@@ -382,6 +382,8 @@ Where:
   which represents N
 * N is the length of data
 
+.. _sect-msgpack-bin:
+   
 bin format family
 ~~~~~~~~~~~~~~~~~
 

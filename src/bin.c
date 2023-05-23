@@ -41,14 +41,14 @@ dpack_encode_bin(struct dpack_encoder * encoder,
 	return dpack_encoder_error_state(&encoder->mpack);
 }
 
-static ssize_t
+static ssize_t __dpack_nonull(1) __dpack_nothrow __warn_result
 dpack_decode_bin_tag(struct mpack_reader_t * reader,
                      size_t                  min_sz,
                      size_t                  max_sz)
 {
 	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
 	dpack_assert_intern(min_sz);
-	dpack_assert_intern(min_sz < max_sz);
+	dpack_assert_intern(min_sz <= max_sz);
 	dpack_assert_intern(max_sz <= DPACK_BINSZ_MAX);
 
 	struct mpack_tag_t tag;
@@ -60,11 +60,7 @@ dpack_decode_bin_tag(struct mpack_reader_t * reader,
 		return err;
 
 	sz = mpack_tag_bin_length(&tag);
-	if (sz < min_sz) {
-		mpack_reader_flag_error(reader, mpack_error_data);
-		return -EBADMSG;
-	}
-	else if (sz > max_sz) {
+	if ((sz < min_sz) || (sz > max_sz)) {
 		mpack_reader_flag_error(reader, mpack_error_data);
 		return -EMSGSIZE;
 	}
@@ -72,7 +68,7 @@ dpack_decode_bin_tag(struct mpack_reader_t * reader,
 	return (ssize_t)sz;
 }
 
-static int
+static int __dpack_nonull(1) __dpack_nothrow __warn_result
 dpack_decode_bin_tag_equ(struct mpack_reader_t * reader, size_t size)
 {
 	dpack_assert_intern(reader);
@@ -89,15 +85,15 @@ dpack_decode_bin_tag_equ(struct mpack_reader_t * reader, size_t size)
 
 	if (mpack_tag_bin_length(&tag) != size) {
 		mpack_reader_flag_error(reader, mpack_error_data);
-		return -EBADMSG;
+		return -EMSGSIZE;
 	}
 
 	return 0;
 }
 
-static ssize_t
+static ssize_t __dpack_nonull(1, 2) __dpack_nothrow __warn_result
 dpack_xtract_bindup(struct mpack_reader_t * reader,
-                    char **                 value,
+                    char ** __restrict      value,
                     uint32_t                size)
 {
 	dpack_assert_intern(reader);
@@ -151,7 +147,7 @@ dpack_xtract_bincpy(struct mpack_reader_t * reader,
 }
 
 ssize_t
-dpack_decode_bindup(struct dpack_decoder * decoder, char ** value)
+dpack_decode_bindup(struct dpack_decoder * decoder, char ** __restrict value)
 {
 	dpack_assert_api(decoder);
 	dpack_assert_api(value);
@@ -168,7 +164,7 @@ dpack_decode_bindup(struct dpack_decoder * decoder, char ** value)
 ssize_t
 dpack_decode_bindup_equ(struct dpack_decoder * decoder,
                         size_t                 size,
-                        char **                value)
+                        char ** __restrict     value)
 {
 	dpack_assert_api(decoder);
 	dpack_assert_api(size);
@@ -187,7 +183,7 @@ dpack_decode_bindup_equ(struct dpack_decoder * decoder,
 ssize_t
 dpack_decode_bindup_max(struct dpack_decoder * decoder,
                         size_t                 max_sz,
-                        char **                value)
+                        char ** __restrict     value)
 {
 	dpack_assert_api(decoder);
 	dpack_assert_api(max_sz);
@@ -207,7 +203,7 @@ ssize_t
 dpack_decode_bindup_range(struct dpack_decoder * decoder,
                           size_t                 min_sz,
                           size_t                 max_sz,
-                          char **                value)
+                          char ** __restrict     value)
 {
 	dpack_assert_api(decoder);
 	dpack_assert_api(min_sz);

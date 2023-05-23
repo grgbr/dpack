@@ -3,6 +3,44 @@
 #include "utest.h"
 #include <errno.h>
 
+#if defined(ZERO_STR_SIZE_UTEST)
+
+static void
+dpack_zero_str_size_utest(void ** state __unused)
+{
+	/* Should fail to compile since 0 length string are not allowed. */
+	int sz = DPACK_STR_SIZE(0);
+}
+
+#endif /* defined(ZERO_STR_SIZE_UTEST) */
+
+#if defined(NONCONST_STR_SIZE_UTEST)
+
+static void
+dpack_nonconst_str_size_utest(void ** state __unused)
+{
+	unsigned int len;
+
+	/* Should fail to compile since len is not constant. */
+	assert_int_equal(DPACK_STR_SIZE(len), 0);
+}
+
+#endif /* defined(NONCONST_STR_SIZE_UTEST) */
+
+#if defined(MAXLEN_STR_SIZE_UTEST)
+
+static void
+dpack_maxlen_str_size_utest(void ** state __unused)
+{
+	/*
+	 * Should fail to compile since requested length > maximum string length
+	 * allowed.
+	 */
+	assert_int_equal(DPACK_STR_SIZE(DPACK_STRLEN_MAX + 1), 0);
+}
+
+#endif /* defined(MAXLEN_STR_SIZE_UTEST) */
+
 struct dpack_str_utest_data {
 	const size_t len;       /* length of string to encode / decode */
 	bool         null_term; /* Value should be null terminated */
@@ -182,44 +220,6 @@ dpack_str_utest_decode(struct dpack_str_utest_data * data,
 		dpack_str_utest_fini_data(&data[d]);
 	}
 }
-
-#if defined(ZERO_STR_SIZE_UTEST)
-
-static void
-dpack_zero_str_size_utest(void ** state __unused)
-{
-	/* Should fail to compile since 0 length string are not allowed. */
-	int sz = DPACK_STR_SIZE(0);
-}
-
-#endif /* defined(ZERO_STR_SIZE_UTEST) */
-
-#if defined(NONCONST_STR_SIZE_UTEST)
-
-static void
-dpack_nonconst_str_size_utest(void ** state __unused)
-{
-	unsigned int len;
-
-	/* Should fail to compile since len is not constant. */
-	assert_int_equal(DPACK_STR_SIZE(len), 0);
-}
-
-#endif /* defined(NONCONST_STR_SIZE_UTEST) */
-
-#if defined(MAXLEN_STR_SIZE_UTEST)
-
-static void
-dpack_maxlen_str_size_utest(void ** state __unused)
-{
-	/*
-	 * Should fail to compile since requested length > maximum string length
-	 * allowed.
-	 */
-	assert_int_equal(DPACK_STR_SIZE(DPACK_STRLEN_MAX + 1), 0);
-}
-
-#endif /* defined(MAXLEN_STR_SIZE_UTEST) */
 
 static void
 dpack_fixstr_sizes_utest(void ** state __unused)

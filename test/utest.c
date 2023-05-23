@@ -3,6 +3,7 @@
 #include <stroll/assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #if defined(CONFIG_DPACK_VALGRIND)
 #include <valgrind/valgrind.h>
