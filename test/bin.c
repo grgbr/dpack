@@ -1,12 +1,13 @@
 #include "dpack/bin.h"
 #include "dpack/codec.h"
 #include "utest.h"
-#include <errno.h>
+#include <cute/cute.h>
+#include <cute/check.h>
+#include <cute/expect.h>
 
 #if defined(ZERO_BIN_SIZE_UTEST)
 
-static void
-dpack_zero_bin_size_utest(void ** state __unused)
+CUTE_TEST(dpackut_zero_bin_size)
 {
 	/* Should fail to compile since 0 size bins are not allowed. */
 	int sz = DPACK_BIN_SIZE(0);
@@ -16,153 +17,131 @@ dpack_zero_bin_size_utest(void ** state __unused)
 
 #if defined(NONCONST_BIN_SIZE_UTEST)
 
-static void
-dpack_nonconst_bin_size_utest(void ** state __unused)
+CUTE_TEST(dpackut_nonconst_bin_size)
 {
 	unsigned int sz;
 
 	/* Should fail to compile since sz is not constant. */
-	assert_int_equal(DPACK_BIN_SIZE(sz), 0);
+	cute_check_uint(DPACK_BIN_SIZE(sz), equal, 0);
 }
 
 #endif /* defined(NONCONST_BIN_SIZE_UTEST) */
 
 #if defined(MAXSZ_BIN_SIZE_UTEST)
 
-static void
-dpack_maxsz_bin_size_utest(void ** state __unused)
+CUTE_TEST(dpackut_maxsz_bin_size)
 {
 	/*
 	 * Should fail to compile since requested size > maximum bin size
 	 * allowed.
 	 */
-	assert_int_equal(DPACK_BIN_SIZE(DPACK_BINSZ_MAX + 1), 0);
+	cute_check_uint(DPACK_BIN_SIZE(DPACK_BINSZ_MAX + 1), equal, 0);
 }
 
 #endif /* defined(MAXSZ_BIN_SIZE_UTEST) */
 
-static void
-dpack_bin8_sizes_utest(void ** state __unused)
+CUTE_TEST(dpackut_bin8_sizes)
 {
 	/* Msgpack bin8 sizes. */
-	assert_int_equal(DPACK_BIN_SIZE(1),  3);
-	assert_int_equal(dpack_bin_size(1),  3);
-	assert_int_equal(DPACK_BIN_SIZE(2),  4);
-	assert_int_equal(dpack_bin_size(2),  4);
+	cute_check_uint(DPACK_BIN_SIZE(1), equal,  3);
+	cute_check_uint(dpack_bin_size(1), equal,  3);
+	cute_check_uint(DPACK_BIN_SIZE(2), equal,  4);
+	cute_check_uint(dpack_bin_size(2), equal,  4);
 #if DPACK_BINSZ_MAX >= UINT8_MAX
-	assert_int_equal(DPACK_BIN_SIZE(255), 257);
-	assert_int_equal(dpack_bin_size(255), 257);
+	cute_check_uint(DPACK_BIN_SIZE(255), equal, 257);
+	cute_check_uint(dpack_bin_size(255), equal, 257);
 #endif
 }
 
 #if DPACK_BINSZ_MAX > DPACK_BIN8_SIZE_MAX
 
-static void
-dpack_bin16_sizes_utest(void ** state __unused)
+CUTE_TEST(dpackut_bin16_sizes)
 {
 	/* Msgpack 16 bits bin sizes. */
-	assert_int_equal(DPACK_BIN_SIZE(UINT8_MAX + 1),  UINT8_MAX + 1 + 3);
-	assert_int_equal(dpack_bin_size(UINT8_MAX + 1),  UINT8_MAX + 1 + 3);
+	cute_check_uint(DPACK_BIN_SIZE(UINT8_MAX + 1), equal,  UINT8_MAX + 1 + 3);
+	cute_check_uint(dpack_bin_size(UINT8_MAX + 1), equal,  UINT8_MAX + 1 + 3);
 #if DPACK_BINSZ_MAX >= (UINT8_MAX + 2)
-	assert_int_equal(DPACK_BIN_SIZE(UINT8_MAX + 2),  UINT8_MAX + 2 + 3);
-	assert_int_equal(dpack_bin_size(UINT8_MAX + 2),  UINT8_MAX + 2 + 3);
+	cute_check_uint(DPACK_BIN_SIZE(UINT8_MAX + 2), equal,  UINT8_MAX + 2 + 3);
+	cute_check_uint(dpack_bin_size(UINT8_MAX + 2), equal,  UINT8_MAX + 2 + 3);
 #endif
 #if DPACK_BINSZ_MAX >= (UINT16_MAX - 2)
-	assert_int_equal(DPACK_BIN_SIZE(UINT16_MAX - 2), UINT16_MAX - 2 + 3);
-	assert_int_equal(dpack_bin_size(UINT16_MAX - 2), UINT16_MAX - 2 + 3);
+	cute_check_uint(DPACK_BIN_SIZE(UINT16_MAX - 2), equal, UINT16_MAX - 2 + 3);
+	cute_check_uint(dpack_bin_size(UINT16_MAX - 2), equal, UINT16_MAX - 2 + 3);
 #endif
 #if DPACK_BINSZ_MAX >= (UINT16_MAX - 1)
-	assert_int_equal(DPACK_BIN_SIZE(UINT16_MAX - 1), UINT16_MAX - 1 + 3);
-	assert_int_equal(dpack_bin_size(UINT16_MAX - 1), UINT16_MAX - 1 + 3);
+	cute_check_uint(DPACK_BIN_SIZE(UINT16_MAX - 1), equal, UINT16_MAX - 1 + 3);
+	cute_check_uint(dpack_bin_size(UINT16_MAX - 1), equal, UINT16_MAX - 1 + 3);
 #endif
 #if DPACK_BINSZ_MAX >= UINT16_MAX
-	assert_int_equal(DPACK_BIN_SIZE(UINT16_MAX),     UINT16_MAX + 3);
-	assert_int_equal(dpack_bin_size(UINT16_MAX),     UINT16_MAX + 3);
+	cute_check_uint(DPACK_BIN_SIZE(UINT16_MAX),     equal, UINT16_MAX + 3);
+	cute_check_uint(dpack_bin_size(UINT16_MAX),     equal, UINT16_MAX + 3);
 #endif
 }
 
 #else  /* !(DPACK_BINSZ_MAX > DPACK_BIN8_SIZE_MAX) */
 
-static void
-dpack_bin16_sizes_utest(void ** state __unused)
+CUTE_TEST(dpackut_bin16_sizes)
 {
-	skip();
+	cute_skip("16-bits MessagePack bin support not compiled-in");
 }
 
 #endif /* DPACK_BINSZ_MAX > DPACK_BIN8_SIZE_MAX */
 
 #if DPACK_BINSZ_MAX > DPACK_BIN16_SIZE_MAX
 
-static void
-dpack_bin32_sizes_utest(void ** state __unused)
+CUTE_TEST(dpackut_bin32_sizes)
 {
 	/* Msgpack 32 bits bin sizes. */
-	assert_int_equal(DPACK_BIN_SIZE(UINT16_MAX + 1), UINT16_MAX + 1 + 5);
-	assert_int_equal(dpack_bin_size(UINT16_MAX + 1), UINT16_MAX + 1 + 5);
+	cute_check_uint(DPACK_BIN_SIZE(UINT16_MAX + 1), equal, UINT16_MAX + 1 + 5);
+	cute_check_uint(dpack_bin_size(UINT16_MAX + 1), equal, UINT16_MAX + 1 + 5);
 #if DPACK_BINSZ_MAX >= (UINT16_MAX + 2)
-	assert_int_equal(DPACK_BIN_SIZE(UINT16_MAX + 2), UINT16_MAX + 2 + 5);
-	assert_int_equal(dpack_bin_size(UINT16_MAX + 2), UINT16_MAX + 2 + 5);
+	cute_check_uint(DPACK_BIN_SIZE(UINT16_MAX + 2), equal, UINT16_MAX + 2 + 5);
+	cute_check_uint(dpack_bin_size(UINT16_MAX + 2), equal, UINT16_MAX + 2 + 5);
 #endif
 #if DPACK_BINSZ_MAX >= (UINT32_MAX - 2)
-	assert_int_equal(DPACK_BIN_SIZE(UINT32_MAX - 2), UINT32_MAX - 2 + 5);
-	assert_int_equal(dpack_bin_size(UINT32_MAX - 2), UINT32_MAX - 2 + 5);
+	cute_check_uint(DPACK_BIN_SIZE(UINT32_MAX - 2), equal, UINT32_MAX - 2 + 5);
+	cute_check_uint(dpack_bin_size(UINT32_MAX - 2), equal, UINT32_MAX - 2 + 5);
 #endif
 #if DPACK_BINSZ_MAX >= (UINT32_MAX - 1)
-	assert_int_equal(DPACK_BIN_SIZE(UINT32_MAX - 1), UINT32_MAX - 1 + 5);
-	assert_int_equal(dpack_bin_size(UINT32_MAX - 1), UINT32_MAX - 1 + 5);
+	cute_check_uint(DPACK_BIN_SIZE(UINT32_MAX - 1), equal, UINT32_MAX - 1 + 5);
+	cute_check_uint(dpack_bin_size(UINT32_MAX - 1), equal, UINT32_MAX - 1 + 5);
 #endif
 #if DPACK_BINSZ_MAX >= UINT32_MAX
-	assert_int_equal(DPACK_BIN_SIZE(UINT32_MAX),     UINT32_MAX + 5);
-	assert_int_equal(dpack_bin_size(UINT32_MAX),     UINT32_MAX + 5);
+	cute_check_uint(DPACK_BIN_SIZE(UINT32_MAX),     equal, UINT32_MAX + 5);
+	cute_check_uint(dpack_bin_size(UINT32_MAX),     equal, UINT32_MAX + 5);
 #endif
 }
 
 #else  /* !(DPACK_BINSZ_MAX > DPACK_BIN16_SIZE_MAX) */
 
-static void
-dpack_bin32_sizes_utest(void ** state __unused)
+CUTE_TEST(dpackut_bin32_sizes)
 {
-	skip();
+	cute_skip("32-bits MessagePack bin support not compiled-in");
 }
 
 #endif /* DPACK_BINSZ_MAX > DPACK_BIN16_SIZE_MAX */
 
 #if defined(CONFIG_DPACK_ASSERT_API)
 
-static void
-dpack_bin_assert_sizes_utest(void ** state __unused)
+CUTE_TEST(dpackut_bin_assert_sizes)
 {
 	size_t sz __unused;
 
-	expect_assert_failure(sz = dpack_bin_size(0));
-	expect_assert_failure(sz = dpack_bin_size(DPACK_BINSZ_MAX + 1));
+	cute_expect_assertion(sz = dpack_bin_size(0));
+	cute_expect_assertion(sz = dpack_bin_size(DPACK_BINSZ_MAX + 1));
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
 
-static void
-dpack_bin_assert_sizes_utest(void ** state __unused)
+CUTE_TEST(dpackut_bin_assert_sizes)
 {
-	skip();
+	cute_skip("assertion unsupported");
 }
 
 #endif /* defined(CONFIG_DPACK_ASSERT_API) */
 
-static char dpack_bin_utest_value[DPACK_BINSZ_MAX + 1];
-
-static int
-dpack_bin_utests_setup(void ** state __unused)
-{
-	unsigned int b;
-
-	for (b = 0; b < array_nr(dpack_bin_utest_value); b++)
-		dpack_bin_utest_value[b] = '0' + (char)(b % 10);
-
-	return 0;
-}
-
 static size_t
-dpack_bin_utest_size(size_t size)
+dpackut_bin_size(size_t size)
 {
 	switch (size) {
 	case 0 ... UINT8_MAX:
@@ -172,39 +151,40 @@ dpack_bin_utest_size(size_t size)
 	case (UINT16_MAX + 1) ... UINT32_MAX:
 		return size + 5;
 	default:
-		fail();
+		cute_fail("unsupported MsgPack bin size");
 	}
 
 	unreachable();
 }
 
-struct dpack_bin_utest_data {
+static char dpackut_bin_values[DPACK_BINSZ_MAX + 1];
+
+struct dpackut_bin_data {
 	size_t       value_size;
 	const char * value_buff;
 	size_t       pack_size;
 	char *       pack_buff;
 };
 
-typedef void (dpack_bin_utest_pack_fn)(struct dpack_encoder *,
-                                       int,
-                                       const char *,
-                                       size_t);
+typedef void (dpackut_bin_pack_fn)(struct dpack_encoder *,
+                                   int,
+                                   const char *,
+                                   size_t);
 
-typedef void (dpack_bin_utest_unpack_fn)(struct dpack_decoder *,
-                                         ssize_t,
-                                         const struct dpack_bin_utest_data *);
+typedef void (dpackut_bin_unpack_fn)(struct dpack_decoder *,
+                                     ssize_t,
+                                     const struct dpackut_bin_data *);
 
 static void
-dpack_bin_utest_gen_data(struct dpack_bin_utest_data * data, size_t size)
+dpackut_bin_gen_data(struct dpackut_bin_data * data, size_t size)
 {
-	assert_true(size <= array_nr(dpack_bin_utest_value));
+	cute_check_uint(size, lower_equal, array_nr(dpackut_bin_values));
 	data->value_size = size;
-	data->value_buff = dpack_bin_utest_value;
+	data->value_buff = dpackut_bin_values;
 
-	data->pack_size = dpack_bin_utest_size(size);
+	data->pack_size = dpackut_bin_size(size);
 	data->pack_buff = malloc(data->pack_size);
-	if (!data->pack_buff)
-		fail();
+	cute_check_ptr(data->pack_buff, unequal, NULL);
 
 	switch (size) {
 	case 0 ... UINT8_MAX:
@@ -228,64 +208,60 @@ dpack_bin_utest_gen_data(struct dpack_bin_utest_data * data, size_t size)
 		break;
 #endif
 	default:
-		fail();
+		cute_fail("unsupported MsgPack bin size");
 	}
 
 	memcpy(&data->pack_buff[data->pack_size - size],
-	       dpack_bin_utest_value,
+	       dpackut_bin_values,
 	       size);
 }
 
 static void
-dpack_bin_utest_fini_data(struct dpack_bin_utest_data * data)
+dpackut_bin_fini_data(struct dpackut_bin_data * data)
 {
 	free(data->pack_buff);
 }
 
 #if defined(CONFIG_DPACK_ASSERT_API)
 
-static void
-dpack_bin_encode_utest_null_enc(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_null_enc)
 {
 	const char * data = data;
 	int          ret __unused;
 
-	expect_assert_failure(ret = dpack_encode_bin(NULL, data, 1));
+	cute_expect_assertion(ret = dpack_encode_bin(NULL, data, 1));
 }
 
-static void
-dpack_bin_encode_utest_null_data(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_null_data)
 {
 	struct dpack_encoder enc = { 0, };
 	char                 data[8];
 	int                  ret __unused;
 
 	dpack_encoder_init_buffer(&enc, data, array_nr(data));
-	expect_assert_failure(ret = dpack_encode_bin(&enc, NULL, 1));
+	cute_expect_assertion(ret = dpack_encode_bin(&enc, NULL, 1));
 	dpack_encoder_fini(&enc);
 }
 
-static void
-dpack_bin_encode_utest_zero(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_zero)
 {
 	struct dpack_encoder enc = { 0, };
 	char                 data[8];
 	int                  ret __unused;
 
 	dpack_encoder_init_buffer(&enc, data, array_nr(data));
-	expect_assert_failure(ret = dpack_encode_bin(&enc, data, 0));
+	cute_expect_assertion(ret = dpack_encode_bin(&enc, data, 0));
 	dpack_encoder_fini(&enc);
 }
 
-static void
-dpack_bin_encode_utest_huge(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_huge)
 {
 	struct dpack_encoder enc = { 0, };
 	char                 data[8];
 	int                  ret __unused;
 
 	dpack_encoder_init_buffer(&enc, data, array_nr(data));
-	expect_assert_failure(ret = dpack_encode_bin(&enc,
+	cute_expect_assertion(ret = dpack_encode_bin(&enc,
 	                                             data,
 	                                             DPACK_BINSZ_MAX + 1));
 	dpack_encoder_fini(&enc);
@@ -293,67 +269,60 @@ dpack_bin_encode_utest_huge(void ** state __unused)
 
 #else /* !defined(CONFIG_DPACK_ASSERT_API) */
 
-static void
-dpack_bin_encode_utest_null_enc(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_null_enc)
 {
-	skip();
+	cute_skip("assertion unsupported");
 }
 
-static void
-dpack_bin_encode_utest_null_data(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_null_data)
 {
-	skip();
+	cute_skip("assertion unsupported");
 }
 
-static void
-dpack_bin_encode_utest_zero(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_zero)
 {
-	skip();
+	cute_skip("assertion unsupported");
 }
 
-static void
-dpack_bin_encode_utest_huge(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_huge)
 {
-	skip();
+	cute_skip("assertion unsupported");
 }
 
 #endif /* defined(CONFIG_DPACK_ASSERT_API) */
 
 #if defined(CONFIG_DPACK_DEBUG)
 
-static void
-dpack_bin_encode_utest_uninit_enc(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_uninit_enc)
 {
 	struct dpack_encoder enc = { 0, };
-	const char *         data = data;
+	const char *         data = (const char *)&enc;
 	int                  ret __unused;
 
-	expect_assert_failure(ret = dpack_encode_bin(&enc, data, 1));
+	cute_expect_assertion(ret = dpack_encode_bin(&enc, data, 1));
 }
 
 #else /* !defined(CONFIG_DPACK_DEBUG) */
 
-static void
-dpack_bin_encode_utest_uninit_enc(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_uninit_enc)
 {
-	skip();
+	cute_skip("debug build disabled");
 }
 
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
 static void
-dpack_bin_utest_encode(const struct dpack_bin_utest_data * data,
-                       int                                 ret,
-                       size_t                              size,
-                       dpack_bin_utest_pack_fn *           pack)
+dpackut_bin_enc(const struct dpackut_bin_data * data,
+                int                             ret,
+                size_t                          size,
+                dpackut_bin_pack_fn *           pack)
 {
 	char *               buff = NULL;
 	unsigned int         b;
 	struct dpack_encoder enc;
 
 	buff = malloc(data->pack_size + 128);
-	if (!buff)
-		fail();
+	cute_check_ptr(buff, unequal, NULL);
 	memset(buff, 0xa5, data->pack_size + 128);
 
 	dpack_encoder_init_buffer(&enc, buff + 64, data->pack_size);
@@ -363,13 +332,19 @@ dpack_bin_utest_encode(const struct dpack_bin_utest_data * data,
 		goto fini;
 
 	for (b = 0; b < 64; b++)
-		assert_int_equal(buff[b], (char)0xa5);
-	assert_memory_equal(buff + 64, data->pack_buff, data->pack_size);
-	assert_int_equal(dpack_bin_size(data->value_size), data->pack_size);
-	assert_int_equal(dpack_encoder_space_used(&enc), data->pack_size);
-	assert_int_equal(dpack_encoder_space_left(&enc), 0);
+		cute_check_sint(buff[b], equal, (char)0xa5);
+
+	cute_check_mem(buff + 64, equal, data->pack_buff, data->pack_size);
+	cute_check_uint(dpack_bin_size(data->value_size),
+	                equal,
+	                data->pack_size);
+	cute_check_uint(dpack_encoder_space_used(&enc), equal, data->pack_size);
+	cute_check_uint(dpack_encoder_space_left(&enc), equal, 0);
+
 	for (b = 0; b < 64; b++)
-		assert_int_equal(buff[64 + data->pack_size + b], (char)0xa5);
+		cute_check_sint(buff[64 + data->pack_size + b],
+		                equal,
+		                (char)0xa5);
 
 fini:
 	dpack_encoder_fini(&enc);
@@ -378,12 +353,12 @@ fini:
 }
 
 static void
-dpack_bin_utest_pack(struct dpack_encoder * encoder,
-                     int                    ret,
-                     const char *           buffer,
-                     size_t                 size)
+dpackut_bin_pack(struct dpack_encoder * encoder,
+                 int                    ret,
+                 const char *           buffer,
+                 size_t                 size)
 {
-	assert_int_equal(dpack_encode_bin(encoder, buffer, size), ret);
+	cute_check_sint(dpack_encode_bin(encoder, buffer, size), equal, ret);
 }
 
 /**
@@ -398,190 +373,172 @@ dpack_bin_utest_pack(struct dpack_encoder * encoder,
  *                      for packing data to compare with reference packed data
  */
 static void
-dpack_bin_encode_utest(int ret, size_t ref_size, size_t test_size)
+dpackut_bin_encode(int ret, size_t ref_size, size_t test_size)
 {
-	struct dpack_bin_utest_data data;
+	struct dpackut_bin_data      data;
+	const struct cute_uint_range range = CUTE_UINT_RANGE(1,
+	                                                     DPACK_BINSZ_MAX +
+	                                                     1);
 
-	assert_in_range(ref_size, 1, DPACK_BINSZ_MAX + 1);
-	assert_in_range(test_size, 1, DPACK_BINSZ_MAX + 1);
+	cute_check_uint_range(ref_size, in, range);
+	cute_check_uint_range(test_size, in, range);
 
-	dpack_bin_utest_gen_data(&data, ref_size);
-	dpack_bin_utest_encode(&data, ret, test_size, dpack_bin_utest_pack);
-	dpack_bin_utest_fini_data(&data);
+	dpackut_bin_gen_data(&data, ref_size);
+	dpackut_bin_enc(&data, ret, test_size, dpackut_bin_pack);
+	dpackut_bin_fini_data(&data);
 }
 
-static void
-dpack_bin_encode_utest_ok_1(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_ok_1)
 {
-	dpack_bin_encode_utest(0, 1, 1);
+	dpackut_bin_encode(0, 1, 1);
 }
 
-static void
-dpack_bin_encode_utest_nok_1(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_nok_1)
 {
-	dpack_bin_encode_utest(-EMSGSIZE, 1, 2);
+	dpackut_bin_encode(-EMSGSIZE, 1, 2);
 }
 
-static void
-dpack_bin_encode_utest_ok_2(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_ok_2)
 {
-	dpack_bin_encode_utest(0, 2, 2);
+	dpackut_bin_encode(0, 2, 2);
 }
 
-static void
-dpack_bin_encode_utest_nok_2(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_nok_2)
 {
-	dpack_bin_encode_utest(-EMSGSIZE, 2, 3);
+	dpackut_bin_encode(-EMSGSIZE, 2, 3);
 }
 
 #if DPACK_BINSZ_MAX >= (UINT8_MAX)
 
-static void
-dpack_bin_encode_utest_ok_uint8(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_ok_uint8)
 {
-	dpack_bin_encode_utest(0, UINT8_MAX, UINT8_MAX);
+	dpackut_bin_encode(0, UINT8_MAX, UINT8_MAX);
 }
 
 #else /* !(DPACK_BINSZ_MAX >= (UINT8_MAX)) */
 
-static void
-dpack_bin_encode_utest_ok_uint8(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_ok_uint8)
 {
-	skip();
+	cute_skip("maximum MsgPack bin size < 255");
 }
 
 #endif /* DPACK_BINSZ_MAX >= (UINT8_MAX) */
 
 #if DPACK_BINSZ_MAX >= (UINT8_MAX + 1)
 
-static void
-dpack_bin_encode_utest_nok_uint8(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_nok_uint8)
 {
-	dpack_bin_encode_utest(-EMSGSIZE, UINT8_MAX, UINT8_MAX + 1);
+	dpackut_bin_encode(-EMSGSIZE, UINT8_MAX, UINT8_MAX + 1);
 }
 
-static void
-dpack_bin_encode_utest_ok_uint8_1(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_ok_uint8_1)
 {
-	dpack_bin_encode_utest(0, UINT8_MAX + 1, UINT8_MAX + 1);
+	dpackut_bin_encode(0, UINT8_MAX + 1, UINT8_MAX + 1);
 }
 
 #else /* !(DPACK_BINSZ_MAX >= (UINT8_MAX + 1)) */
 
-static void
-dpack_bin_encode_utest_nok_uint8(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_nok_uint8)
 {
-	skip();
+	cute_skip("maximum MsgPack bin size < 256");
 }
 
-static void
-dpack_bin_encode_utest_ok_uint8_1(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_ok_uint8_1)
 {
-	skip();
+	cute_skip("maximum MsgPack bin size < 256");
 }
 
 #endif /* DPACK_BINSZ_MAX >= (UINT8_MAX + 1) */
 
 #if DPACK_BINSZ_MAX >= (UINT8_MAX + 2)
 
-static void
-dpack_bin_encode_utest_nok_uint8_1(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_nok_uint8_1)
 {
-	dpack_bin_encode_utest(-EMSGSIZE, UINT8_MAX + 1, UINT8_MAX + 2);
+	dpackut_bin_encode(-EMSGSIZE, UINT8_MAX + 1, UINT8_MAX + 2);
 }
 
 #else /* !(DPACK_BINSZ_MAX >= (UINT8_MAX + 2)) */
 
-static void
-dpack_bin_encode_utest_nok_uint8_1(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_nok_uint8_1)
 {
-	skip();
+	cute_skip("maximum MsgPack bin size < 257");
 }
 
 #endif /* DPACK_BINSZ_MAX >= (UINT8_MAX + 2) */
 
 #if DPACK_BINSZ_MAX >= (UINT16_MAX)
 
-static void
-dpack_bin_encode_utest_ok_uint16(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_ok_uint16)
 {
-	dpack_bin_encode_utest(0, UINT16_MAX, UINT16_MAX);
+	dpackut_bin_encode(0, UINT16_MAX, UINT16_MAX);
 }
 
 #else /* !(DPACK_BINSZ_MAX >= (UINT16_MAX)) */
 
-static void
-dpack_bin_encode_utest_ok_uint16(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_ok_uint16)
 {
-	skip();
+	cute_skip("maximum MsgPack bin size < 65535");
 }
 
 #endif /* DPACK_BINSZ_MAX >= (UINT16_MAX) */
 
 #if DPACK_BINSZ_MAX >= (UINT16_MAX + 1)
 
-static void
-dpack_bin_encode_utest_nok_uint16(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_nok_uint16)
 {
-	dpack_bin_encode_utest(-EMSGSIZE, UINT16_MAX, UINT16_MAX + 1);
+	dpackut_bin_encode(-EMSGSIZE, UINT16_MAX, UINT16_MAX + 1);
 }
 
-static void
-dpack_bin_encode_utest_ok_uint16_1(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_ok_uint16_1)
 {
-	dpack_bin_encode_utest(0, UINT16_MAX + 1, UINT16_MAX + 1);
+	dpackut_bin_encode(0, UINT16_MAX + 1, UINT16_MAX + 1);
 }
 
 #else /* !(DPACK_BINSZ_MAX >= (UINT16_MAX + 1)) */
 
-static void
-dpack_bin_encode_utest_nok_uint16(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_nok_uint16)
 {
-	skip();
+	cute_skip("maximum MsgPack bin size < 65536");
 }
 
-static void
-dpack_bin_encode_utest_ok_uint16_1(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_ok_uint16_1)
 {
-	skip();
+	cute_skip("maximum MsgPack bin size < 65536");
 }
 
 #endif /* DPACK_BINSZ_MAX >= (UINT16_MAX + 1) */
 
 #if DPACK_BINSZ_MAX >= (UINT16_MAX + 2)
 
-static void
-dpack_bin_encode_utest_nok_uint16_1(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_nok_uint16_1)
 {
-	dpack_bin_encode_utest(-EMSGSIZE, UINT16_MAX + 1, UINT16_MAX + 2);
+	dpackut_bin_encode(-EMSGSIZE, UINT16_MAX + 1, UINT16_MAX + 2);
 }
 
 #else /* !(DPACK_BINSZ_MAX >= (UINT16_MAX + 2)) */
 
-static void
-dpack_bin_encode_utest_nok_uint16_1(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_nok_uint16_1)
 {
-	skip();
+	cute_skip("maximum MsgPack bin size < 65537");
 }
 
 #endif /* DPACK_BINSZ_MAX >= (UINT16_MAX + 2) */
 
-static void
-dpack_bin_encode_utest_ok_max(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_ok_max)
 {
-	dpack_bin_encode_utest(0, DPACK_BINSZ_MAX, DPACK_BINSZ_MAX);
+	dpackut_bin_encode(0, DPACK_BINSZ_MAX, DPACK_BINSZ_MAX);
 }
 
-static void
-dpack_bin_encode_utest_nok_max(void ** state __unused)
+CUTE_TEST(dpackut_bin_encode_nok_max)
 {
-	dpack_bin_encode_utest(-EMSGSIZE, DPACK_BINSZ_MAX - 1, DPACK_BINSZ_MAX);
+	dpackut_bin_encode(-EMSGSIZE, DPACK_BINSZ_MAX - 1, DPACK_BINSZ_MAX);
 }
 
+#if 0
 #if defined(CONFIG_DPACK_ASSERT_API)
 
 static void
-dpack_bin_decode_utest_dup_null_dec(void ** state __unused)
+dpackut_bin_decode_utest_dup_null_dec(void ** state __unused)
 {
 	char *  data;
 	ssize_t ret __unused;
@@ -590,7 +547,7 @@ dpack_bin_decode_utest_dup_null_dec(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_null_data(void ** state __unused)
+dpackut_bin_decode_utest_dup_null_data(void ** state __unused)
 {
 	struct dpack_decoder dec = { 0, };
 	char                 data[8] = { 0, };
@@ -604,13 +561,13 @@ dpack_bin_decode_utest_dup_null_data(void ** state __unused)
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
 
 static void
-dpack_bin_decode_utest_dup_null_dec(void ** state __unused)
+dpackut_bin_decode_utest_dup_null_dec(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_null_data(void ** state __unused)
+dpackut_bin_decode_utest_dup_null_data(void ** state __unused)
 {
 	skip();
 }
@@ -620,7 +577,7 @@ dpack_bin_decode_utest_dup_null_data(void ** state __unused)
 #if defined(CONFIG_DPACK_DEBUG)
 
 static void
-dpack_bin_decode_utest_dup_uninit_dec(void ** state __unused)
+dpackut_bin_decode_utest_dup_uninit_dec(void ** state __unused)
 {
 	struct dpack_decoder dec = { 0, };
 	char *               data;
@@ -632,7 +589,7 @@ dpack_bin_decode_utest_dup_uninit_dec(void ** state __unused)
 #else  /* !defined(CONFIG_DPACK_DEBUG) */
 
 static void
-dpack_bin_decode_utest_dup_uninit_dec(void ** state __unused)
+dpackut_bin_decode_utest_dup_uninit_dec(void ** state __unused)
 {
 	skip();
 }
@@ -651,9 +608,9 @@ dpack_bin_decode_utest_dup_uninit_dec(void ** state __unused)
  *                      data buffer size given to dpack_decoder_init_buffer()
  */
 static void
-dpack_bin_decode_utest_dup(ssize_t ret, size_t ref_size, size_t test_size)
+dpackut_bin_decode_utest_dup(ssize_t ret, size_t ref_size, size_t test_size)
 {
-	struct dpack_bin_utest_data data;
+	struct dpackut_bin_data data;
 	struct dpack_decoder        dec;
 	char *                      val;
 	ssize_t                     sz;
@@ -661,7 +618,7 @@ dpack_bin_decode_utest_dup(ssize_t ret, size_t ref_size, size_t test_size)
 	assert_in_range(ref_size, 1, DPACK_BINSZ_MAX + 1);
 	assert_in_range(test_size, 1, DPACK_BINSZ_MAX + 1);
 
-	dpack_bin_utest_gen_data(&data, ref_size);
+	dpackut_bin_gen_data(&data, ref_size);
 
 	dpack_decoder_init_buffer(&dec,
 	                          data.pack_buff,
@@ -679,29 +636,29 @@ dpack_bin_decode_utest_dup(ssize_t ret, size_t ref_size, size_t test_size)
 
 	dpack_decoder_fini(&dec);
 
-	dpack_bin_utest_fini_data(&data);
+	dpackut_bin_fini_data(&data);
 }
 
 static void
-dpack_bin_decode_utest_dup_ok_1(void ** state __unused)
+dpackut_bin_decode_utest_dup_ok_1(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup(1, 1, 1);
 }
 
 static void
-dpack_bin_decode_utest_dup_nok_2_short(void ** state __unused)
+dpackut_bin_decode_utest_dup_nok_2_short(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup(-EPROTO, 2, 1);
 }
 
 static void
-dpack_bin_decode_utest_dup_ok_2(void ** state __unused)
+dpackut_bin_decode_utest_dup_ok_2(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup(2, 2, 2);
 }
 
 static void
-dpack_bin_decode_utest_dup_nok_3_short(void ** state __unused)
+dpackut_bin_decode_utest_dup_nok_3_short(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup(-EPROTO, 3, 2);
 }
@@ -709,7 +666,7 @@ dpack_bin_decode_utest_dup_nok_3_short(void ** state __unused)
 #if DPACK_BINSZ_MAX >= (UINT8_MAX)
 
 static void
-dpack_bin_decode_utest_dup_ok_uint8(void ** state __unused)
+dpackut_bin_decode_utest_dup_ok_uint8(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup(UINT8_MAX, UINT8_MAX, UINT8_MAX);
 }
@@ -717,7 +674,7 @@ dpack_bin_decode_utest_dup_ok_uint8(void ** state __unused)
 #else  /* !(DPACK_BINSZ_MAX >= (UINT8_MAX)) */
 
 static void
-dpack_bin_decode_utest_dup_ok_uint8(void ** state __unused)
+dpackut_bin_decode_utest_dup_ok_uint8(void ** state __unused)
 {
 	skip();
 }
@@ -727,13 +684,13 @@ dpack_bin_decode_utest_dup_ok_uint8(void ** state __unused)
 #if DPACK_BINSZ_MAX >= (UINT8_MAX + 1)
 
 static void
-dpack_bin_decode_utest_dup_nok_uint8plus_short(void ** state __unused)
+dpackut_bin_decode_utest_dup_nok_uint8plus_short(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup(-EPROTO, UINT8_MAX + 1, UINT8_MAX);
 }
 
 static void
-dpack_bin_decode_utest_dup_ok_uint8plus(void ** state __unused)
+dpackut_bin_decode_utest_dup_ok_uint8plus(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup(UINT8_MAX + 1, UINT8_MAX + 1, UINT8_MAX + 1);
 }
@@ -741,13 +698,13 @@ dpack_bin_decode_utest_dup_ok_uint8plus(void ** state __unused)
 #else  /* !(DPACK_BINSZ_MAX >= (UINT8_MAX + 1)) */
 
 static void
-dpack_bin_decode_utest_dup_nok_uint8plus_short(void ** state __unused)
+dpackut_bin_decode_utest_dup_nok_uint8plus_short(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_ok_uint8plus(void ** state __unused)
+dpackut_bin_decode_utest_dup_ok_uint8plus(void ** state __unused)
 {
 	skip();
 }
@@ -757,7 +714,7 @@ dpack_bin_decode_utest_dup_ok_uint8plus(void ** state __unused)
 #if DPACK_BINSZ_MAX >= (UINT16_MAX)
 
 static void
-dpack_bin_decode_utest_dup_ok_uint16(void ** state __unused)
+dpackut_bin_decode_utest_dup_ok_uint16(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup(UINT16_MAX, UINT16_MAX, UINT16_MAX);
 }
@@ -765,7 +722,7 @@ dpack_bin_decode_utest_dup_ok_uint16(void ** state __unused)
 #else  /* !(DPACK_BINSZ_MAX >= (UINT16_MAX)) */
 
 static void
-dpack_bin_decode_utest_dup_ok_uint16(void ** state __unused)
+dpackut_bin_decode_utest_dup_ok_uint16(void ** state __unused)
 {
 	skip();
 }
@@ -775,13 +732,13 @@ dpack_bin_decode_utest_dup_ok_uint16(void ** state __unused)
 #if DPACK_BINSZ_MAX >= (UINT16_MAX + 1)
 
 static void
-dpack_bin_decode_utest_dup_nok_uint16plus_short(void ** state __unused)
+dpackut_bin_decode_utest_dup_nok_uint16plus_short(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup(-EPROTO, UINT16_MAX + 1, UINT16_MAX);
 }
 
 static void
-dpack_bin_decode_utest_dup_ok_uint16plus(void ** state __unused)
+dpackut_bin_decode_utest_dup_ok_uint16plus(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup(UINT16_MAX + 1,
 	                           UINT16_MAX + 1,
@@ -791,13 +748,13 @@ dpack_bin_decode_utest_dup_ok_uint16plus(void ** state __unused)
 #else  /* !(DPACK_BINSZ_MAX >= (UINT16_MAX + 1)) */
 
 static void
-dpack_bin_decode_utest_dup_nok_uint16plus_short(void ** state __unused)
+dpackut_bin_decode_utest_dup_nok_uint16plus_short(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_ok_uint16plus(void ** state __unused)
+dpackut_bin_decode_utest_dup_ok_uint16plus(void ** state __unused)
 {
 	skip();
 }
@@ -805,7 +762,7 @@ dpack_bin_decode_utest_dup_ok_uint16plus(void ** state __unused)
 #endif /* DPACK_BINSZ_MAX >= (UINT16_MAX + 1) */
 
 static void
-dpack_bin_decode_utest_dup_ok_max(void ** state __unused)
+dpackut_bin_decode_utest_dup_ok_max(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup(DPACK_BINSZ_MAX,
 	                           DPACK_BINSZ_MAX,
@@ -813,7 +770,7 @@ dpack_bin_decode_utest_dup_ok_max(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_nok_max_short(void ** state __unused)
+dpackut_bin_decode_utest_dup_nok_max_short(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup(-EPROTO,
 	                           DPACK_BINSZ_MAX,
@@ -823,7 +780,7 @@ dpack_bin_decode_utest_dup_nok_max_short(void ** state __unused)
 #if defined(CONFIG_DPACK_ASSERT_API)
 
 static void
-dpack_bin_decode_utest_dup_equ_null_dec(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_null_dec(void ** state __unused)
 {
 	char *  data;
 	ssize_t ret __unused;
@@ -832,7 +789,7 @@ dpack_bin_decode_utest_dup_equ_null_dec(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_null_data(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_null_data(void ** state __unused)
 {
 	struct dpack_decoder dec = { 0, };
 	char                 data[8] = { 0, };
@@ -844,7 +801,7 @@ dpack_bin_decode_utest_dup_equ_null_data(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_0(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_0(void ** state __unused)
 {
 	struct dpack_decoder dec = { 0, };
 	char                 data[8] = { 0, };
@@ -857,7 +814,7 @@ dpack_bin_decode_utest_dup_equ_0(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_binsz(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_binsz(void ** state __unused)
 {
 	struct dpack_decoder dec = { 0, };
 	char                 data[8] = { 0, };
@@ -874,25 +831,25 @@ dpack_bin_decode_utest_dup_equ_binsz(void ** state __unused)
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
 
 static void
-dpack_bin_decode_utest_dup_equ_null_dec(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_null_dec(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_null_data(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_null_data(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_0(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_0(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_binsz(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_binsz(void ** state __unused)
 {
 	skip();
 }
@@ -902,7 +859,7 @@ dpack_bin_decode_utest_dup_equ_binsz(void ** state __unused)
 #if defined(CONFIG_DPACK_DEBUG)
 
 static void
-dpack_bin_decode_utest_dup_equ_uninit_dec(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_uninit_dec(void ** state __unused)
 {
 	struct dpack_decoder dec = { 0, };
 	char *               data;
@@ -914,7 +871,7 @@ dpack_bin_decode_utest_dup_equ_uninit_dec(void ** state __unused)
 #else  /* !defined(CONFIG_DPACK_DEBUG) */
 
 static void
-dpack_bin_decode_utest_dup_equ_uninit_dec(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_uninit_dec(void ** state __unused)
 {
 	skip();
 }
@@ -936,12 +893,12 @@ dpack_bin_decode_utest_dup_equ_uninit_dec(void ** state __unused)
  *                      with reference unpacked data
  */
 static void
-dpack_bin_decode_utest_dup_equ(ssize_t ret,
+dpackut_bin_decode_utest_dup_equ(ssize_t ret,
                                size_t  ref_size,
                                size_t  test_size,
                                size_t  equ_size)
 {
-	struct dpack_bin_utest_data data;
+	struct dpackut_bin_data data;
 	struct dpack_decoder        dec;
 	char *                      val;
 	ssize_t                     sz;
@@ -950,7 +907,7 @@ dpack_bin_decode_utest_dup_equ(ssize_t ret,
 	assert_in_range(test_size, 1, DPACK_BINSZ_MAX + 1);
 	assert_in_range(equ_size, 1, DPACK_BINSZ_MAX);
 
-	dpack_bin_utest_gen_data(&data, ref_size);
+	dpackut_bin_gen_data(&data, ref_size);
 
 	dpack_decoder_init_buffer(&dec,
 	                          data.pack_buff,
@@ -968,53 +925,53 @@ dpack_bin_decode_utest_dup_equ(ssize_t ret,
 
 	dpack_decoder_fini(&dec);
 
-	dpack_bin_utest_fini_data(&data);
+	dpackut_bin_fini_data(&data);
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_ok_1(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_ok_1(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(1, 1, 1, 1);
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_1_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_1_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(-EMSGSIZE, 1, 1, 2);
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_2_short_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_2_short_inf(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(-EMSGSIZE, 2, 1, 1);
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_2_short_equ(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_2_short_equ(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(-EPROTO, 2, 1, 2);
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_2_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_2_short_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(-EMSGSIZE, 2, 1, 3);
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_2_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_2_inf(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(-EMSGSIZE, 2, 2, 1);
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_ok_2(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_ok_2(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(2, 2, 2, 2);
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_2_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_2_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(-EMSGSIZE, 2, 2, 3);
 }
@@ -1022,7 +979,7 @@ dpack_bin_decode_utest_dup_equ_nok_2_sup(void ** state __unused)
 #if DPACK_BINSZ_MAX >= (UINT8_MAX)
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_uint8_short_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_uint8_short_inf(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(-EMSGSIZE,
 	                               UINT8_MAX,
@@ -1031,7 +988,7 @@ dpack_bin_decode_utest_dup_equ_nok_uint8_short_inf(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_uint8_short_equ(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_uint8_short_equ(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(-EPROTO,
 	                               UINT8_MAX,
@@ -1040,7 +997,7 @@ dpack_bin_decode_utest_dup_equ_nok_uint8_short_equ(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_uint8_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_uint8_inf(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(-EMSGSIZE,
 	                               UINT8_MAX,
@@ -1049,7 +1006,7 @@ dpack_bin_decode_utest_dup_equ_nok_uint8_inf(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_ok_uint8(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_ok_uint8(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(UINT8_MAX,
 	                               UINT8_MAX,
@@ -1060,25 +1017,25 @@ dpack_bin_decode_utest_dup_equ_ok_uint8(void ** state __unused)
 #else  /* !(DPACK_BINSZ_MAX >= (UINT8_MAX)) */
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_uint8_short_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_uint8_short_inf(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_uint8_short_equ(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_uint8_short_equ(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_uint8_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_uint8_inf(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_ok_uint8(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_ok_uint8(void ** state __unused)
 {
 	skip();
 }
@@ -1088,7 +1045,7 @@ dpack_bin_decode_utest_dup_equ_ok_uint8(void ** state __unused)
 #if DPACK_BINSZ_MAX >= (UINT8_MAX + 1)
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_uint8_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_uint8_short_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(-EMSGSIZE,
 	                               UINT8_MAX,
@@ -1097,7 +1054,7 @@ dpack_bin_decode_utest_dup_equ_nok_uint8_short_sup(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_uint8_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_uint8_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(-EMSGSIZE,
 	                               UINT8_MAX,
@@ -1108,13 +1065,13 @@ dpack_bin_decode_utest_dup_equ_nok_uint8_sup(void ** state __unused)
 #else  /* !(DPACK_BINSZ_MAX >= (UINT8_MAX + 1)) */
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_uint8_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_uint8_short_sup(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_uint8_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_uint8_sup(void ** state __unused)
 {
 	skip();
 }
@@ -1124,7 +1081,7 @@ dpack_bin_decode_utest_dup_equ_nok_uint8_sup(void ** state __unused)
 #if DPACK_BINSZ_MAX >= (UINT16_MAX)
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_uint16_short_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_uint16_short_inf(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(-EMSGSIZE,
 	                               UINT16_MAX,
@@ -1133,7 +1090,7 @@ dpack_bin_decode_utest_dup_equ_nok_uint16_short_inf(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_uint16_short_equ(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_uint16_short_equ(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(-EPROTO,
 	                               UINT16_MAX,
@@ -1142,7 +1099,7 @@ dpack_bin_decode_utest_dup_equ_nok_uint16_short_equ(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_uint16_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_uint16_inf(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(-EMSGSIZE,
 	                               UINT16_MAX,
@@ -1151,7 +1108,7 @@ dpack_bin_decode_utest_dup_equ_nok_uint16_inf(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_ok_uint16(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_ok_uint16(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(UINT16_MAX,
 	                               UINT16_MAX,
@@ -1162,25 +1119,25 @@ dpack_bin_decode_utest_dup_equ_ok_uint16(void ** state __unused)
 #else  /* !(DPACK_BINSZ_MAX >= (UINT16_MAX)) */
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_uint16_short_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_uint16_short_inf(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_uint16_short_equ(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_uint16_short_equ(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_uint16_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_uint16_inf(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_ok_uint16(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_ok_uint16(void ** state __unused)
 {
 	skip();
 }
@@ -1190,7 +1147,7 @@ dpack_bin_decode_utest_dup_equ_ok_uint16(void ** state __unused)
 #if DPACK_BINSZ_MAX >= (UINT16_MAX + 1)
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_uint16_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_uint16_short_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(-EMSGSIZE,
 	                               UINT16_MAX,
@@ -1199,7 +1156,7 @@ dpack_bin_decode_utest_dup_equ_nok_uint16_short_sup(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_uint16_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_uint16_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(-EMSGSIZE,
 	                               UINT16_MAX,
@@ -1210,13 +1167,13 @@ dpack_bin_decode_utest_dup_equ_nok_uint16_sup(void ** state __unused)
 #else  /* !(DPACK_BINSZ_MAX >= (UINT16_MAX + 1)) */
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_uint16_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_uint16_short_sup(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_uint16_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_uint16_sup(void ** state __unused)
 {
 	skip();
 }
@@ -1224,7 +1181,7 @@ dpack_bin_decode_utest_dup_equ_nok_uint16_sup(void ** state __unused)
 #endif /* DPACK_BINSZ_MAX >= (UINT16_MAX + 1) */
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_binsz_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_binsz_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(-EMSGSIZE,
 	                               DPACK_BINSZ_MAX - 1,
@@ -1233,7 +1190,7 @@ dpack_bin_decode_utest_dup_equ_nok_binsz_sup(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_binsz_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_binsz_short_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(-EMSGSIZE,
 	                               DPACK_BINSZ_MAX - 1,
@@ -1242,7 +1199,7 @@ dpack_bin_decode_utest_dup_equ_nok_binsz_short_sup(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_binsz_short_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_binsz_short_inf(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(-EMSGSIZE,
 	                               DPACK_BINSZ_MAX,
@@ -1251,7 +1208,7 @@ dpack_bin_decode_utest_dup_equ_nok_binsz_short_inf(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_binsz_short_equ(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_binsz_short_equ(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(-EPROTO,
 	                               DPACK_BINSZ_MAX,
@@ -1260,7 +1217,7 @@ dpack_bin_decode_utest_dup_equ_nok_binsz_short_equ(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_nok_binsz_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_nok_binsz_inf(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(-EMSGSIZE,
 	                               DPACK_BINSZ_MAX,
@@ -1269,7 +1226,7 @@ dpack_bin_decode_utest_dup_equ_nok_binsz_inf(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_equ_ok_binsz(void ** state __unused)
+dpackut_bin_decode_utest_dup_equ_ok_binsz(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_equ(DPACK_BINSZ_MAX,
 	                               DPACK_BINSZ_MAX,
@@ -1280,7 +1237,7 @@ dpack_bin_decode_utest_dup_equ_ok_binsz(void ** state __unused)
 #if defined(CONFIG_DPACK_ASSERT_API)
 
 static void
-dpack_bin_decode_utest_dup_max_null_dec(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_null_dec(void ** state __unused)
 {
 	char *  data;
 	ssize_t ret __unused;
@@ -1289,7 +1246,7 @@ dpack_bin_decode_utest_dup_max_null_dec(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_max_null_data(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_null_data(void ** state __unused)
 {
 	struct dpack_decoder dec = { 0, };
 	char                 data[8] = { 0, };
@@ -1301,7 +1258,7 @@ dpack_bin_decode_utest_dup_max_null_data(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_max_0(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_0(void ** state __unused)
 {
 	struct dpack_decoder dec = { 0, };
 	char                 data[8] = { 0, };
@@ -1314,7 +1271,7 @@ dpack_bin_decode_utest_dup_max_0(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_max_binsz(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_binsz(void ** state __unused)
 {
 	struct dpack_decoder dec = { 0, };
 	char                 data[8] = { 0, };
@@ -1331,25 +1288,25 @@ dpack_bin_decode_utest_dup_max_binsz(void ** state __unused)
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
 
 static void
-dpack_bin_decode_utest_dup_max_null_dec(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_null_dec(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_max_null_data(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_null_data(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_max_0(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_0(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_max_binsz(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_binsz(void ** state __unused)
 {
 	skip();
 }
@@ -1359,7 +1316,7 @@ dpack_bin_decode_utest_dup_max_binsz(void ** state __unused)
 #if defined(CONFIG_DPACK_DEBUG)
 
 static void
-dpack_bin_decode_utest_dup_max_uninit_dec(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_uninit_dec(void ** state __unused)
 {
 	struct dpack_decoder dec = { 0, };
 	char *               data;
@@ -1371,7 +1328,7 @@ dpack_bin_decode_utest_dup_max_uninit_dec(void ** state __unused)
 #else  /* !defined(CONFIG_DPACK_DEBUG) */
 
 static void
-dpack_bin_decode_utest_dup_max_uninit_dec(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_uninit_dec(void ** state __unused)
 {
 	skip();
 }
@@ -1393,12 +1350,12 @@ dpack_bin_decode_utest_dup_max_uninit_dec(void ** state __unused)
  *                      with reference unpacked data
  */
 static void
-dpack_bin_decode_utest_dup_max(ssize_t ret,
+dpackut_bin_decode_utest_dup_max(ssize_t ret,
                                size_t  ref_size,
                                size_t  test_size,
                                size_t  max_size)
 {
-	struct dpack_bin_utest_data data;
+	struct dpackut_bin_data data;
 	struct dpack_decoder        dec;
 	char *                      val;
 	ssize_t                     sz;
@@ -1407,7 +1364,7 @@ dpack_bin_decode_utest_dup_max(ssize_t ret,
 	assert_in_range(test_size, 1, DPACK_BINSZ_MAX + 1);
 	assert_in_range(max_size, 1, DPACK_BINSZ_MAX);
 
-	dpack_bin_utest_gen_data(&data, ref_size);
+	dpackut_bin_gen_data(&data, ref_size);
 
 	dpack_decoder_init_buffer(&dec,
 	                          data.pack_buff,
@@ -1425,71 +1382,71 @@ dpack_bin_decode_utest_dup_max(ssize_t ret,
 
 	dpack_decoder_fini(&dec);
 
-	dpack_bin_utest_fini_data(&data);
+	dpackut_bin_fini_data(&data);
 }
 
 static void
-dpack_bin_decode_utest_dup_max_ok_1_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_ok_1_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(1, 1, 1, 2);
 }
 
 static void
-dpack_bin_decode_utest_dup_max_ok_2_equ(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_ok_2_equ(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(2, 2, 2, 2);
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_2_short_equ(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_2_short_equ(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(-EPROTO, 2, 1, 2);
 }
 
 static void
-dpack_bin_decode_utest_dup_max_ok_2_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_ok_2_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(2, 2, 2, 3);
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_2_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_2_short_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(-EPROTO, 2, 1, 3);
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_3_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_3_inf(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(-EMSGSIZE, 3, 3, 2);
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_3_short_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_3_short_inf(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(-EMSGSIZE, 3, 2, 2);
 }
 
 static void
-dpack_bin_decode_utest_dup_max_ok_3_equ(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_ok_3_equ(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(3, 3, 3, 3);
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_3_short_equ(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_3_short_equ(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(-EPROTO, 3, 2, 3);
 }
 
 static void
-dpack_bin_decode_utest_dup_max_ok_3_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_ok_3_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(3, 3, 3, 4);
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_3_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_3_short_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(-EPROTO, 3, 2, 4);
 }
@@ -1497,7 +1454,7 @@ dpack_bin_decode_utest_dup_max_nok_3_short_sup(void ** state __unused)
 #if DPACK_BINSZ_MAX >= UINT8_MAX
 
 static void
-dpack_bin_decode_utest_dup_max_nok_uint8_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_uint8_inf(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(-EMSGSIZE,
 	                               UINT8_MAX,
@@ -1506,7 +1463,7 @@ dpack_bin_decode_utest_dup_max_nok_uint8_inf(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_uint8_short_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_uint8_short_inf(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(-EMSGSIZE,
 	                               UINT8_MAX,
@@ -1515,7 +1472,7 @@ dpack_bin_decode_utest_dup_max_nok_uint8_short_inf(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_max_ok_uint8_equ(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_ok_uint8_equ(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(UINT8_MAX,
 	                               UINT8_MAX,
@@ -1524,7 +1481,7 @@ dpack_bin_decode_utest_dup_max_ok_uint8_equ(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_uint8_short_equ(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_uint8_short_equ(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(-EPROTO,
 	                               UINT8_MAX,
@@ -1535,25 +1492,25 @@ dpack_bin_decode_utest_dup_max_nok_uint8_short_equ(void ** state __unused)
 #else  /* !(DPACK_BINSZ_MAX >= UINT8_MAX) */
 
 static void
-dpack_bin_decode_utest_dup_max_nok_uint8_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_uint8_inf(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_uint8_short_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_uint8_short_inf(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_max_ok_uint8_equ(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_ok_uint8_equ(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_uint8_short_equ(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_uint8_short_equ(void ** state __unused)
 {
 	skip();
 }
@@ -1563,7 +1520,7 @@ dpack_bin_decode_utest_dup_max_nok_uint8_short_equ(void ** state __unused)
 #if DPACK_BINSZ_MAX >= (UINT8_MAX + 1)
 
 static void
-dpack_bin_decode_utest_dup_max_ok_uint8_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_ok_uint8_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(UINT8_MAX,
 	                               UINT8_MAX,
@@ -1572,7 +1529,7 @@ dpack_bin_decode_utest_dup_max_ok_uint8_sup(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_uint8_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_uint8_short_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(-EPROTO,
 	                               UINT8_MAX,
@@ -1583,13 +1540,13 @@ dpack_bin_decode_utest_dup_max_nok_uint8_short_sup(void ** state __unused)
 #else  /* !(DPACK_BINSZ_MAX >= (UINT8_MAX + 1)) */
 
 static void
-dpack_bin_decode_utest_dup_max_ok_uint8_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_ok_uint8_sup(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_uint8_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_uint8_short_sup(void ** state __unused)
 {
 	skip();
 }
@@ -1599,7 +1556,7 @@ dpack_bin_decode_utest_dup_max_nok_uint8_short_sup(void ** state __unused)
 #if DPACK_BINSZ_MAX >= UINT16_MAX
 
 static void
-dpack_bin_decode_utest_dup_max_nok_uint16_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_uint16_inf(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(-EMSGSIZE,
 	                               UINT16_MAX,
@@ -1608,7 +1565,7 @@ dpack_bin_decode_utest_dup_max_nok_uint16_inf(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_uint16_short_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_uint16_short_inf(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(-EMSGSIZE,
 	                               UINT16_MAX,
@@ -1617,7 +1574,7 @@ dpack_bin_decode_utest_dup_max_nok_uint16_short_inf(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_max_ok_uint16_equ(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_ok_uint16_equ(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(UINT16_MAX,
 	                               UINT16_MAX,
@@ -1626,7 +1583,7 @@ dpack_bin_decode_utest_dup_max_ok_uint16_equ(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_uint16_short_equ(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_uint16_short_equ(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(-EPROTO,
 	                               UINT16_MAX,
@@ -1637,25 +1594,25 @@ dpack_bin_decode_utest_dup_max_nok_uint16_short_equ(void ** state __unused)
 #else  /* !(DPACK_BINSZ_MAX >= UINT16_MAX) */
 
 static void
-dpack_bin_decode_utest_dup_max_nok_uint16_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_uint16_inf(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_uint16_short_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_uint16_short_inf(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_max_ok_uint16_equ(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_ok_uint16_equ(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_uint16_short_equ(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_uint16_short_equ(void ** state __unused)
 {
 	skip();
 }
@@ -1665,7 +1622,7 @@ dpack_bin_decode_utest_dup_max_nok_uint16_short_equ(void ** state __unused)
 #if DPACK_BINSZ_MAX >= (UINT16_MAX + 1)
 
 static void
-dpack_bin_decode_utest_dup_max_ok_uint16_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_ok_uint16_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(UINT16_MAX,
 	                               UINT16_MAX,
@@ -1674,7 +1631,7 @@ dpack_bin_decode_utest_dup_max_ok_uint16_sup(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_uint16_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_uint16_short_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(-EPROTO,
 	                               UINT16_MAX,
@@ -1685,13 +1642,13 @@ dpack_bin_decode_utest_dup_max_nok_uint16_short_sup(void ** state __unused)
 #else  /* !(DPACK_BINSZ_MAX >= (UINT16_MAX + 1)) */
 
 static void
-dpack_bin_decode_utest_dup_max_ok_uint16_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_ok_uint16_sup(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_uint16_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_uint16_short_sup(void ** state __unused)
 {
 	skip();
 }
@@ -1699,7 +1656,7 @@ dpack_bin_decode_utest_dup_max_nok_uint16_short_sup(void ** state __unused)
 #endif /* DPACK_BINSZ_MAX >= (UINT16_MAX + 1) */
 
 static void
-dpack_bin_decode_utest_dup_max_ok_binsz_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_ok_binsz_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(DPACK_BINSZ_MAX - 1,
 	                               DPACK_BINSZ_MAX - 1,
@@ -1708,7 +1665,7 @@ dpack_bin_decode_utest_dup_max_ok_binsz_sup(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_binsz_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_binsz_short_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(-EPROTO,
 	                               DPACK_BINSZ_MAX - 1,
@@ -1717,7 +1674,7 @@ dpack_bin_decode_utest_dup_max_nok_binsz_short_sup(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_binsz_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_binsz_inf(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(-EMSGSIZE,
 	                               DPACK_BINSZ_MAX,
@@ -1726,7 +1683,7 @@ dpack_bin_decode_utest_dup_max_nok_binsz_inf(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_binsz_short_inf(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_binsz_short_inf(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(-EMSGSIZE,
 	                               DPACK_BINSZ_MAX,
@@ -1735,7 +1692,7 @@ dpack_bin_decode_utest_dup_max_nok_binsz_short_inf(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_max_ok_binsz_equ(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_ok_binsz_equ(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(DPACK_BINSZ_MAX,
 	                               DPACK_BINSZ_MAX,
@@ -1744,7 +1701,7 @@ dpack_bin_decode_utest_dup_max_ok_binsz_equ(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_max_nok_binsz_short_equ(void ** state __unused)
+dpackut_bin_decode_utest_dup_max_nok_binsz_short_equ(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_max(-EPROTO,
 	                               DPACK_BINSZ_MAX,
@@ -1755,7 +1712,7 @@ dpack_bin_decode_utest_dup_max_nok_binsz_short_equ(void ** state __unused)
 #if defined(CONFIG_DPACK_ASSERT_API)
 
 static void
-dpack_bin_decode_utest_dup_range_null_dec(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_null_dec(void ** state __unused)
 {
 	char *  data;
 	ssize_t ret __unused;
@@ -1767,7 +1724,7 @@ dpack_bin_decode_utest_dup_range_null_dec(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_range_null_data(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_null_data(void ** state __unused)
 {
 	struct dpack_decoder dec = { 0, };
 	char                 data[8] = { 0, };
@@ -1782,7 +1739,7 @@ dpack_bin_decode_utest_dup_range_null_data(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_range_02(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_02(void ** state __unused)
 {
 	struct dpack_decoder dec = { 0, };
 	char                 data[8] = { 0, };
@@ -1798,7 +1755,7 @@ dpack_bin_decode_utest_dup_range_02(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_range_10(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_10(void ** state __unused)
 {
 	struct dpack_decoder dec = { 0, };
 	char                 data[8] = { 0, };
@@ -1814,7 +1771,7 @@ dpack_bin_decode_utest_dup_range_10(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_range_21(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_21(void ** state __unused)
 {
 	struct dpack_decoder dec = { 0, };
 	char                 data[8] = { 0, };
@@ -1830,7 +1787,7 @@ dpack_bin_decode_utest_dup_range_21(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_range_binsz(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_binsz(void ** state __unused)
 {
 	struct dpack_decoder dec = { 0, };
 	char                 data[8] = { 0, };
@@ -1849,37 +1806,37 @@ dpack_bin_decode_utest_dup_range_binsz(void ** state __unused)
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
 
 static void
-dpack_bin_decode_utest_dup_range_null_dec(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_null_dec(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_range_null_data(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_null_data(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_range_02(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_02(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_range_10(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_10(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_range_21(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_21(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_range_binsz(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_binsz(void ** state __unused)
 {
 	skip();
 }
@@ -1889,7 +1846,7 @@ dpack_bin_decode_utest_dup_range_binsz(void ** state __unused)
 #if defined(CONFIG_DPACK_DEBUG)
 
 static void
-dpack_bin_decode_utest_dup_range_uninit_dec(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_uninit_dec(void ** state __unused)
 {
 	struct dpack_decoder dec = { 0, };
 	char *               data;
@@ -1904,7 +1861,7 @@ dpack_bin_decode_utest_dup_range_uninit_dec(void ** state __unused)
 #else  /* !defined(CONFIG_DPACK_DEBUG) */
 
 static void
-dpack_bin_decode_utest_dup_range_uninit_dec(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_uninit_dec(void ** state __unused)
 {
 	skip();
 }
@@ -1929,23 +1886,23 @@ dpack_bin_decode_utest_dup_range_uninit_dec(void ** state __unused)
  *                      compare with reference unpacked data
  */
 static void
-dpack_bin_decode_utest_dup_range(ssize_t ret,
+dpackut_bin_decode_utest_dup_range(ssize_t ret,
                                  size_t  ref_size,
                                  size_t  test_size,
                                  size_t  min_size,
                                  size_t  max_size)
 {
-	struct dpack_bin_utest_data data;
-	struct dpack_decoder        dec;
-	char *                      val;
-	ssize_t                     sz;
+	struct dpackut_bin_data data;
+	struct dpack_decoder    dec;
+	char *                  val;
+	ssize_t                 sz;
 
 	assert_in_range(ref_size, 1, DPACK_BINSZ_MAX + 1);
 	assert_in_range(test_size, 1, DPACK_BINSZ_MAX + 1);
 	assert_in_range(min_size, 1, DPACK_BINSZ_MAX - 1);
 	assert_in_range(max_size, 2, DPACK_BINSZ_MAX);
 
-	dpack_bin_utest_gen_data(&data, ref_size);
+	dpackut_bin_gen_data(&data, ref_size);
 
 	dpack_decoder_init_buffer(&dec,
 	                          data.pack_buff,
@@ -1963,59 +1920,59 @@ dpack_bin_decode_utest_dup_range(ssize_t ret,
 
 	dpack_decoder_fini(&dec);
 
-	dpack_bin_utest_fini_data(&data);
+	dpackut_bin_fini_data(&data);
 }
 
 static void
-dpack_bin_decode_utest_dup_range_ok_1(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_ok_1(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(1, 1, 1, 1, 2);
 }
 
 static void
-dpack_bin_decode_utest_dup_range_nok_1_short(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_1_short(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(-EPROTO, 2, 1, 1, 2);
 }
 
 static void
-dpack_bin_decode_utest_dup_range_nok_1(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_1(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(-EMSGSIZE, 1, 1, 2, 3);
 }
 
 static void
-dpack_bin_decode_utest_dup_range_ok_2(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_ok_2(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(2, 2, 2, 2, 3);
 }
 
 static void
-dpack_bin_decode_utest_dup_range_nok_2_short(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_2_short(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(-EPROTO, 2, 1, 2, 3);
 }
 
 static void
-dpack_bin_decode_utest_dup_range_ok_3(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_ok_3(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(3, 3, 3, 2, 3);
 }
 
 static void
-dpack_bin_decode_utest_dup_range_nok_3_short(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_3_short(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(-EPROTO, 3, 2, 2, 3);
 }
 
 static void
-dpack_bin_decode_utest_dup_range_nok_4(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_4(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(-EMSGSIZE, 4, 4, 2, 3);
 }
 
 static void
-dpack_bin_decode_utest_dup_range_nok_4_short(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_4_short(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(-EMSGSIZE, 4, 3, 2, 3);
 }
@@ -2023,7 +1980,7 @@ dpack_bin_decode_utest_dup_range_nok_4_short(void ** state __unused)
 #if DPACK_BINSZ_MAX >= UINT8_MAX
 
 static void
-dpack_bin_decode_utest_dup_range_nok_uint8minus2_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_uint8minus2_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(-EMSGSIZE,
 	                                 UINT8_MAX - 2,
@@ -2033,7 +1990,7 @@ dpack_bin_decode_utest_dup_range_nok_uint8minus2_sup(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_range_ok_uint8minus_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_ok_uint8minus_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(UINT8_MAX - 1,
 	                                 UINT8_MAX - 1,
@@ -2043,7 +2000,7 @@ dpack_bin_decode_utest_dup_range_ok_uint8minus_sup(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_range_nok_uint8minus_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_uint8minus_short_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(-EPROTO,
 	                                 UINT8_MAX - 1,
@@ -2053,7 +2010,7 @@ dpack_bin_decode_utest_dup_range_nok_uint8minus_short_sup(void ** state __unused
 }
 
 static void
-dpack_bin_decode_utest_dup_range_ok_uint8(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_ok_uint8(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(UINT8_MAX,
 	                                 UINT8_MAX,
@@ -2063,7 +2020,7 @@ dpack_bin_decode_utest_dup_range_ok_uint8(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_range_nok_uint8_short(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_uint8_short(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(-EPROTO,
 	                                 UINT8_MAX,
@@ -2075,31 +2032,31 @@ dpack_bin_decode_utest_dup_range_nok_uint8_short(void ** state __unused)
 #else  /* !(DPACK_BINSZ_MAX >= UINT8_MAX) */
 
 static void
-dpack_bin_decode_utest_dup_range_nok_uint8minus2_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_uint8minus2_sup(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_range_ok_uint8minus_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_ok_uint8minus_sup(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_range_nok_uint8minus_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_uint8minus_short_sup(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_range_ok_uint8(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_ok_uint8(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_range_nok_uint8_short(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_uint8_short(void ** state __unused)
 {
 	skip();
 }
@@ -2109,7 +2066,7 @@ dpack_bin_decode_utest_dup_range_nok_uint8_short(void ** state __unused)
 #if  DPACK_BINSZ_MAX >= (UINT8_MAX + 1)
 
 static void
-dpack_bin_decode_utest_dup_range_nok_uint8plus_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_uint8plus_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(-EMSGSIZE,
 	                                 UINT8_MAX + 1,
@@ -2119,7 +2076,7 @@ dpack_bin_decode_utest_dup_range_nok_uint8plus_sup(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_range_nok_uint8plus_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_uint8plus_short_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(-EMSGSIZE,
 	                                 UINT8_MAX + 1,
@@ -2131,13 +2088,13 @@ dpack_bin_decode_utest_dup_range_nok_uint8plus_short_sup(void ** state __unused)
 #else  /* !(DPACK_BINSZ_MAX >= (UINT8_MAX + 1)) */
 
 static void
-dpack_bin_decode_utest_dup_range_nok_uint8plus_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_uint8plus_sup(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_range_nok_uint8plus_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_uint8plus_short_sup(void ** state __unused)
 {
 	skip();
 }
@@ -2147,7 +2104,7 @@ dpack_bin_decode_utest_dup_range_nok_uint8plus_short_sup(void ** state __unused)
 #if DPACK_BINSZ_MAX >= UINT16_MAX
 
 static void
-dpack_bin_decode_utest_dup_range_nok_uint16minus2_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_uint16minus2_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(-EMSGSIZE,
 	                                 UINT16_MAX - 2,
@@ -2157,7 +2114,7 @@ dpack_bin_decode_utest_dup_range_nok_uint16minus2_sup(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_range_ok_uint16minus_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_ok_uint16minus_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(UINT16_MAX - 1,
 	                                 UINT16_MAX - 1,
@@ -2167,7 +2124,7 @@ dpack_bin_decode_utest_dup_range_ok_uint16minus_sup(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_range_nok_uint16minus_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_uint16minus_short_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(-EPROTO,
 	                                 UINT16_MAX - 1,
@@ -2177,7 +2134,7 @@ dpack_bin_decode_utest_dup_range_nok_uint16minus_short_sup(void ** state __unuse
 }
 
 static void
-dpack_bin_decode_utest_dup_range_ok_uint16(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_ok_uint16(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(UINT16_MAX,
 	                                 UINT16_MAX,
@@ -2187,7 +2144,7 @@ dpack_bin_decode_utest_dup_range_ok_uint16(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_range_nok_uint16_short(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_uint16_short(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(-EPROTO,
 	                                 UINT16_MAX,
@@ -2199,31 +2156,31 @@ dpack_bin_decode_utest_dup_range_nok_uint16_short(void ** state __unused)
 #else  /* !(DPACK_BINSZ_MAX >= UINT16_MAX) */
 
 static void
-dpack_bin_decode_utest_dup_range_nok_uint16minus2_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_uint16minus2_sup(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_range_ok_uint16minus_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_ok_uint16minus_sup(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_range_nok_uint16minus_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_uint16minus_short_sup(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_range_ok_uint16(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_ok_uint16(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_range_nok_uint16_short(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_uint16_short(void ** state __unused)
 {
 	skip();
 }
@@ -2233,7 +2190,7 @@ dpack_bin_decode_utest_dup_range_nok_uint16_short(void ** state __unused)
 #if  DPACK_BINSZ_MAX >= (UINT16_MAX + 1)
 
 static void
-dpack_bin_decode_utest_dup_range_nok_uint16plus_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_uint16plus_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(-EMSGSIZE,
 	                                 UINT16_MAX + 1,
@@ -2243,7 +2200,7 @@ dpack_bin_decode_utest_dup_range_nok_uint16plus_sup(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_range_nok_uint16plus_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_uint16plus_short_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(-EMSGSIZE,
 	                                 UINT16_MAX + 1,
@@ -2255,13 +2212,13 @@ dpack_bin_decode_utest_dup_range_nok_uint16plus_short_sup(void ** state __unused
 #else  /* !(DPACK_BINSZ_MAX >= (UINT16_MAX + 1)) */
 
 static void
-dpack_bin_decode_utest_dup_range_nok_uint16plus_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_uint16plus_sup(void ** state __unused)
 {
 	skip();
 }
 
 static void
-dpack_bin_decode_utest_dup_range_nok_uint16plus_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_uint16plus_short_sup(void ** state __unused)
 {
 	skip();
 }
@@ -2269,7 +2226,7 @@ dpack_bin_decode_utest_dup_range_nok_uint16plus_short_sup(void ** state __unused
 #endif /* DPACK_BINSZ_MAX >= (UINT16_MAX + 1) */
 
 static void
-dpack_bin_decode_utest_dup_range_nok_binszminus2_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_binszminus2_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(-EMSGSIZE,
 	                                 DPACK_BINSZ_MAX - 2,
@@ -2279,7 +2236,7 @@ dpack_bin_decode_utest_dup_range_nok_binszminus2_sup(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_range_ok_binszminus_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_ok_binszminus_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(DPACK_BINSZ_MAX - 1,
 	                                 DPACK_BINSZ_MAX - 1,
@@ -2289,7 +2246,7 @@ dpack_bin_decode_utest_dup_range_ok_binszminus_sup(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_range_nok_binszminus_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_binszminus_short_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(-EPROTO,
 	                                 DPACK_BINSZ_MAX - 1,
@@ -2299,7 +2256,7 @@ dpack_bin_decode_utest_dup_range_nok_binszminus_short_sup(void ** state __unused
 }
 
 static void
-dpack_bin_decode_utest_dup_range_ok_binsz(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_ok_binsz(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(DPACK_BINSZ_MAX,
 	                                 DPACK_BINSZ_MAX,
@@ -2309,7 +2266,7 @@ dpack_bin_decode_utest_dup_range_ok_binsz(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_range_nok_binsz_short(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_binsz_short(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(-EPROTO,
 	                                 DPACK_BINSZ_MAX,
@@ -2319,7 +2276,7 @@ dpack_bin_decode_utest_dup_range_nok_binsz_short(void ** state __unused)
 }
 
 static void
-dpack_bin_decode_utest_dup_range_nok_binszplus_short_sup(void ** state __unused)
+dpackut_bin_decode_utest_dup_range_nok_binszplus_short_sup(void ** state __unused)
 {
 	dpack_bin_decode_utest_dup_range(-EMSGSIZE,
 	                                 DPACK_BINSZ_MAX + 1,
@@ -2327,161 +2284,161 @@ dpack_bin_decode_utest_dup_range_nok_binszplus_short_sup(void ** state __unused)
 	                                 DPACK_BINSZ_MAX - 1,
 	                                 DPACK_BINSZ_MAX);
 }
+#endif
 
-static const struct CMUnitTest dpack_bin_utests[] = {
-	cmocka_unit_test(dpack_bin8_sizes_utest),
-	cmocka_unit_test(dpack_bin16_sizes_utest),
-	cmocka_unit_test(dpack_bin32_sizes_utest),
-	cmocka_unit_test(dpack_bin_assert_sizes_utest),
+CUTE_GROUP(dpackut_bin_group) = {
+	CUTE_REF(dpackut_bin8_sizes),
+	CUTE_REF(dpackut_bin16_sizes),
+	CUTE_REF(dpackut_bin32_sizes),
+	CUTE_REF(dpackut_bin_assert_sizes),
 
-	cmocka_unit_test(dpack_bin_encode_utest_null_enc),
-	cmocka_unit_test(dpack_bin_encode_utest_uninit_enc),
-	cmocka_unit_test(dpack_bin_encode_utest_null_data),
-	cmocka_unit_test(dpack_bin_encode_utest_zero),
-	cmocka_unit_test(dpack_bin_encode_utest_huge),
-	cmocka_unit_test(dpack_bin_encode_utest_ok_1),
-	cmocka_unit_test(dpack_bin_encode_utest_nok_1),
-	cmocka_unit_test(dpack_bin_encode_utest_ok_2),
-	cmocka_unit_test(dpack_bin_encode_utest_nok_2),
-	cmocka_unit_test(dpack_bin_encode_utest_ok_uint8),
-	cmocka_unit_test(dpack_bin_encode_utest_nok_uint8),
-	cmocka_unit_test(dpack_bin_encode_utest_ok_uint8_1),
-	cmocka_unit_test(dpack_bin_encode_utest_nok_uint8_1),
-	cmocka_unit_test(dpack_bin_encode_utest_ok_uint16),
-	cmocka_unit_test(dpack_bin_encode_utest_nok_uint16),
-	cmocka_unit_test(dpack_bin_encode_utest_ok_uint16_1),
-	cmocka_unit_test(dpack_bin_encode_utest_nok_uint16_1),
-	cmocka_unit_test(dpack_bin_encode_utest_ok_max),
-	cmocka_unit_test(dpack_bin_encode_utest_nok_max),
+	CUTE_REF(dpackut_bin_encode_null_enc),
+	CUTE_REF(dpackut_bin_encode_uninit_enc),
+	CUTE_REF(dpackut_bin_encode_null_data),
+	CUTE_REF(dpackut_bin_encode_zero),
+	CUTE_REF(dpackut_bin_encode_huge),
+	CUTE_REF(dpackut_bin_encode_ok_1),
+	CUTE_REF(dpackut_bin_encode_nok_1),
+	CUTE_REF(dpackut_bin_encode_ok_2),
+	CUTE_REF(dpackut_bin_encode_nok_2),
+	CUTE_REF(dpackut_bin_encode_ok_uint8),
+	CUTE_REF(dpackut_bin_encode_nok_uint8),
+	CUTE_REF(dpackut_bin_encode_ok_uint8_1),
+	CUTE_REF(dpackut_bin_encode_nok_uint8_1),
+	CUTE_REF(dpackut_bin_encode_ok_uint16),
+	CUTE_REF(dpackut_bin_encode_nok_uint16),
+	CUTE_REF(dpackut_bin_encode_ok_uint16_1),
+	CUTE_REF(dpackut_bin_encode_nok_uint16_1),
+	CUTE_REF(dpackut_bin_encode_ok_max),
+	CUTE_REF(dpackut_bin_encode_nok_max),
 
-	cmocka_unit_test(dpack_bin_decode_utest_dup_null_dec),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_uninit_dec),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_null_data),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_ok_1),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_nok_2_short),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_ok_2),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_nok_3_short),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_ok_uint8),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_nok_uint8plus_short),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_ok_uint8plus),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_ok_uint16),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_nok_uint16plus_short),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_ok_uint16plus),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_ok_max),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_nok_max_short),
+#if 0
+	CUTE_REF(dpack_bin_decode_utest_dup_null_dec),
+	CUTE_REF(dpack_bin_decode_utest_dup_uninit_dec),
+	CUTE_REF(dpack_bin_decode_utest_dup_null_data),
+	CUTE_REF(dpack_bin_decode_utest_dup_ok_1),
+	CUTE_REF(dpack_bin_decode_utest_dup_nok_2_short),
+	CUTE_REF(dpack_bin_decode_utest_dup_ok_2),
+	CUTE_REF(dpack_bin_decode_utest_dup_nok_3_short),
+	CUTE_REF(dpack_bin_decode_utest_dup_ok_uint8),
+	CUTE_REF(dpack_bin_decode_utest_dup_nok_uint8plus_short),
+	CUTE_REF(dpack_bin_decode_utest_dup_ok_uint8plus),
+	CUTE_REF(dpack_bin_decode_utest_dup_ok_uint16),
+	CUTE_REF(dpack_bin_decode_utest_dup_nok_uint16plus_short),
+	CUTE_REF(dpack_bin_decode_utest_dup_ok_uint16plus),
+	CUTE_REF(dpack_bin_decode_utest_dup_ok_max),
+	CUTE_REF(dpack_bin_decode_utest_dup_nok_max_short),
 
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_null_dec),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_uninit_dec),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_null_data),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_0),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_binsz),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_ok_1),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_1_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_2_short_inf),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_2_short_equ),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_2_short_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_2_inf),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_ok_2),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_2_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_uint8_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_uint8_short_inf),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_uint8_short_equ),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_uint8_short_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_uint8_inf),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_ok_uint8),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_uint8_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_uint16_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_uint16_short_inf),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_uint16_short_equ),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_uint16_short_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_uint16_inf),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_ok_uint16),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_uint16_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_binsz_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_binsz_short_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_binsz_short_inf),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_binsz_short_equ),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_nok_binsz_inf),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_equ_ok_binsz),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_null_dec),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_uninit_dec),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_null_data),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_0),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_binsz),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_ok_1),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_1_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_2_short_inf),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_2_short_equ),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_2_short_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_2_inf),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_ok_2),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_2_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_uint8_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_uint8_short_inf),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_uint8_short_equ),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_uint8_short_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_uint8_inf),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_ok_uint8),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_uint8_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_uint16_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_uint16_short_inf),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_uint16_short_equ),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_uint16_short_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_uint16_inf),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_ok_uint16),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_uint16_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_binsz_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_binsz_short_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_binsz_short_inf),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_binsz_short_equ),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_nok_binsz_inf),
+	CUTE_REF(dpack_bin_decode_utest_dup_equ_ok_binsz),
 
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_null_dec),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_uninit_dec),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_null_data),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_0),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_binsz),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_ok_1_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_ok_2_equ),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_nok_2_short_equ),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_ok_2_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_nok_2_short_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_nok_3_inf),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_nok_3_short_inf),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_ok_3_equ),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_nok_3_short_equ),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_ok_3_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_nok_3_short_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_nok_uint8_inf),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_nok_uint8_short_inf),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_ok_uint8_equ),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_nok_uint8_short_equ),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_ok_uint8_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_nok_uint8_short_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_nok_uint16_inf),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_nok_uint16_short_inf),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_ok_uint16_equ),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_nok_uint16_short_equ),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_ok_uint16_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_nok_uint16_short_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_ok_binsz_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_nok_binsz_short_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_nok_binsz_inf),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_nok_binsz_short_inf),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_ok_binsz_equ),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_max_nok_binsz_short_equ),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_null_dec),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_uninit_dec),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_null_data),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_0),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_binsz),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_ok_1_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_ok_2_equ),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_nok_2_short_equ),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_ok_2_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_nok_2_short_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_nok_3_inf),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_nok_3_short_inf),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_ok_3_equ),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_nok_3_short_equ),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_ok_3_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_nok_3_short_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_nok_uint8_inf),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_nok_uint8_short_inf),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_ok_uint8_equ),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_nok_uint8_short_equ),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_ok_uint8_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_nok_uint8_short_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_nok_uint16_inf),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_nok_uint16_short_inf),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_ok_uint16_equ),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_nok_uint16_short_equ),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_ok_uint16_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_nok_uint16_short_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_ok_binsz_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_nok_binsz_short_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_nok_binsz_inf),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_nok_binsz_short_inf),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_ok_binsz_equ),
+	CUTE_REF(dpack_bin_decode_utest_dup_max_nok_binsz_short_equ),
 
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_null_dec),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_null_data),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_02),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_10),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_21),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_binsz),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_uninit_dec),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_ok_1),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_nok_1_short),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_nok_1),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_ok_2),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_nok_2_short),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_ok_3),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_nok_3_short),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_nok_4),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_nok_4_short),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_nok_uint8minus2_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_ok_uint8minus_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_nok_uint8minus_short_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_ok_uint8),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_nok_uint8_short),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_nok_uint8plus_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_nok_uint8plus_short_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_nok_uint16minus2_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_ok_uint16minus_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_nok_uint16minus_short_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_ok_uint16),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_nok_uint16_short),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_nok_uint16plus_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_nok_uint16plus_short_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_nok_binszminus2_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_ok_binszminus_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_nok_binszminus_short_sup),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_ok_binsz),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_nok_binsz_short),
-	cmocka_unit_test(dpack_bin_decode_utest_dup_range_nok_binszplus_short_sup)
+	CUTE_REF(dpack_bin_decode_utest_dup_range_null_dec),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_null_data),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_02),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_10),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_21),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_binsz),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_uninit_dec),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_ok_1),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_nok_1_short),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_nok_1),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_ok_2),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_nok_2_short),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_ok_3),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_nok_3_short),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_nok_4),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_nok_4_short),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_nok_uint8minus2_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_ok_uint8minus_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_nok_uint8minus_short_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_ok_uint8),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_nok_uint8_short),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_nok_uint8plus_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_nok_uint8plus_short_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_nok_uint16minus2_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_ok_uint16minus_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_nok_uint16minus_short_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_ok_uint16),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_nok_uint16_short),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_nok_uint16plus_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_nok_uint16plus_short_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_nok_binszminus2_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_ok_binszminus_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_nok_binszminus_short_sup),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_ok_binsz),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_nok_binsz_short),
+	CUTE_REF(dpack_bin_decode_utest_dup_range_nok_binszplus_short_sup)
+#endif
 };
 
-int
-main(void)
-{
-	return cmocka_run_group_tests_name("bins",
-	                                   dpack_bin_utests,
-	                                   dpack_bin_utests_setup,
-	                                   NULL);
-}
+CUTE_SUITE_EXTERN(dpackut_bin_suite,
+                  dpackut_bin_group,
+                  CUTE_NULL_SETUP,
+                  CUTE_NULL_TEARDOWN,
+                  CUTE_DFLT_TMOUT);

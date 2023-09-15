@@ -1,14 +1,11 @@
 #ifndef _DPACK_UTEST_H
 #define _DPACK_UTEST_H
 
-#include <stddef.h>
-#include <stdarg.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <setjmp.h>
-#include <cmocka.h>
+#include <sys/types.h>
 
-union dpack_scalar_utest_value {
+union dpackut_scalar_value {
 	bool     boolean;
 	uint8_t  uint8;
 	int8_t   int8;
@@ -22,39 +19,39 @@ union dpack_scalar_utest_value {
 	double   f64;
 };
 
-struct dpack_scalar_utest_data {
-	const char *                   packed;
-	size_t                         size;
-	int                            error;
-	union dpack_scalar_utest_value value;
-	union dpack_scalar_utest_value low;
-	union dpack_scalar_utest_value high;
+struct dpackut_scalar_data {
+	const char *               packed;
+	size_t                     size;
+	int                        error;
+	union dpackut_scalar_value value;
+	union dpackut_scalar_value low;
+	union dpackut_scalar_value high;
 };
 
 struct dpack_decoder;
 
-typedef void (dpack_utest_unpack_fn)(struct dpack_decoder *,
-                                     const struct dpack_scalar_utest_data *);
+typedef void (dpackut_unpack_fn)(struct dpack_decoder *,
+                                 const struct dpackut_scalar_data *);
 
 struct dpack_encoder;
 
-typedef int (dpack_utest_pack_fn)(struct dpack_encoder *,
-                                  const struct dpack_scalar_utest_data *);
+typedef int (dpackut_pack_fn)(struct dpack_encoder *,
+                              const struct dpackut_scalar_data *);
 
 extern void
-dpack_scalar_utest_decode(const struct dpack_scalar_utest_data * data,
-                          unsigned int                           nr,
-                          dpack_utest_unpack_fn *                unpack);
+dpackut_scalar_decode(const struct dpackut_scalar_data * data,
+                      unsigned int                       nr,
+                      dpackut_unpack_fn *                unpack);
 
 extern void
-dpack_scalar_utest_encode(const struct dpack_scalar_utest_data * data,
-                          unsigned int                           nr,
-                          dpack_utest_pack_fn *                  pack);
+dpackut_scalar_encode(const struct dpackut_scalar_data * data,
+                      unsigned int                       nr,
+                      dpackut_pack_fn *                  pack);
 
 extern void free(void * ptr);
-extern void dpack_utest_expect_free_arg(const void * data, size_t size);
+extern void dpackut_expect_free(const void * data, size_t size);
 
 extern void * malloc(size_t size);
-extern int    dpack_utest_expect_malloc_call(void);
+extern int    dpackut_expect_malloc(void);
 
 #endif /* _DPACK_UTEST_H */
