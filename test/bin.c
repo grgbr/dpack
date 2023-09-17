@@ -4,6 +4,7 @@
 #include <cute/cute.h>
 #include <cute/check.h>
 #include <cute/expect.h>
+#include <errno.h>
 
 #if defined(ZERO_BIN_SIZE_UTEST)
 
