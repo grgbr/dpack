@@ -12,7 +12,8 @@ common-cflags         := -Wall \
                          $(EXTRA_CFLAGS) \
                          -fvisibility=hidden
 common-ldflags        := $(common-cflags) \
-                         $(EXTRA_LDFLAGS)
+                         $(EXTRA_LDFLAGS) \
+                         -Wl,-z,start-stop-visibility=hidden
 
 # When assertions are enabled:
 # * ensure NDEBUG macro is not set to enable glibc assertions ;
