@@ -31,9 +31,9 @@ bins                := dpack-utest
 dpack-utest-objs    += $(call kconf_enabled,DPACK_ARRAY,array.o)
 dpack-utest-objs    += $(call kconf_enabled,DPACK_BIN,bin.o)
 dpack-utest-objs    += $(call kconf_enabled,DPACK_DOUBLE,double.o)
+dpack-utest-objs    += $(call kconf_enabled,DPACK_FLOAT,float.o)
 ifeq (0,1)
 dpack-utest-objs    += $(call kconf_enabled,DPACK_SCALAR,scalar.o)
-dpack-utest-objs    += $(call kconf_enabled,DPACK_FLOAT,float.o)
 dpack-utest-objs    += $(call kconf_enabled,DPACK_STRING,string.o)
 endif
 dpack-utest-cflags  := $(test-cflags)
