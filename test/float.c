@@ -953,9 +953,8 @@ CUTE_TEST(dpackut_float_decode_max_pos_zero_pos_zero_dbl)
 	dpackut_float_decode_max(&data);
 }
 
-#if 0
-#define DPACKUT_FLOAT_RANGE(_packed, _error, _value, _low, _high) \
-	{ \
+#define DPACKUT_FLOAT_RANGE(_var, _packed, _error, _value, _low, _high) \
+	const struct dpackut_scalar_data _var = { \
 		.packed     = _packed, \
 		.size       = sizeof(_packed) - 1, \
 		.error      = _error, \
@@ -965,100 +964,35 @@ CUTE_TEST(dpackut_float_decode_max_pos_zero_pos_zero_dbl)
 	}
 
 static void
-dpack_scalar_utest_unpack_float_range(
-	struct dpack_decoder *                 decoder,
-        const struct dpack_scalar_utest_data * data)
+dpackut_float_decode_range(const struct dpackut_scalar_data * data)
 {
-	float val;
+	struct dpack_decoder dec = { 0, };
+	float                val;
 
-	assert_int_equal(dpack_decode_float_range(decoder,
-	                                          data->low.f32,
-	                                          data->high.f32,
-	                                          &val),
-	                 data->error);
+	dpack_decoder_init_buffer(&dec, data->packed, data->size);
+
+	cute_check_sint(dpack_decode_float_range(&dec,
+	                                         data->low.f32,
+	                                         data->high.f32,
+	                                         &val),
+	                equal,
+	                data->error);
 	if (!data->error) {
-		assert_float_equal(val, data->value.f32, 0.0);
-		assert_int_equal(data->size, DPACK_FLOAT_SIZE);
+		cute_check_flt(val, equal, data->value.f32);
+		cute_check_uint(data->size, equal, DPACK_FLOAT_SIZE);
+		cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
 	}
+
+	dpack_decoder_fini(&dec);
 }
 
-static void
-dpack_scalar_utest_decode_float_range(void ** state __unused)
-{
-	static const struct dpack_scalar_utest_data data[] = {
-		/* -Not A Number: dpack-utest-gen.py -s "float('-nan')" */
-		DPACKUT_FLOAT_RANGE("\xca\xff\xc0\x00\x00", -ENOMSG, -NAN,      0.0f, 1.0f),
-
-		/* -INFINITY: dpack-utest-gen.py -s "float('-inf')" */
-		DPACKUT_FLOAT_RANGE("\xca\xff\x80\x00\x00", -ERANGE, -INFINITY, -MAXFLOAT, 0.0f),
-		/* -MAXFLOAT: dpack-utest-gen.py -s "- 3.40282346638528859811704183484516925e+38" */
-		DPACKUT_FLOAT_RANGE("\xca\xff\x7f\xff\xff", 0,       -MAXFLOAT, -MAXFLOAT, 0.0f),
-		/* -MINFLOAT: dpack-utest-gen.py -s "- 1.17549435082228750796873653722224568e-38" */
-		DPACKUT_FLOAT_RANGE("\xca\x80\x80\x00\x00", 0,       -MINFLOAT, -MAXFLOAT, 0.0f),
-		/* -0: dpack-utest-gen.py -s "- 0.0" */
-		DPACKUT_FLOAT_RANGE("\xca\x80\x00\x00\x00", 0,       -0.0f,     -MAXFLOAT, 0.0f),
-		/* +0: dpack-utest-gen.py -s "0.0" */
-		DPACKUT_FLOAT_RANGE("\xca\x00\x00\x00\x00", 0,       0.0f,      -MAXFLOAT, 0.0f),
-		/* +MINFLOAT: dpack-utest-gen.py -s "1.17549435082228750796873653722224568e-38" */
-		DPACKUT_FLOAT_RANGE("\xca\x00\x80\x00\x00", -ERANGE, MINFLOAT,  -MAXFLOAT, 0.0f),
-		/* +MAXFLOAT: dpack-utest-gen.py -s "3.40282346638528859811704183484516925e+38" */
-		DPACKUT_FLOAT_RANGE("\xca\x7f\x7f\xff\xff", -ERANGE, MAXFLOAT,  -MAXFLOAT, 0.0f),
-		/* +INFINITY: dpack-utest-gen.py -s "float('inf')" */
-		DPACKUT_FLOAT_RANGE("\xca\x7f\x80\x00\x00", -ERANGE, INFINITY,  -MAXFLOAT, 0.0f),
-
-		/* -INFINITY: dpack-utest-gen.py -s "float('-inf')" */
-		DPACKUT_FLOAT_RANGE("\xca\xff\x80\x00\x00", -ERANGE, -INFINITY, 0.0f,      MAXFLOAT),
-		/* -MAXFLOAT: dpack-utest-gen.py -s "- 3.40282346638528859811704183484516925e+38" */
-		DPACKUT_FLOAT_RANGE("\xca\xff\x7f\xff\xff", -ERANGE, -MAXFLOAT, 0.0f,      MAXFLOAT),
-		/* -MINFLOAT: dpack-utest-gen.py -s "- 1.17549435082228750796873653722224568e-38" */
-		DPACKUT_FLOAT_RANGE("\xca\x80\x80\x00\x00", -ERANGE, -MINFLOAT, 0.0f,      MAXFLOAT),
-		/* -0: dpack-utest-gen.py -s "- 0.0" */
-		DPACKUT_FLOAT_RANGE("\xca\x80\x00\x00\x00", 0,       -0.0f,     0.0f,      MAXFLOAT),
-		/* +0: dpack-utest-gen.py -s "0.0" */
-		DPACKUT_FLOAT_RANGE("\xca\x00\x00\x00\x00", 0,       0.0f,      0.0f,      MAXFLOAT),
-		/* +MINFLOAT: dpack-utest-gen.py -s "1.17549435082228750796873653722224568e-38" */
-		DPACKUT_FLOAT_RANGE("\xca\x00\x80\x00\x00", 0,       MINFLOAT,  0.0f,      MAXFLOAT),
-		/* +MAXFLOAT: dpack-utest-gen.py -s "3.40282346638528859811704183484516925e+38" */
-		DPACKUT_FLOAT_RANGE("\xca\x7f\x7f\xff\xff", 0,       MAXFLOAT,  0.0f,      MAXFLOAT),
-		/* +INFINITY: dpack-utest-gen.py -s "float('inf')" */
-		DPACKUT_FLOAT_RANGE("\xca\x7f\x80\x00\x00", -ERANGE, INFINITY,  0.0f,      MAXFLOAT),
-		/* +Not A Number: dpack-utest-gen.py -s "float('nan')" */
-		DPACKUT_FLOAT_RANGE("\xca\x7f\xc0\x00\x00", -ENOMSG, NAN,       0.0f,      MAXFLOAT),
-
-		/* -INFINITY: dpack-utest-gen.py -s "float('-inf')" */
-		DPACKUT_FLOAT_RANGE("\xca\xff\x80\x00\x00", -ERANGE, -INFINITY, 1.0f,      2.0f),
-		/* -MAXFLOAT: dpack-utest-gen.py -s "- 3.40282346638528859811704183484516925e+38" */
-		DPACKUT_FLOAT_RANGE("\xca\xff\x7f\xff\xff", -ERANGE, -MAXFLOAT, 1.0f,      2.0f),
-		/* -MINFLOAT: dpack-utest-gen.py -s "- 1.17549435082228750796873653722224568e-38" */
-		DPACKUT_FLOAT_RANGE("\xca\x80\x80\x00\x00", -ERANGE, -MINFLOAT, 1.0f,      2.0f),
-		/* -0: dpack-utest-gen.py -s "- 0.0" */
-		DPACKUT_FLOAT_RANGE("\xca\x80\x00\x00\x00", -ERANGE, -0.0f,     1.0f,      2.0f),
-		/* +0: dpack-utest-gen.py -s "0.0" */
-		DPACKUT_FLOAT_RANGE("\xca\x00\x00\x00\x00", -ERANGE, 0.0f,      1.0f,      2.0f),
-		/* +1.0: dpack-utest-gen.py -s "1.0" */
-		DPACKUT_FLOAT_RANGE("\xca\x3f\x80\x00\x00", 0,       1.0f,      1.0f,      2.0f),
-		/* +1.5: dpack-utest-gen.py -s "1.5" */
-		DPACKUT_FLOAT_RANGE("\xca\x3f\xc0\x00\x00", 0,       1.5f,      1.0f,      2.0f),
-		/* +2.0: dpack-utest-gen.py -s "2.0" */
-		DPACKUT_FLOAT_RANGE("\xca\x40\x00\x00\x00", 0,       2.0f,      1.0f,      2.0f),
-		/* +MINFLOAT: dpack-utest-gen.py -s "1.17549435082228750796873653722224568e-38" */
-		DPACKUT_FLOAT_RANGE("\xca\x00\x80\x00\x00", -ERANGE, MINFLOAT,  1.0f,      2.0f),
-		/* +MAXFLOAT: dpack-utest-gen.py -s "3.40282346638528859811704183484516925e+38" */
-		DPACKUT_FLOAT_RANGE("\xca\x7f\x7f\xff\xff", -ERANGE, MAXFLOAT,  1.0f,      2.0f),
-		/* +INFINITY: dpack-utest-gen.py -s "float('inf')" */
-		DPACKUT_FLOAT_RANGE("\xca\x7f\x80\x00\x00", -ERANGE, INFINITY,  1.0f,      2.0f),
-
-		/* +Not A Number: dpack-utest-gen.py -s "float('nan')" */
-		DPACKUT_FLOAT_RANGE("\xca\x7f\xc0\x00\x00", -ENOMSG, NAN,       0.0f,      1.0f),
-		/* +0 (double): dpack-utest-gen.py "float(0.0)" */
-		DPACKUT_FLOAT_RANGE("\xcb"
-		                        "\x00\x00\x00\x00"
-		                        "\x00\x00\x00\x00",     -ENOMSG, 0.0,       0.0f,      1.0f)
-	};
-
 #if defined(CONFIG_DPACK_ASSERT_API)
+
+CUTE_TEST(dpackut_float_decode_range_assert)
+{
 	float                val;
 	struct dpack_decoder dec = { 0, };
+	char                 buff[DPACK_FLOAT_SIZE];
 	int                  ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_float_range(NULL,
@@ -1070,7 +1004,7 @@ dpack_scalar_utest_decode_float_range(void ** state __unused)
 	                                                     2.0f,
 	                                                     &val));
 
-	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
 	cute_expect_assertion(ret = dpack_decode_float_range(&dec,
 	                                                     -INFINITY,
 	                                                     2.0f,
@@ -1100,31 +1034,388 @@ dpack_scalar_utest_decode_float_range(void ** state __unused)
 	                                                     2.0f,
 	                                                     NULL));
 	dpack_decoder_fini(&dec);
-#endif
-
-	dpack_scalar_utest_decode(data,
-	                          array_nr(data),
-	                          dpack_scalar_utest_unpack_float_range);
 }
 
-static const struct CMUnitTest dpack_float_utests[] = {
-	cmocka_unit_test(dpack_scalar_utest_encode_float),
-	cmocka_unit_test(dpack_scalar_utest_decode_float),
-	cmocka_unit_test(dpack_scalar_utest_decode_float_min),
-	cmocka_unit_test(dpack_scalar_utest_decode_float_max),
-	cmocka_unit_test(dpack_scalar_utest_decode_float_range)
-};
+#else  /* !defined(CONFIG_DPACK_ASSERT_API) */
 
-int
-main(void)
+CUTE_TEST(dpackut_float_decode_range_assert)
 {
-	return cmocka_run_group_tests_name(
-		"Single precision floating point numbers",
-		dpack_float_utests,
-		NULL,
-		NULL);
+	cute_skip("assertion unsupported");
 }
-#endif
+
+#endif /* defined(CONFIG_DPACK_ASSERT_API) */
+
+CUTE_TEST(dpackut_float_decode_range_neg_nan_pos_zero_one)
+{
+	/* -Not A Number: dpack-utest-gen.py -s "float('-nan')" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\xff\xc0\x00\x00",
+	                    -ENOMSG,
+	                    -NAN,
+	                    0.0f,
+	                    1.0f);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_neg_inf_neg_max_pos_zero)
+{
+	/* -INFINITY: dpack-utest-gen.py -s "float('-inf')" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\xff\x80\x00\x00",
+	                    -ERANGE,
+	                    -INFINITY,
+	                    -MAXFLOAT,
+	                    0.0f);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_neg_max_neg_max_pos_zero)
+{
+	/* -MAXFLOAT: dpack-utest-gen.py -s "- 3.40282346638528859811704183484516925e+38" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\xff\x7f\xff\xff",
+	                    0,
+	                    -MAXFLOAT,
+	                    -MAXFLOAT,
+	                    0.0f);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_neg_min_neg_max_pos_zero)
+{
+	/* -MINFLOAT: dpack-utest-gen.py -s "- 1.17549435082228750796873653722224568e-38" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x80\x80\x00\x00",
+	                    0,
+	                    -MINFLOAT,
+	                    -MAXFLOAT,
+	                    0.0f);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_neg_zero_neg_max_pos_zero)
+{
+	/* -0: dpack-utest-gen.py -s "- 0.0" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x80\x00\x00\x00",
+	                    0,
+	                    -0.0f,
+	                    -MAXFLOAT,
+	                    0.0f);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_pos_zero_neg_max_pos_zero)
+{
+	/* +0: dpack-utest-gen.py -s "0.0" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x00\x00\x00\x00",
+	                    0,
+	                    0.0f,
+	                    -MAXFLOAT,
+	                    0.0f);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_pos_min_neg_max_pos_zero)
+{
+	/* +MINFLOAT: dpack-utest-gen.py -s "1.17549435082228750796873653722224568e-38" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x00\x80\x00\x00",
+	                    -ERANGE,
+	                    MINFLOAT,
+	                    -MAXFLOAT,
+	                    0.0f);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_pos_max_neg_max_pos_zero)
+{
+	/* +MAXFLOAT: dpack-utest-gen.py -s "3.40282346638528859811704183484516925e+38" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x7f\x7f\xff\xff",
+	                    -ERANGE,
+	                    MAXFLOAT,
+	                    -MAXFLOAT,
+	                    0.0f);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_pos_inf_neg_max_pos_zero)
+{
+	/* +INFINITY: dpack-utest-gen.py -s "float('inf')" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x7f\x80\x00\x00",
+	                    -ERANGE,
+	                    INFINITY,
+	                    -MAXFLOAT,
+	                    0.0f);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_neg_inf_pos_zero_pos_max)
+{
+	/* -INFINITY: dpack-utest-gen.py -s "float('-inf')" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\xff\x80\x00\x00",
+	                    -ERANGE,
+	                    -INFINITY,
+	                    0.0f,
+	                    MAXFLOAT);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_neg_max_pos_zero_pos_max)
+{
+	/* -MAXFLOAT: dpack-utest-gen.py -s "- 3.40282346638528859811704183484516925e+38" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\xff\x7f\xff\xff",
+	                    -ERANGE,
+	                    -MAXFLOAT,
+	                    0.0f,
+	                    MAXFLOAT);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_neg_min_pos_zero_pos_max)
+{
+	/* -MINFLOAT: dpack-utest-gen.py -s "- 1.17549435082228750796873653722224568e-38" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x80\x80\x00\x00",
+	                    -ERANGE,
+	                    -MINFLOAT,
+	                    0.0f,
+	                    MAXFLOAT);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_neg_zero_pos_zero_pos_max)
+{
+	/* -0: dpack-utest-gen.py -s "- 0.0" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x80\x00\x00\x00",
+	                    0,
+	                    -0.0f,
+	                    0.0f,
+	                    MAXFLOAT);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_pos_zero_pos_zero_pos_max)
+{
+	/* +0: dpack-utest-gen.py -s "0.0" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x00\x00\x00\x00",
+	                    0,
+	                    0.0f,
+	                    0.0f,
+	                    MAXFLOAT);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_pos_min_pos_zero_pos_max)
+{
+	/* +MINFLOAT: dpack-utest-gen.py -s "1.17549435082228750796873653722224568e-38" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x00\x80\x00\x00",
+	                    0,
+	                    MINFLOAT,
+	                    0.0f,
+	                    MAXFLOAT);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_pos_max_pos_zero_pos_max)
+{
+	/* +MAXFLOAT: dpack-utest-gen.py -s "3.40282346638528859811704183484516925e+38" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x7f\x7f\xff\xff",
+	                    0,
+	                    MAXFLOAT,
+	                    0.0f,
+	                    MAXFLOAT);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_pos_inf_pos_zero_pos_max)
+{
+	/* +INFINITY: dpack-utest-gen.py -s "float('inf')" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x7f\x80\x00\x00",
+	                    -ERANGE,
+	                    INFINITY,
+	                    0.0f,
+	                    MAXFLOAT);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_pos_nan_pos_zero_pos_max)
+{
+	/* +Not A Number: dpack-utest-gen.py -s "float('nan')" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x7f\xc0\x00\x00",
+	                    -ENOMSG,
+	                    NAN,
+	                    0.0f,
+	                    MAXFLOAT);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_neg_info_one_two)
+{
+	/* -INFINITY: dpack-utest-gen.py -s "float('-inf')" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\xff\x80\x00\x00",
+	                    -ERANGE,
+	                    -INFINITY,
+	                    1.0f,
+	                    2.0f);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_neg_max_one_two)
+{
+	/* -MAXFLOAT: dpack-utest-gen.py -s "- 3.40282346638528859811704183484516925e+38" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\xff\x7f\xff\xff",
+	                    -ERANGE,
+	                    -MAXFLOAT,
+	                    1.0f,
+	                    2.0f);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_neg_min_one_two)
+{
+	/* -MINFLOAT: dpack-utest-gen.py -s "- 1.17549435082228750796873653722224568e-38" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x80\x80\x00\x00",
+	                    -ERANGE,
+	                    -MINFLOAT,
+	                    1.0f,
+	                    2.0f);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_neg_zero_one_two)
+{
+	/* -0: dpack-utest-gen.py -s "- 0.0" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x80\x00\x00\x00",
+	                    -ERANGE,
+	                    -0.0f,
+	                    1.0f,
+	                    2.0f);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_pos_zero_one_two)
+{
+	/* +0: dpack-utest-gen.py -s "0.0" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x00\x00\x00\x00",
+	                    -ERANGE,
+	                    0.0f,
+	                    1.0f,
+	                    2.0f);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_one_one_two)
+{
+	/* +1.0: dpack-utest-gen.py -s "1.0" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x3f\x80\x00\x00",
+	                    0,
+	                    1.0f,
+	                    1.0f,
+	                    2.0f);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_onenhalf_one_two)
+{
+	/* +1.5: dpack-utest-gen.py -s "1.5" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x3f\xc0\x00\x00",
+	                    0,
+	                    1.5f,
+	                    1.0f,
+	                    2.0f);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_two_one_two)
+{
+	/* +2.0: dpack-utest-gen.py -s "2.0" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x40\x00\x00\x00",
+	                    0,
+	                    2.0f,
+	                    1.0f,
+	                    2.0f);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_pos_min_one_two)
+{
+	/* +MINFLOAT: dpack-utest-gen.py -s "1.17549435082228750796873653722224568e-38" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x00\x80\x00\x00",
+	                    -ERANGE,
+	                    MINFLOAT,
+	                    1.0f,
+	                    2.0f);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_pos_max_one_two)
+{
+	/* +MAXFLOAT: dpack-utest-gen.py -s "3.40282346638528859811704183484516925e+38" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x7f\x7f\xff\xff",
+	                    -ERANGE,
+	                    MAXFLOAT,
+	                    1.0f,
+	                    2.0f);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_pos_inf_one_two)
+{
+	/* +INFINITY: dpack-utest-gen.py -s "float('inf')" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x7f\x80\x00\x00",
+	                    -ERANGE,
+	                    INFINITY,
+	                    1.0f,
+	                    2.0f);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_pos_nan_pos_zero_one)
+{
+	/* +Not A Number: dpack-utest-gen.py -s "float('nan')" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xca\x7f\xc0\x00\x00",
+	                    -ENOMSG,
+	                    NAN,
+	                    0.0f,
+	                    1.0f);
+	dpackut_float_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_float_decode_range_pos_zero_pos_zero_one)
+{
+	/* +0 (double): dpack-utest-gen.py "float(0.0)" */
+	DPACKUT_FLOAT_RANGE(data,
+	                    "\xcb\x00\x00\x00\x00\x00\x00\x00\x00",
+	                    -ENOMSG,
+	                    0.0,
+	                    0.0f,
+	                    1.0f);
+	dpackut_float_decode_range(&data);
+}
 
 CUTE_GROUP(dpackut_float_group) = {
 	CUTE_REF(dpackut_float_encode_assert),
@@ -1208,6 +1499,39 @@ CUTE_GROUP(dpackut_float_group) = {
 	CUTE_REF(dpackut_float_decode_max_pos_inf_pos_max),
 	CUTE_REF(dpackut_float_decode_max_pos_nan_pos_zero),
 	CUTE_REF(dpackut_float_decode_max_pos_zero_pos_zero_dbl),
+
+	CUTE_REF(dpackut_float_decode_range_assert),
+	CUTE_REF(dpackut_float_decode_range_neg_nan_pos_zero_one),
+	CUTE_REF(dpackut_float_decode_range_neg_inf_neg_max_pos_zero),
+	CUTE_REF(dpackut_float_decode_range_neg_max_neg_max_pos_zero),
+	CUTE_REF(dpackut_float_decode_range_neg_min_neg_max_pos_zero),
+	CUTE_REF(dpackut_float_decode_range_neg_zero_neg_max_pos_zero),
+	CUTE_REF(dpackut_float_decode_range_pos_zero_neg_max_pos_zero),
+	CUTE_REF(dpackut_float_decode_range_pos_min_neg_max_pos_zero),
+	CUTE_REF(dpackut_float_decode_range_pos_max_neg_max_pos_zero),
+	CUTE_REF(dpackut_float_decode_range_pos_inf_neg_max_pos_zero),
+	CUTE_REF(dpackut_float_decode_range_neg_inf_pos_zero_pos_max),
+	CUTE_REF(dpackut_float_decode_range_neg_max_pos_zero_pos_max),
+	CUTE_REF(dpackut_float_decode_range_neg_min_pos_zero_pos_max),
+	CUTE_REF(dpackut_float_decode_range_neg_zero_pos_zero_pos_max),
+	CUTE_REF(dpackut_float_decode_range_pos_zero_pos_zero_pos_max),
+	CUTE_REF(dpackut_float_decode_range_pos_min_pos_zero_pos_max),
+	CUTE_REF(dpackut_float_decode_range_pos_max_pos_zero_pos_max),
+	CUTE_REF(dpackut_float_decode_range_pos_inf_pos_zero_pos_max),
+	CUTE_REF(dpackut_float_decode_range_pos_nan_pos_zero_pos_max),
+	CUTE_REF(dpackut_float_decode_range_neg_info_one_two),
+	CUTE_REF(dpackut_float_decode_range_neg_max_one_two),
+	CUTE_REF(dpackut_float_decode_range_neg_min_one_two),
+	CUTE_REF(dpackut_float_decode_range_neg_zero_one_two),
+	CUTE_REF(dpackut_float_decode_range_pos_zero_one_two),
+	CUTE_REF(dpackut_float_decode_range_one_one_two),
+	CUTE_REF(dpackut_float_decode_range_onenhalf_one_two),
+	CUTE_REF(dpackut_float_decode_range_two_one_two),
+	CUTE_REF(dpackut_float_decode_range_pos_min_one_two),
+	CUTE_REF(dpackut_float_decode_range_pos_max_one_two),
+	CUTE_REF(dpackut_float_decode_range_pos_inf_one_two),
+	CUTE_REF(dpackut_float_decode_range_pos_nan_pos_zero_one),
+	CUTE_REF(dpackut_float_decode_range_pos_zero_pos_zero_one)
 };
 
 CUTE_SUITE_EXTERN(dpackut_float_suite,
