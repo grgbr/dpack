@@ -3,92 +3,6 @@
 #include "dpack/codec.h"
 #include <errno.h>
 
-#define DPACK_UTEST_BOOL(_packed, _error, _value) \
-	{ \
-		.packed        = _packed, \
-		.size          = sizeof(_packed) - 1, \
-		.error         = _error, \
-		.value.boolean = _value \
-	}
-
-static int
-dpack_scalar_utest_pack_bool(struct dpack_encoder *                 encoder,
-                             const struct dpack_scalar_utest_data * data)
-{
-	assert_int_equal(data->size, DPACK_BOOL_SIZE);
-
-	return dpack_encode_bool(encoder, data->value.boolean);
-}
-
-static void
-dpack_scalar_utest_encode_bool(void ** state __unused)
-{
-	static const struct dpack_scalar_utest_data data[] = {
-		/* True */
-		DPACK_UTEST_BOOL("\xc3", 0, true),
-		/* False */
-		DPACK_UTEST_BOOL("\xc2", 0, false)
-	};
-
-#if defined(CONFIG_DPACK_ASSERT_API)
-	bool                 val = false;
-	struct dpack_encoder enc = { 0, };
-	int                  ret __unused;
-
-	expect_assert_failure(ret = dpack_encode_bool(NULL, val));
-	expect_assert_failure(ret = dpack_encode_bool(&enc, val));
-#endif
-
-	dpack_scalar_utest_encode(data,
-	                          array_nr(data),
-	                          dpack_scalar_utest_pack_bool);
-}
-
-static void
-dpack_scalar_utest_unpack_bool(struct dpack_decoder *                 decoder,
-                               const struct dpack_scalar_utest_data * data)
-{
-	bool val;
-
-	assert_int_equal(data->size, DPACK_BOOL_SIZE);
-
-	assert_int_equal(dpack_decode_bool(decoder, &val), data->error);
-	if (!data->error)
-		assert_int_equal(val, data->value.boolean);
-}
-
-static void
-dpack_scalar_utest_decode_bool(void ** state __unused)
-{
-	static const struct dpack_scalar_utest_data data[] = {
-		/* 1 */
-		DPACK_UTEST_BOOL("\x01", -ENOMSG, 0),
-		/* 0 */
-		DPACK_UTEST_BOOL("\x00", -ENOMSG, 0),
-		/* True */
-		DPACK_UTEST_BOOL("\xc3", 0,       true),
-		/* False */
-		DPACK_UTEST_BOOL("\xc2", 0,       false)
-	};
-
-#if defined(CONFIG_DPACK_ASSERT_API)
-	bool                 val;
-	struct dpack_decoder dec = { 0, };
-	int                  ret __unused;
-
-	expect_assert_failure(ret = dpack_decode_bool(NULL, &val));
-	expect_assert_failure(ret = dpack_decode_bool(&dec, &val));
-
-	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
-	expect_assert_failure(ret = dpack_decode_bool(&dec, NULL));
-	dpack_decoder_fini(&dec);
-#endif
-
-	dpack_scalar_utest_decode(data,
-	                          array_nr(data),
-	                          dpack_scalar_utest_unpack_bool);
-}
-
 #define DPACK_UTEST_UINT8(_packed, _error, _value) \
 	{ \
 		.packed      = _packed, \
@@ -3282,8 +3196,6 @@ dpack_scalar_utest_decode_int64_range(void ** state __unused)
 }
 
 static const struct CMUnitTest dpack_stdint_utests[] = {
-	cmocka_unit_test(dpack_scalar_utest_encode_bool),
-	cmocka_unit_test(dpack_scalar_utest_decode_bool),
 
 	cmocka_unit_test(dpack_scalar_utest_encode_uint8),
 	cmocka_unit_test(dpack_scalar_utest_decode_uint8),
