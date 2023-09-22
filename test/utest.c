@@ -319,9 +319,8 @@ extern CUTE_SUITE_DECL(dpackut_float_suite);
 #endif
 #if defined(CONFIG_DPACK_SCALAR)
 extern CUTE_SUITE_DECL(dpackut_bool_suite);
-#endif
-#if defined(CONFIG_DPACK_SCALAR)
 extern CUTE_SUITE_DECL(dpackut_uint8_suite);
+extern CUTE_SUITE_DECL(dpackut_int8_suite);
 #endif
 
 CUTE_GROUP(dpackut_group) = {
@@ -339,9 +338,8 @@ CUTE_GROUP(dpackut_group) = {
 #endif
 #if defined(CONFIG_DPACK_SCALAR)
 	CUTE_REF(dpackut_bool_suite),
-#endif
-#if defined(CONFIG_DPACK_SCALAR)
 	CUTE_REF(dpackut_uint8_suite),
+	CUTE_REF(dpackut_int8_suite),
 #endif
 };
 
