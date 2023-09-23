@@ -359,7 +359,6 @@ CUTE_TEST(dpackut_int8_decode_min_128_128)
 	dpackut_int8_decode_min(&data);
 }
 
-#if 0
 #define DPACKUT_INT8_MAX(_var, _packed, _error, _value, _high) \
 	const struct dpackut_scalar_data _var = { \
 		.packed     = _packed, \
@@ -370,66 +369,41 @@ CUTE_TEST(dpackut_int8_decode_min_128_128)
 	}
 
 static void
-dpack_scalar_utest_unpack_int8_max(
-	struct dpack_decoder *                 decoder,
-	const struct dpack_scalar_utest_data * data)
+dpackut_int8_decode_max(const struct dpackut_scalar_data * data)
 {
-	int8_t val;
+	struct dpack_decoder dec = { 0, };
+	int8_t               val;
 
-	assert_int_equal(dpack_decode_int8_max(decoder, data->high.int8, &val),
-	                 data->error);
-	if (data->error)
-		return;
+	dpack_decoder_init_buffer(&dec, data->packed, data->size);
 
-	assert_true(DPACK_INT8_SIZE_MIN <= data->size);
-	assert_true(DPACK_INT8_SIZE_MAX >= data->size);
+	cute_check_sint(dpack_decode_int8_max(&dec, data->high.int8, &val),
+	                equal,
+	                data->error);
+	if (!data->error) {
+		cute_check_sint(val, equal, data->value.int8);
+		cute_check_uint(data->size,
+		                greater_equal,
+		                DPACK_INT8_SIZE_MIN);
+		cute_check_uint(data->size, lower_equal, DPACK_INT8_SIZE_MAX);
+		cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+	}
 
-	assert_int_equal(val, data->value.int8);
+	dpack_decoder_fini(&dec);
 }
 
-static void
-dpack_scalar_utest_decode_int8_max(void ** state __unused)
+#if  defined(CONFIG_DPACK_ASSERT_API)
+
+CUTE_TEST(dpackut_int8_decode_max_assert)
 {
-	static const struct dpack_scalar_utest_data data[] = {
-		/* -129 */
-		DPACKUT_INT8_MAX("\xd1\xff\x7f", -ERANGE, 0,            INT8_C(0)),
-		/* -128 */
-		DPACKUT_INT8_MAX("\xd0\x80",     0,       INT8_C(-128), INT8_C(0)),
-		/* -127 */
-		DPACKUT_INT8_MAX("\xd0\x81",     0,       INT8_C(-127), INT8_C(-127)),
-		/* -126 */
-		DPACKUT_INT8_MAX("\xd0\x82",     -ERANGE, 0,            INT8_C(-127)),
-
-		/* -1 */
-		DPACKUT_INT8_MAX("\xff",         0,       INT8_C(-1),   INT8_C(0)),
-		/* 0 */
-		DPACKUT_INT8_MAX("\x00",         0,       INT8_C(0),    INT8_C(0)),
-		/* 1 */
-		DPACKUT_INT8_MAX("\x01",         -ERANGE, 0,            INT8_C(0)),
-		/* 127 */
-		DPACKUT_INT8_MAX("\x7f",         -ERANGE, 0,            INT8_C(0)),
-		/* 128 */
-		DPACKUT_INT8_MAX("\xcc\x80",     -ERANGE, 0,            INT8_C(0)),
-
-		/* 125 */
-		DPACKUT_INT8_MAX("\x7d",         0,       INT8_C(125),  INT8_C(126)),
-		/* 126 */
-		DPACKUT_INT8_MAX("\x7e",         0,       INT8_C(126),  INT8_C(126)),
-		/* 127 */
-		DPACKUT_INT8_MAX("\x7f",         -ERANGE, 0,            INT8_C(126)),
-		/* 128 */
-		DPACKUT_INT8_MAX("\xcc\x80",     -ERANGE, 0,            INT8_C(126))
-	};
-
-#if defined(CONFIG_DPACK_ASSERT_API)
 	int8_t               val;
 	struct dpack_decoder dec = { 0, };
+	char                 buff[DPACK_INT8_SIZE_MAX];
 	int                  ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_int8_max(NULL, 1, &val));
 	cute_expect_assertion(ret = dpack_decode_int8_max(&dec, 1, &val));
 
-	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
 	cute_expect_assertion(ret = dpack_decode_int8_max(&dec,
 	                                                  INT8_MIN,
 	                                                  &val));
@@ -438,11 +412,106 @@ dpack_scalar_utest_decode_int8_max(void ** state __unused)
 	                                                  &val));
 	cute_expect_assertion(ret = dpack_decode_int8_max(&dec, 1, NULL));
 	dpack_decoder_fini(&dec);
-#endif
+}
 
-	dpack_scalar_utest_decode(data,
-	                          array_nr(data),
-	                          dpack_scalar_utest_unpack_int8_max);
+#else  /* !defined(CONFIG_DPACK_ASSERT_API) */
+
+CUTE_TEST(dpackut_int8_decode_max_assert)
+{
+	cute_skip("assertion unsupported");
+}
+
+#endif /* defined(CONFIG_DPACK_ASSERT_API) */
+
+CUTE_TEST(dpackut_int8_decode_max__129_0)
+{
+	/* -129 */
+	DPACKUT_INT8_MAX(data, "\xd1\xff\x7f", -ERANGE, 0, INT8_C(0));
+	dpackut_int8_decode_max(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_max__128_0)
+{
+	/* -128 */
+	DPACKUT_INT8_MAX(data, "\xd0\x80", 0, INT8_C(-128), INT8_C(0));
+	dpackut_int8_decode_max(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_max__127__127)
+{
+	/* -127 */
+	DPACKUT_INT8_MAX(data, "\xd0\x81", 0, INT8_C(-127), INT8_C(-127));
+	dpackut_int8_decode_max(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_max__126__127)
+{
+	/* -126 */
+	DPACKUT_INT8_MAX(data, "\xd0\x82", -ERANGE, 0, INT8_C(-127));
+	dpackut_int8_decode_max(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_max__1_0)
+{
+	/* -1 */
+	DPACKUT_INT8_MAX(data, "\xff", 0, INT8_C(-1), INT8_C(0));
+	dpackut_int8_decode_max(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_max_0_0)
+{
+	/* 0 */
+	DPACKUT_INT8_MAX(data, "\x00", 0, INT8_C(0), INT8_C(0));
+	dpackut_int8_decode_max(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_max_1_0)
+{
+	/* 1 */
+	DPACKUT_INT8_MAX(data, "\x01", -ERANGE, 0, INT8_C(0));
+	dpackut_int8_decode_max(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_max_127_0)
+{
+	/* 127 */
+	DPACKUT_INT8_MAX(data, "\x7f", -ERANGE, 0, INT8_C(0));
+	dpackut_int8_decode_max(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_max_128_0)
+{
+	/* 128 */
+	DPACKUT_INT8_MAX(data, "\xcc\x80", -ERANGE, 0, INT8_C(0));
+	dpackut_int8_decode_max(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_max_125_126)
+{
+	/* 125 */
+	DPACKUT_INT8_MAX(data, "\x7d", 0, INT8_C(125), INT8_C(126));
+	dpackut_int8_decode_max(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_max_126_126)
+{
+	/* 126 */
+	DPACKUT_INT8_MAX(data, "\x7e", 0, INT8_C(126), INT8_C(126));
+	dpackut_int8_decode_max(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_max_127_126)
+{
+	/* 127 */
+	DPACKUT_INT8_MAX(data, "\x7f", -ERANGE, 0, INT8_C(126));
+	dpackut_int8_decode_max(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_max_128_126)
+{
+	/* 128 */
+	DPACKUT_INT8_MAX(data, "\xcc\x80", -ERANGE, 0, INT8_C(126));
+	dpackut_int8_decode_max(&data);
 }
 
 #define DPACKUT_INT8_RANGE(_var, _packed, _error, _value, _low, _high) \
@@ -456,71 +525,44 @@ dpack_scalar_utest_decode_int8_max(void ** state __unused)
 	}
 
 static void
-dpack_scalar_utest_unpack_int8_range(
-	struct dpack_decoder *                 decoder,
-	const struct dpack_scalar_utest_data * data)
+dpackut_int8_decode_range(const struct dpackut_scalar_data * data)
 {
-	int8_t val;
+	struct dpack_decoder dec = { 0, };
+	int8_t               val;
 
-	assert_int_equal(dpack_decode_int8_range(decoder,
-	                                         data->low.int8,
-	                                         data->high.int8,
-	                                         &val),
-	                 data->error);
-	if (data->error)
-		return;
+	dpack_decoder_init_buffer(&dec, data->packed, data->size);
 
-	assert_true(DPACK_INT8_SIZE_MIN <= data->size);
-	assert_true(DPACK_INT8_SIZE_MAX >= data->size);
+	cute_check_sint(dpack_decode_int8_range(&dec,
+	                                        data->low.int8,
+	                                        data->high.int8,
+	                                        &val),
+	                equal,
+	                data->error);
+	if (!data->error) {
+		cute_check_sint(val, equal, data->value.int8);
+		cute_check_uint(data->size,
+		                greater_equal,
+		                DPACK_INT8_SIZE_MIN);
+		cute_check_uint(data->size, lower_equal, DPACK_INT8_SIZE_MAX);
+		cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+	}
 
-	assert_int_equal(val, data->value.int8);
+	dpack_decoder_fini(&dec);
 }
 
-static void
-dpack_scalar_utest_decode_int8_range(void ** state __unused)
+#if  defined(CONFIG_DPACK_ASSERT_API)
+
+CUTE_TEST(dpackut_int8_decode_range_assert)
 {
-	static const struct dpack_scalar_utest_data data[] = {
-		/* -129 */
-		DPACKUT_INT8_RANGE("\xd1\xff\x7f", -ERANGE, 0,            INT8_MIN + 1, INT8_MIN + 2),
-		/* -128 */
-		DPACKUT_INT8_RANGE("\xd0\x80",     -ERANGE, 0,            INT8_MIN + 1, INT8_MIN + 2),
-		/* -127 */
-		DPACKUT_INT8_RANGE("\xd0\x81",     0,       INT8_MIN + 1, INT8_MIN + 1, INT8_MIN + 2),
-		/* -126 */
-		DPACKUT_INT8_RANGE("\xd0\x82",     0,       INT8_MIN + 2, INT8_MIN + 1, INT8_MIN + 2),
-		/* -125 */
-		DPACKUT_INT8_RANGE("\xd0\x83",     -ERANGE, 0,            INT8_MIN + 1, INT8_MIN + 2),
-
-		/* -1 */
-		DPACKUT_INT8_RANGE("\xff",         -ERANGE, 0,            INT8_C(0), INT8_C(1)),
-		/* 0 */
-		DPACKUT_INT8_RANGE("\x00",         0,       INT8_C(0),    INT8_C(0), INT8_C(1)),
-		/* 1 */
-		DPACKUT_INT8_RANGE("\x01",         0,       INT8_C(1),    INT8_C(0), INT8_C(1)),
-		/* 2 */
-		DPACKUT_INT8_RANGE("\x02",         -ERANGE, 0,            INT8_C(0), INT8_C(1)),
-
-		/* 124 */
-		DPACKUT_INT8_RANGE("\x7c",         -ERANGE, 0,            INT8_MAX - 2, INT8_MAX - 1),
-		/* 125 */
-		DPACKUT_INT8_RANGE("\x7d",         0,       INT8_MAX - 2, INT8_MAX - 2, INT8_MAX - 1),
-		/* 126 */
-		DPACKUT_INT8_RANGE("\x7e",         0,       INT8_MAX - 1, INT8_MAX - 2, INT8_MAX - 1),
-		/* 127 */
-		DPACKUT_INT8_RANGE("\x7f",         -ERANGE, 0,            INT8_MAX - 2, INT8_MAX - 1),
-		/* 128 */
-		DPACKUT_INT8_RANGE("\xcc\x80",     -ERANGE, 0,            INT8_MAX - 2, INT8_MAX - 1)
-	};
-
-#if defined(CONFIG_DPACK_ASSERT_API)
 	int8_t               val;
 	struct dpack_decoder dec = { 0, };
+	char                 buff[DPACK_INT8_SIZE_MAX];
 	int                  ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_int8_range(NULL, 1, 2, &val));
 	cute_expect_assertion(ret = dpack_decode_int8_range(&dec, 1, 2, &val));
 
-	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
 	cute_expect_assertion(ret = dpack_decode_int8_range(&dec,
 	                                                    INT8_MIN,
 	                                                    2,
@@ -532,14 +574,184 @@ dpack_scalar_utest_decode_int8_range(void ** state __unused)
 	cute_expect_assertion(ret = dpack_decode_int8_range(&dec, 2, 2, &val));
 	cute_expect_assertion(ret = dpack_decode_int8_range(&dec, 1, 2, NULL));
 	dpack_decoder_fini(&dec);
-#endif
-
-	dpack_scalar_utest_decode(data,
-	                          array_nr(data),
-	                          dpack_scalar_utest_unpack_int8_range);
 }
 
-#endif
+#else  /* !defined(CONFIG_DPACK_ASSERT_API) */
+
+CUTE_TEST(dpackut_int8_decode_range_assert)
+{
+	cute_skip("assertion unsupported");
+}
+
+#endif /* defined(CONFIG_DPACK_ASSERT_API) */
+
+CUTE_TEST(dpackut_int8_decode_range__129__127__126)
+{
+	/* -129 */
+	DPACKUT_INT8_RANGE(data,
+	                   "\xd1\xff\x7f",
+	                   -ERANGE,
+	                   0,
+	                   INT8_MIN + 1,
+	                   INT8_MIN + 2);
+	dpackut_int8_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_range__128__127__126)
+{
+	/* -128 */
+	DPACKUT_INT8_RANGE(data,
+	                   "\xd0\x80",
+	                   -ERANGE,
+	                   0,
+	                   INT8_MIN + 1,
+	                   INT8_MIN + 2);
+	dpackut_int8_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_range__127__127__126)
+{
+	/* -127 */
+	DPACKUT_INT8_RANGE(data,
+	                   "\xd0\x81",
+	                   0,
+	                   INT8_MIN + 1,
+	                   INT8_MIN + 1,
+	                   INT8_MIN + 2);
+	dpackut_int8_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_range__126__127__126)
+{
+	/* -126 */
+	DPACKUT_INT8_RANGE(data,
+	                   "\xd0\x82",
+	                   0,
+	                   INT8_MIN + 2,
+	                   INT8_MIN + 1,
+	                   INT8_MIN + 2);
+	dpackut_int8_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_range__125__127__126)
+{
+	/* -125 */
+	DPACKUT_INT8_RANGE(data,
+	                   "\xd0\x83",
+	                   -ERANGE,
+	                   0,
+	                   INT8_MIN + 1,
+	                   INT8_MIN + 2);
+	dpackut_int8_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_range__1_0_1)
+{
+	/* -1 */
+	DPACKUT_INT8_RANGE(data,
+	                   "\xff",
+	                   -ERANGE,
+	                   0,
+	                   INT8_C(0),
+	                   INT8_C(1));
+	dpackut_int8_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_range_0_0_1)
+{
+	/* 0 */
+	DPACKUT_INT8_RANGE(data,
+	                   "\x00",
+	                   0,
+	                   INT8_C(0),
+	                   INT8_C(0),
+	                   INT8_C(1));
+	dpackut_int8_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_range_1_0_1)
+{
+	/* 1 */
+	DPACKUT_INT8_RANGE(data,
+	                   "\x01",
+	                   0,
+	                   INT8_C(1),
+	                   INT8_C(0),
+	                   INT8_C(1));
+	dpackut_int8_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_range_2_0_1)
+{
+	/* 2 */
+	DPACKUT_INT8_RANGE(data,
+	                   "\x02",
+	                   -ERANGE,
+	                   0,
+	                   INT8_C(0),
+	                   INT8_C(1));
+	dpackut_int8_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_range_124_125_126)
+{
+	/* 124 */
+	DPACKUT_INT8_RANGE(data,
+	                   "\x7c",
+	                   -ERANGE,
+	                   0,
+	                   INT8_MAX - 2,
+	                   INT8_MAX - 1);
+	dpackut_int8_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_range_125_125_126)
+{
+	/* 125 */
+	DPACKUT_INT8_RANGE(data,
+	                   "\x7d",
+	                   0,
+	                   INT8_MAX - 2,
+	                   INT8_MAX - 2,
+	                   INT8_MAX - 1);
+	dpackut_int8_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_range_126_125_126)
+{
+	/* 126 */
+	DPACKUT_INT8_RANGE(data,
+	                   "\x7e",
+	                   0,
+	                   INT8_MAX - 1,
+	                   INT8_MAX - 2,
+	                   INT8_MAX - 1);
+	dpackut_int8_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_range_127_125_126)
+{
+	/* 127 */
+	DPACKUT_INT8_RANGE(data,
+	                   "\x7f",
+	                   -ERANGE,
+	                   0,
+	                   INT8_MAX - 2,
+	                   INT8_MAX - 1);
+	dpackut_int8_decode_range(&data);
+}
+
+CUTE_TEST(dpackut_int8_decode_range_128_125_126)
+{
+	/* 128 */
+	DPACKUT_INT8_RANGE(data,
+	                   "\xcc\x80",
+	                   -ERANGE,
+	                   0,
+	                   INT8_MAX - 2,
+	                   INT8_MAX - 1);
+	dpackut_int8_decode_range(&data);
+}
 
 CUTE_GROUP(dpackut_int8_group) = {
 	CUTE_REF(dpackut_int8_encode_assert),
@@ -574,6 +786,37 @@ CUTE_GROUP(dpackut_int8_group) = {
 	CUTE_REF(dpackut_int8_decode_min_126_126),
 	CUTE_REF(dpackut_int8_decode_min_127_126),
 	CUTE_REF(dpackut_int8_decode_min_128_128),
+
+	CUTE_REF(dpackut_int8_decode_max_assert),
+	CUTE_REF(dpackut_int8_decode_max__129_0),
+	CUTE_REF(dpackut_int8_decode_max__128_0),
+	CUTE_REF(dpackut_int8_decode_max__127__127),
+	CUTE_REF(dpackut_int8_decode_max__126__127),
+	CUTE_REF(dpackut_int8_decode_max__1_0),
+	CUTE_REF(dpackut_int8_decode_max_0_0),
+	CUTE_REF(dpackut_int8_decode_max_1_0),
+	CUTE_REF(dpackut_int8_decode_max_127_0),
+	CUTE_REF(dpackut_int8_decode_max_128_0),
+	CUTE_REF(dpackut_int8_decode_max_125_126),
+	CUTE_REF(dpackut_int8_decode_max_126_126),
+	CUTE_REF(dpackut_int8_decode_max_127_126),
+	CUTE_REF(dpackut_int8_decode_max_128_126),
+
+	CUTE_REF(dpackut_int8_decode_range_assert),
+	CUTE_REF(dpackut_int8_decode_range__129__127__126),
+	CUTE_REF(dpackut_int8_decode_range__128__127__126),
+	CUTE_REF(dpackut_int8_decode_range__127__127__126),
+	CUTE_REF(dpackut_int8_decode_range__126__127__126),
+	CUTE_REF(dpackut_int8_decode_range__125__127__126),
+	CUTE_REF(dpackut_int8_decode_range__1_0_1),
+	CUTE_REF(dpackut_int8_decode_range_0_0_1),
+	CUTE_REF(dpackut_int8_decode_range_1_0_1),
+	CUTE_REF(dpackut_int8_decode_range_2_0_1),
+	CUTE_REF(dpackut_int8_decode_range_124_125_126),
+	CUTE_REF(dpackut_int8_decode_range_125_125_126),
+	CUTE_REF(dpackut_int8_decode_range_126_125_126),
+	CUTE_REF(dpackut_int8_decode_range_127_125_126),
+	CUTE_REF(dpackut_int8_decode_range_128_125_126)
 };
 
 CUTE_SUITE_EXTERN(dpackut_int8_suite,
