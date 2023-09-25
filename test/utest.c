@@ -324,6 +324,7 @@ extern CUTE_SUITE_DECL(dpackut_int8_suite);
 extern CUTE_SUITE_DECL(dpackut_uint16_suite);
 extern CUTE_SUITE_DECL(dpackut_int16_suite);
 extern CUTE_SUITE_DECL(dpackut_uint32_suite);
+extern CUTE_SUITE_DECL(dpackut_int32_suite);
 #endif
 
 CUTE_GROUP(dpackut_group) = {
@@ -346,6 +347,7 @@ CUTE_GROUP(dpackut_group) = {
 	CUTE_REF(dpackut_uint16_suite),
 	CUTE_REF(dpackut_int16_suite),
 	CUTE_REF(dpackut_uint32_suite),
+	CUTE_REF(dpackut_int32_suite),
 #endif
 };
 
