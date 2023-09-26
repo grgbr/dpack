@@ -6,13 +6,6 @@
 #include <cute/expect.h>
 #include <errno.h>
 
-CUTE_TEST(complete_me)
-{
-	cute_skip("Implement me!!");
-}
-
-#if 0
-
 #define DPACKUT_INT64(_var, _packed, _error, _value) \
 	const struct dpackut_scalar_data _var = { \
 		.packed      = _packed, \
@@ -21,116 +14,211 @@ CUTE_TEST(complete_me)
 		.value.int64 = _value \
 	}
 
-static int
-dpack_scalar_utest_pack_int64(struct dpack_encoder *                 encoder,
-                              const struct dpack_scalar_utest_data * data)
+static void
+dpackut_int64_encode(const struct dpackut_scalar_data * data)
 {
-	assert_true(DPACK_INT64_SIZE_MIN <= data->size);
-	assert_true(DPACK_INT64_SIZE_MAX >= data->size);
+	struct dpack_encoder enc = { 0, };
+	size_t               sz = data->size;
+	char                 buff[sz];
 
-	return dpack_encode_int64(encoder, data->value.int64);
+	memset(buff, 0xa5, sz);
+	dpack_encoder_init_buffer(&enc, buff, sz);
+
+	cute_check_uint(data->size, greater_equal, DPACK_INT64_SIZE_MIN);
+	cute_check_uint(data->size, lower_equal, DPACK_INT64_SIZE_MAX);
+
+	cute_check_sint(dpack_encode_int64(&enc, data->value.int64),
+	                equal,
+	                data->error);
+	cute_check_mem(buff, equal, data->packed, sz);
+
+	cute_check_uint(dpack_encoder_space_used(&enc), equal, sz);
+	cute_check_uint(dpack_encoder_space_left(&enc), equal, 0);
+
+	dpack_encoder_fini(&enc);
 }
 
-static void
-dpack_scalar_utest_encode_int64(void ** state __unused)
-{
-	static const struct dpack_scalar_utest_data data[] = {
-		/* -9223372036854775808 */
-		DPACKUT_INT64("\xd3"
-		                  "\x80\x00\x00\x00"
-		                  "\x00\x00\x00\x00", 0, INT64_MIN),
-		/* -9223372036854775807 */
-		DPACKUT_INT64("\xd3"
-		                  "\x80\x00\x00\x00"
-		                  "\x00\x00\x00\x01", 0, INT64_MIN + 1),
-		/* -1 */
-		DPACKUT_INT64("\xff",             0, INT64_C(-1)),
-		/* 0 */
-		DPACKUT_INT64("\x00",             0, INT64_C(0)),
-		/* 1 */
-		DPACKUT_INT64("\x01",             0, INT64_C(1)),
-		/* 9223372036854775807 */
-		DPACKUT_INT64("\xcf"
-		                  "\x7f\xff\xff\xff"
-		                  "\xff\xff\xff\xff", 0, INT64_MAX),
-	};
-
 #if defined(CONFIG_DPACK_ASSERT_API)
+
+CUTE_TEST(dpackut_int64_encode_assert)
+{
 	int64_t              val = false;
 	struct dpack_encoder enc = { 0, };
 	int                  ret __unused;
 
 	cute_expect_assertion(ret = dpack_encode_int64(NULL, val));
 	cute_expect_assertion(ret = dpack_encode_int64(&enc, val));
-#endif
+}
 
-	dpack_scalar_utest_encode(data,
-	                          array_nr(data),
-	                          dpack_scalar_utest_pack_int64);
+#else  /* !defined(CONFIG_DPACK_ASSERT_API) */
+
+CUTE_TEST(dpackut_int64_encode_assert)
+{
+	cute_skip("assertion unsupported");
+}
+
+#endif /* defined(CONFIG_DPACK_ASSERT_API) */
+
+CUTE_TEST(dpackut_int64_encode_minplus0)
+{
+	/* -9223372036854775808 */
+	DPACKUT_INT64(data,
+	              "\xd3\x80\x00\x00\x00\x00\x00\x00\x00",
+	              0,
+	              INT64_MIN);
+	dpackut_int64_encode(&data);
+}
+
+CUTE_TEST(dpackut_int64_encode_minplus1)
+{
+	/* -9223372036854775807 */
+	DPACKUT_INT64(data,
+	              "\xd3\x80\x00\x00\x00\x00\x00\x00\x01",
+	              0,
+	              INT64_MIN + 1);
+	dpackut_int64_encode(&data);
+}
+
+CUTE_TEST(dpackut_int64_encode__1)
+{
+	/* -1 */
+	DPACKUT_INT64(data, "\xff", 0, INT64_C(-1));
+	dpackut_int64_encode(&data);
+}
+
+CUTE_TEST(dpackut_int64_encode_0)
+{
+	/* 0 */
+	DPACKUT_INT64(data, "\x00", 0, INT64_C(0));
+	dpackut_int64_encode(&data);
+}
+
+CUTE_TEST(dpackut_int64_encode_1)
+{
+	/* 1 */
+	DPACKUT_INT64(data, "\x01", 0, INT64_C(1));
+	dpackut_int64_encode(&data);
+}
+
+CUTE_TEST(dpackut_int64_encode_maxplus0)
+{
+	/* 9223372036854775807 */
+	DPACKUT_INT64(data,
+	              "\xcf\x7f\xff\xff\xff\xff\xff\xff\xff",
+	              0,
+	              INT64_MAX);
+	dpackut_int64_encode(&data);
 }
 
 static void
-dpack_scalar_utest_unpack_int64(struct dpack_decoder *                 decoder,
-                                const struct dpack_scalar_utest_data * data)
+dpackut_int64_decode(const struct dpackut_scalar_data * data)
 {
-	int64_t val;
+	struct dpack_decoder dec = { 0, };
+	int64_t              val;
 
-	assert_int_equal(dpack_decode_int64(decoder, &val), data->error);
-	if (data->error)
-		return;
+	dpack_decoder_init_buffer(&dec, data->packed, data->size);
 
-	assert_true(DPACK_INT64_SIZE_MIN <= data->size);
-	assert_true(DPACK_INT64_SIZE_MAX >= data->size);
+	cute_check_sint(dpack_decode_int64(&dec, &val), equal, data->error);
+	if (!data->error) {
+		cute_check_sint(val, equal, data->value.int64);
+		cute_check_uint(data->size,
+		                greater_equal,
+		                DPACK_INT64_SIZE_MIN);
+		cute_check_uint(data->size, lower_equal, DPACK_INT64_SIZE_MAX);
+		cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+	}
 
-	assert_int_equal(val, data->value.int64);
+	dpack_decoder_fini(&dec);
 }
-
-static void
-dpack_scalar_utest_decode_int64(void ** state __unused)
-{
-	static const struct dpack_scalar_utest_data data[] = {
-		/* 9223372036854775808 */
-		DPACKUT_INT64("\xcf"
-		                  "\x80\x00\x00\x00"
-		                  "\x00\x00\x00\x00", -ERANGE, INT64_C(0)),
-		/* -9223372036854775808 */
-		DPACKUT_INT64("\xd3"
-		                  "\x80\x00\x00\x00"
-		                  "\x00\x00\x00\x00", 0,       INT64_MIN),
-		/* -9223372036854775807 */
-		DPACKUT_INT64("\xd3"
-		                  "\x80\x00\x00\x00"
-		                  "\x00\x00\x00\x01", 0,       INT64_MIN + 1),
-		/* -1 */
-		DPACKUT_INT64("\xff",             0,       INT64_C(-1)),
-		/* 0 */
-		DPACKUT_INT64("\x00",             0,       INT64_C(0)),
-		/* 1 */
-		DPACKUT_INT64("\x01",             0,       INT64_C(1)),
-		/* 9223372036854775807 */
-		DPACKUT_INT64("\xcf"
-		                  "\x7f\xff\xff\xff"
-		                  "\xff\xff\xff\xff", 0,       INT64_MAX),
-	};
 
 #if defined(CONFIG_DPACK_ASSERT_API)
-	int64_t               val;
+
+CUTE_TEST(dpackut_int64_decode_assert)
+{
+	int64_t              val;
 	struct dpack_decoder dec = { 0, };
+	char                 buff[DPACK_INT64_SIZE_MAX];
 	int                  ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_int64(NULL, &val));
 	cute_expect_assertion(ret = dpack_decode_int64(&dec, &val));
 
-	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
+	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
 	cute_expect_assertion(ret = dpack_decode_int64(&dec, NULL));
 	dpack_decoder_fini(&dec);
-#endif
-
-	dpack_scalar_utest_decode(data,
-	                          array_nr(data),
-	                          dpack_scalar_utest_unpack_int64);
 }
 
+#else  /* !defined(CONFIG_DPACK_ASSERT_API) */
+
+CUTE_TEST(dpackut_int64_decode_assert)
+{
+	cute_skip("assertion unsupported");
+}
+
+#endif /* defined(CONFIG_DPACK_ASSERT_API) */
+
+CUTE_TEST(dpackut_int64_decode_maxplus1)
+{
+	/* 9223372036854775808 */
+	DPACKUT_INT64(data,
+	              "\xcf\x80\x00\x00\x00\x00\x00\x00\x00",
+	              -ERANGE,
+	              INT64_C(0));
+	dpackut_int64_decode(&data);
+}
+
+CUTE_TEST(dpackut_int64_decode_minplus0)
+{
+	/* -9223372036854775808 */
+	DPACKUT_INT64(data,
+	              "\xd3\x80\x00\x00\x00\x00\x00\x00\x00",
+	              0,
+	              INT64_MIN);
+	dpackut_int64_decode(&data);
+}
+
+CUTE_TEST(dpackut_int64_decode_minplus1)
+{
+	/* -9223372036854775807 */
+	DPACKUT_INT64(data,
+	              "\xd3\x80\x00\x00\x00\x00\x00\x00\x01",
+	              0,
+	              INT64_MIN + 1);
+	dpackut_int64_decode(&data);
+}
+
+CUTE_TEST(dpackut_int64_decode__1)
+{
+	/* -1 */
+	DPACKUT_INT64(data, "\xff", 0, INT64_C(-1));
+	dpackut_int64_decode(&data);
+}
+
+CUTE_TEST(dpackut_int64_decode_0)
+{
+	/* 0 */
+	DPACKUT_INT64(data, "\x00", 0, INT64_C(0));
+	dpackut_int64_decode(&data);
+}
+
+CUTE_TEST(dpackut_int64_decode_1)
+{
+	/* 1 */
+	DPACKUT_INT64(data, "\x01", 0, INT64_C(1));
+	dpackut_int64_decode(&data);
+}
+
+CUTE_TEST(dpackut_int64_decode_maxplus0)
+{
+	/* 9223372036854775807 */
+	DPACKUT_INT64(data,
+	              "\xcf\x7f\xff\xff\xff\xff\xff\xff\xff",
+	              0,
+	              INT64_MAX);
+	dpackut_int64_decode(&data);
+}
+
+#if 0
 #define DPACKUT_INT64_MIN(_var, _packed, _error, _value, _low) \
 	const struct dpackut_scalar_data _var = { \
 		.packed      = _packed, \
@@ -438,7 +526,22 @@ dpack_scalar_utest_decode_int64_range(void ** state __unused)
 #endif
 
 CUTE_GROUP(dpackut_int64_group) = {
-	CUTE_REF(complete_me)
+	CUTE_REF(dpackut_int64_encode_assert),
+	CUTE_REF(dpackut_int64_encode_minplus0),
+	CUTE_REF(dpackut_int64_encode_minplus1),
+	CUTE_REF(dpackut_int64_encode__1),
+	CUTE_REF(dpackut_int64_encode_0),
+	CUTE_REF(dpackut_int64_encode_1),
+	CUTE_REF(dpackut_int64_encode_maxplus0),
+
+	CUTE_REF(dpackut_int64_decode_assert),
+	CUTE_REF(dpackut_int64_decode_maxplus1),
+	CUTE_REF(dpackut_int64_decode_minplus0),
+	CUTE_REF(dpackut_int64_decode_minplus1),
+	CUTE_REF(dpackut_int64_decode__1),
+	CUTE_REF(dpackut_int64_decode_0),
+	CUTE_REF(dpackut_int64_decode_1),
+	CUTE_REF(dpackut_int64_decode_maxplus0),
 };
 
 CUTE_SUITE_EXTERN(dpackut_int64_suite,
