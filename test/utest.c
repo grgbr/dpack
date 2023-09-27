@@ -328,6 +328,9 @@ extern CUTE_SUITE_DECL(dpackut_int32_suite);
 extern CUTE_SUITE_DECL(dpackut_uint64_suite);
 extern CUTE_SUITE_DECL(dpackut_int64_suite);
 #endif
+#if defined(CONFIG_DPACK_STRING)
+extern CUTE_SUITE_DECL(dpackut_str_suite);
+#endif
 
 CUTE_GROUP(dpackut_group) = {
 #if defined(CONFIG_DPACK_ARRAY)
@@ -352,6 +355,9 @@ CUTE_GROUP(dpackut_group) = {
 	CUTE_REF(dpackut_int32_suite),
 	CUTE_REF(dpackut_uint64_suite),
 	CUTE_REF(dpackut_int64_suite),
+#endif
+#if defined(CONFIG_DPACK_STRING)
+	CUTE_REF(dpackut_str_suite),
 #endif
 };
 

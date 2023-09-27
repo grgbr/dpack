@@ -41,10 +41,7 @@ dpack-utest-objs    += $(call kconf_enabled,DPACK_SCALAR,uint32.o)
 dpack-utest-objs    += $(call kconf_enabled,DPACK_SCALAR,int32.o)
 dpack-utest-objs    += $(call kconf_enabled,DPACK_SCALAR,uint64.o)
 dpack-utest-objs    += $(call kconf_enabled,DPACK_SCALAR,int64.o)
-ifeq (0,1)
-dpack-utest-objs    += $(call kconf_enabled,DPACK_SCALAR,scalar.o)
 dpack-utest-objs    += $(call kconf_enabled,DPACK_STRING,string.o)
-endif
 dpack-utest-cflags  := $(test-cflags)
 dpack-utest-ldflags := $(test-ldflags)
 dpack-utest-pkgconf := libstroll libcute
