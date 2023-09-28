@@ -128,7 +128,7 @@ dpack_xtract_strdup(struct mpack_reader_t * reader,
 ssize_t
 dpack_decode_strdup(struct dpack_decoder * decoder, char ** __restrict value)
 {
-	dpack_assert_api(decoder);
+	dpack_assert_api_decoder(decoder);
 	dpack_assert_api(value);
 
 	ssize_t len;
@@ -168,7 +168,7 @@ dpack_decode_strdup_equ(struct dpack_decoder * decoder,
                         size_t                 len,
                         char ** __restrict     value)
 {
-	dpack_assert_api(decoder);
+	dpack_assert_api_decoder(decoder);
 	dpack_assert_api(len);
 	dpack_assert_api(len <= DPACK_STRLEN_MAX);
 	dpack_assert_api(value);
@@ -187,7 +187,7 @@ dpack_decode_strdup_max(struct dpack_decoder  * decoder,
                         size_t                  max_len,
                         char ** __restrict      value)
 {
-	dpack_assert_api(decoder);
+	dpack_assert_api_decoder(decoder);
 	dpack_assert_api(max_len > 1);
 	dpack_assert_api(max_len <= DPACK_STRLEN_MAX);
 	dpack_assert_api(value);
@@ -207,7 +207,7 @@ dpack_decode_strdup_range(struct dpack_decoder * decoder,
                           size_t                 max_len,
                           char ** __restrict     value)
 {
-	dpack_assert_api(decoder);
+	dpack_assert_api_decoder(decoder);
 	dpack_assert_api(min_len);
 	dpack_assert_api(min_len < max_len);
 	dpack_assert_api(max_len <= DPACK_STRLEN_MAX);
@@ -275,9 +275,9 @@ dpack_decode_strcpy(struct dpack_decoder * decoder,
                     size_t                 size,
                     char *                 value)
 {
-	dpack_assert_api(decoder);
+	dpack_assert_api_decoder(decoder);
 	dpack_assert_api(size > 1);
-	dpack_assert_api((size - 1) <= DPACK_STRLEN_MAX);
+	dpack_assert_api(size <= (DPACK_STRLEN_MAX + 1));
 	dpack_assert_api(value);
 
 	ssize_t len;
@@ -294,8 +294,9 @@ dpack_decode_strcpy_equ(struct dpack_decoder * decoder,
                         size_t                 size,
                         char                 * value)
 {
-	dpack_assert_api(decoder);
+	dpack_assert_api_decoder(decoder);
 	dpack_assert_api(size > 1);
+	dpack_assert_api(size <= (DPACK_STRLEN_MAX + 1));
 	dpack_assert_api(value);
 
 	int err;
@@ -313,7 +314,7 @@ dpack_decode_strcpy_range(struct dpack_decoder * decoder,
                           size_t                 max_size,
                           char                 * value)
 {
-	dpack_assert_api(decoder);
+	dpack_assert_api_decoder(decoder);
 	dpack_assert_api(min_len);
 	dpack_assert_api((min_len + 1) < max_size);
 	dpack_assert_api(max_size <= (DPACK_STRLEN_MAX + 1));

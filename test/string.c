@@ -100,7 +100,7 @@ dpackut_str_gen_data(struct dpackut_str_data * data)
 	p = data->packed;
 	switch (data->len) {
 	case 0 ... DPACK_FIXSTR_LEN_MAX:
-		*p++ = (char)0xa0 | (char)(data->len & 0x1f);
+		*p++ = (char)(0xa0 | (data->len & 0x1f));
 		break;
 #if DPACK_STRLEN_MAX > DPACK_FIXSTR_LEN_MAX
 	case (DPACK_FIXSTR_LEN_MAX + 1) ... DPACK_STR8_LEN_MAX:
@@ -117,7 +117,7 @@ dpackut_str_gen_data(struct dpackut_str_data * data)
 #endif
 #if DPACK_STRLEN_MAX > DPACK_STR16_LEN_MAX
 	case (DPACK_STR16_LEN_MAX + 1) ... DPACK_STRLEN_MAX:
-		*p++ = 0xdb;
+		*p++ = (char)0xdb;
 		*p++ = (char)((data->len >> 24) & 0xff);
 		*p++ = (char)((data->len >> 16) & 0xff);
 		*p++ = (char)((data->len >> 8) & 0xff);
@@ -128,14 +128,14 @@ dpackut_str_gen_data(struct dpackut_str_data * data)
 		cute_fail("unsupported MsgPack string size");
 	}
 	for (b = 0; b < data->len; b++)
-		*p++ = '0' + (char)(b % 10);
+		*p++ = (char)('0' + (b % 10));
 
 	data->value = malloc(data->len + 1);
 	cute_check_ptr(data->value, unequal, NULL);
 
 	p = data->value;
 	for (b = 0; b < data->len; b++)
-		*p++ = '0' + (char)(b % 10);
+		*p++ = (char)('0' + (b % 10));
 
 	if (data->null_term)
 		data->value[data->len] = '\0';
@@ -1335,7 +1335,7 @@ CUTE_TEST(dpackut_str_decode_dup_equ_max)
 	 })
 
 static void
-dpackut_str_unpack_dup_max(struct dpack_decoder *             decoder,
+dpackut_str_unpack_dup_max(struct dpack_decoder *          decoder,
                            const struct dpackut_str_data * data)
 {
 	char * val;
@@ -1571,89 +1571,30 @@ CUTE_TEST(dpackut_str_decode_dup_max_max)
 		.high      = _high \
 	 })
 
-#if 0
 static void
-dpack_utest_unpack_strdup_range(struct dpack_decoder *              decoder,
-                                const struct dpackut_str_data * data)
+dpackut_str_unpack_dup_range(struct dpack_decoder *          decoder,
+                             const struct dpackut_str_data * data)
 {
 	char * val;
 
-	assert_int_equal(dpack_decode_strdup_range(decoder,
-	                                           data->low,
-	                                           data->high,
-	                                           &val),
-	                 data->error);
+	cute_check_sint(dpack_decode_strdup_range(decoder,
+	                                          data->low,
+	                                          data->high,
+	                                          &val),
+	                equal,
+	                data->error);
 
 	if (data->error >= 0) {
-		assert_int_equal(strlen(val), data->len);
-		assert_string_equal(val, data->value);
+		cute_check_uint(strlen(val), equal, data->len);
+		cute_check_str(val, equal, data->value);
 		free(val);
 	}
 }
 
-static void
-dpack_utest_decode_strdup_range(void ** state __unused)
-{
-	static struct dpackut_str_data data[] = {
-		DPACKUT_STR_DEC_RANGE(0,  -EMSGSIZE, 1,  2),
-		DPACKUT_STR_DEC_RANGE(1,  1,         1,  2),
-		DPACKUT_STR_DEC_RANGE(2,  2,         1,  2),
-		DPACKUT_STR_DEC_RANGE(3,  -EMSGSIZE, 1,  2),
-#if DPACK_STRLEN_MAX >= 31
-		DPACKUT_STR_DEC_RANGE(29, -EMSGSIZE, 30, 31),
-		DPACKUT_STR_DEC_RANGE(30, 30,        30, 31),
-		DPACKUT_STR_DEC_RANGE(31, 31,        30, 31),
-		DPACKUT_STR_DEC_RANGE(32, -EMSGSIZE, 30, 31),
-#endif
-#if DPACK_STRLEN_MAX >= 32
-		DPACKUT_STR_DEC_RANGE(30, -EMSGSIZE, 31, 32),
-		DPACKUT_STR_DEC_RANGE(31, 31,        31, 32),
-		DPACKUT_STR_DEC_RANGE(32, 32,        31, 32),
-		DPACKUT_STR_DEC_RANGE(33, -EMSGSIZE, 31, 32),
-#endif
-#if DPACK_STRLEN_MAX >= 255
-		DPACKUT_STR_DEC_RANGE(253, -EMSGSIZE, 254, 255),
-		DPACKUT_STR_DEC_RANGE(254, 254,       254, 255),
-		DPACKUT_STR_DEC_RANGE(255, 255,       254, 255),
-		DPACKUT_STR_DEC_RANGE(256, -EMSGSIZE, 254, 255),
-#endif
-#if DPACK_STRLEN_MAX >= 256
-		DPACKUT_STR_DEC_RANGE(254, -EMSGSIZE, 255, 256),
-		DPACKUT_STR_DEC_RANGE(255, 255,       255, 256),
-		DPACKUT_STR_DEC_RANGE(256, 256,       255, 256),
-		DPACKUT_STR_DEC_RANGE(257, -EMSGSIZE, 255, 256),
-#endif
-#if DPACK_STRLEN_MAX >= 65535
-		DPACKUT_STR_DEC_RANGE(65533, -EMSGSIZE, 65534, 65535),
-		DPACKUT_STR_DEC_RANGE(65534, 65534,     65534, 65535),
-		DPACKUT_STR_DEC_RANGE(65535, 65535,     65534, 65535),
-		DPACKUT_STR_DEC_RANGE(65536, -EMSGSIZE, 65534, 65535),
-#endif
-#if DPACK_STRLEN_MAX >= 65536
-		DPACKUT_STR_DEC_RANGE(65534, -EMSGSIZE, 65535, 65536),
-		DPACKUT_STR_DEC_RANGE(65535, 65535,     65535, 65536),
-		DPACKUT_STR_DEC_RANGE(65536, 65536,     65535, 65536),
-		DPACKUT_STR_DEC_RANGE(65537, -EMSGSIZE, 65535, 65536),
-#endif
-		DPACKUT_STR_DEC_RANGE(DPACK_STRLEN_MAX - 2,
-		                               -EMSGSIZE,
-		                               DPACK_STRLEN_MAX - 1,
-		                               DPACK_STRLEN_MAX),
-		DPACKUT_STR_DEC_RANGE(DPACK_STRLEN_MAX - 1,
-		                               DPACK_STRLEN_MAX - 1,
-		                               DPACK_STRLEN_MAX - 1,
-		                               DPACK_STRLEN_MAX),
-		DPACKUT_STR_DEC_RANGE(DPACK_STRLEN_MAX,
-		                               DPACK_STRLEN_MAX,
-		                               DPACK_STRLEN_MAX - 1,
-		                               DPACK_STRLEN_MAX),
-		DPACKUT_STR_DEC_RANGE(DPACK_STRLEN_MAX + 1,
-		                               -EMSGSIZE,
-		                               DPACK_STRLEN_MAX - 1,
-		                               DPACK_STRLEN_MAX)
-	};
-
 #if defined(CONFIG_DPACK_ASSERT_API)
+
+CUTE_TEST(dpackut_str_decode_dup_range_assert)
+{
 	struct dpack_decoder dec = { 0, };
 	char *               str;
 	char                 buff[8];
@@ -1689,16 +1630,234 @@ dpack_utest_decode_strdup_range(void ** state __unused)
 	                                                      1,
 	                                                      &str));
 	dpack_decoder_fini(&dec);
-#endif /* defined(CONFIG_DPACK_ASSERT_API) */
+}
 
-	dpack_str_utest_decode(data,
-	                       array_nr(data),
-	                       dpack_utest_unpack_strdup_range);
+#else  /* !(defined(CONFIG_DPACK_ASSERT_API)) */
+
+CUTE_TEST(dpackut_str_decode_dup_range_assert)
+{
+	cute_skip("assertion unsupported");
+}
+
+#endif  /* defined(CONFIG_DPACK_ASSERT_API) */
+
+CUTE_TEST(dpackut_str_decode_dup_range_1_2)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_RANGE(0, -EMSGSIZE, 1, 2);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(1, 1, 1, 2);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(2, 2, 1, 2);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(3, -EMSGSIZE, 1, 2);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+}
+
+#if DPACK_STRLEN_MAX >= 31
+
+CUTE_TEST(dpackut_str_decode_dup_range_30_31)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_RANGE(29, -EMSGSIZE, 30, 31);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(30, 30, 30, 31);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(31, 31, 30, 31);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(32, -EMSGSIZE, 30, 31);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 31) */
+
+CUTE_TEST(dpackut_str_decode_dup_range_30_31)
+{
+	cute_skip("string length >= 31 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 31 */
+
+#if DPACK_STRLEN_MAX >= 32
+
+CUTE_TEST(dpackut_str_decode_dup_range_31_32)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_RANGE(30, -EMSGSIZE, 31, 32);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(31, 31, 31, 32);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(32, 32, 31, 32);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(33, -EMSGSIZE, 31, 32);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 32) */
+
+CUTE_TEST(dpackut_str_decode_dup_range_31_32)
+{
+	cute_skip("string length >= 32 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 32 */
+
+#if DPACK_STRLEN_MAX >= 255
+
+CUTE_TEST(dpackut_str_decode_dup_range_254_255)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_RANGE(253, -EMSGSIZE, 254, 255);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(254, 254, 254, 255);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(255, 255, 254, 255);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(256, -EMSGSIZE, 254, 255);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 255) */
+
+CUTE_TEST(dpackut_str_decode_dup_range_254_255)
+{
+	cute_skip("string length >= 255 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 255 */
+
+#if DPACK_STRLEN_MAX >= 256
+
+CUTE_TEST(dpackut_str_decode_dup_range_255_256)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_RANGE(254, -EMSGSIZE, 255, 256);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(255, 255, 255, 256);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(256, 256, 255, 256);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(257, -EMSGSIZE, 255, 256);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 256) */
+
+CUTE_TEST(dpackut_str_decode_dup_range_255_256)
+{
+	cute_skip("string length >= 256 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 256 */
+
+#if DPACK_STRLEN_MAX >= 65535
+
+CUTE_TEST(dpackut_str_decode_dup_range_65535)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_RANGE(65533, -EMSGSIZE, 65534, 65535);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(65534, 65534, 65534, 65535);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(65535, 65535, 65534, 65535);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(65536, -EMSGSIZE, 65534, 65535);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 65535) */
+
+CUTE_TEST(dpackut_str_decode_dup_range_65535)
+{
+	cute_skip("string length >= 65535 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 65535 */
+
+#if DPACK_STRLEN_MAX >= 65536
+
+CUTE_TEST(dpackut_str_decode_dup_range_65536)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_RANGE(65534, -EMSGSIZE, 65535, 65536);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(65535, 65535, 65535, 65536);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(65536, 65536, 65535, 65536);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(65537, -EMSGSIZE, 65535, 65536);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 65536) */
+
+CUTE_TEST(dpackut_str_decode_dup_range_65536)
+{
+	cute_skip("string length >= 65536 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 65536 */
+
+CUTE_TEST(dpackut_str_decode_dup_range_maxminus1_max)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_RANGE(DPACK_STRLEN_MAX - 2,
+	                             -EMSGSIZE,
+	                             DPACK_STRLEN_MAX - 1,
+	                             DPACK_STRLEN_MAX);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(DPACK_STRLEN_MAX - 1,
+	                             DPACK_STRLEN_MAX - 1,
+	                             DPACK_STRLEN_MAX - 1,
+	                             DPACK_STRLEN_MAX);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(DPACK_STRLEN_MAX,
+	                             DPACK_STRLEN_MAX,
+	                             DPACK_STRLEN_MAX - 1,
+	                             DPACK_STRLEN_MAX);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
+
+	data = DPACKUT_STR_DEC_RANGE(DPACK_STRLEN_MAX + 1,
+	                             -EMSGSIZE,
+	                             DPACK_STRLEN_MAX - 1,
+	                             DPACK_STRLEN_MAX);
+	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
 }
 
 static void
-dpack_utest_unpack_strcpy(struct dpack_decoder *             decoder,
-                         const struct dpackut_str_data * data)
+dpackut_str_unpack_strcpy(struct dpack_decoder *          decoder,
+                          const struct dpackut_str_data * data)
 {
 	char * val;
 	size_t sz = stroll_min(data->len + 2, (size_t)DPACK_STRLEN_MAX + 1);
@@ -1706,49 +1865,25 @@ dpack_utest_unpack_strcpy(struct dpack_decoder *             decoder,
 	val = malloc(sz);
 	memset(val, 0xff, sz);
 
-	assert_int_equal(dpack_decode_strcpy(decoder, sz, val),
-	                 data->error);
+	cute_check_sint(dpack_decode_strcpy(decoder, sz, val),
+	                equal,
+	                data->error);
 
 	if (data->error >= 0) {
-		assert_int_equal(strlen(val), data->len);
-		assert_string_equal(val, data->value);
-		assert_int_equal(val[data->len], 0);
+		cute_check_uint(strlen(val), equal, data->len);
+		cute_check_str(val, equal, data->value);
+		cute_check_sint(val[data->len], equal, 0);
 		if (data->len < DPACK_STRLEN_MAX)
-			assert_int_equal(val[data->len + 1], (char)0xff);
+			cute_check_sint(val[data->len + 1], equal, (char)0xff);
 	}
 
 	free(val);
 }
 
-static void
-dpack_utest_decode_strcpy(void ** state __unused)
-{
-	static struct dpackut_str_data data[] = {
-		DPACKUT_STR_DEC(0,  -EMSGSIZE),
-		DPACKUT_STR_DEC(1,  1),
-#if DPACK_STRLEN_MAX >= 31
-		DPACKUT_STR_DEC(31, 31),
-#endif
-#if DPACK_STRLEN_MAX >= 32
-		DPACKUT_STR_DEC(32, 32),
-#endif
-#if DPACK_STRLEN_MAX >= 255
-		DPACKUT_STR_DEC(255, 255),
-#endif
-#if DPACK_STRLEN_MAX >= 256
-		DPACKUT_STR_DEC(256, 256),
-#endif
-#if DPACK_STRLEN_MAX >= 65535
-		DPACKUT_STR_DEC(65535, 65535),
-#endif
-#if DPACK_STRLEN_MAX >= 65536
-		DPACKUT_STR_DEC(65536, 65536),
-#endif
-		DPACKUT_STR_DEC(DPACK_STRLEN_MAX, DPACK_STRLEN_MAX),
-		DPACKUT_STR_DEC(DPACK_STRLEN_MAX + 1, -EMSGSIZE)
-	};
-
 #if defined(CONFIG_DPACK_ASSERT_API)
+
+CUTE_TEST(dpackut_str_decode_strcpy_assert)
+{
 	struct dpack_decoder dec = { 0, };
 	char *               str = str;
 	char                 buff[8];
@@ -1766,15 +1901,145 @@ dpack_utest_decode_strcpy(void ** state __unused)
 	                                                DPACK_STRLEN_MAX + 2,
 	                                                str));
 	dpack_decoder_fini(&dec);
-#endif
+}
 
-	dpack_str_utest_decode(data,
-	                       array_nr(data),
-	                       dpack_utest_unpack_strcpy);
+#else  /* !(defined(CONFIG_DPACK_ASSERT_API)) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_assert)
+{
+	cute_skip("assertion unsupported");
+}
+
+#endif  /* defined(CONFIG_DPACK_ASSERT_API) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_0)
+{
+	DPACKUT_STR_DEC(data, 0, -EMSGSIZE);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy);
+}
+
+CUTE_TEST(dpackut_str_decode_strcpy_1)
+{
+	DPACKUT_STR_DEC(data, 1, 1);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy);
+}
+
+#if DPACK_STRLEN_MAX >= 31
+
+CUTE_TEST(dpackut_str_decode_strcpy_31)
+{
+	DPACKUT_STR_DEC(data, 31, 31);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 31) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_31)
+{
+	cute_skip("string length >= 31 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 31 */
+
+#if DPACK_STRLEN_MAX >= 32
+
+CUTE_TEST(dpackut_str_decode_strcpy_32)
+{
+	DPACKUT_STR_DEC(data, 32, 32);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 32) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_32)
+{
+	cute_skip("string length >= 32 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 32 */
+
+#if DPACK_STRLEN_MAX >= 255
+
+CUTE_TEST(dpackut_str_decode_strcpy_255)
+{
+	DPACKUT_STR_DEC(data, 255, 255);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 255) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_255)
+{
+	cute_skip("string length >= 255 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 255 */
+
+#if DPACK_STRLEN_MAX >= 256
+
+CUTE_TEST(dpackut_str_decode_strcpy_256)
+{
+	DPACKUT_STR_DEC(data, 256, 256);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 256) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_256)
+{
+	cute_skip("string length >= 256 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 256 */
+
+#if DPACK_STRLEN_MAX >= 65535
+
+CUTE_TEST(dpackut_str_decode_strcpy_65535)
+{
+	DPACKUT_STR_DEC(data, 65535, 65535);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 65535) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_65535)
+{
+	cute_skip("string length >= 65535 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 65535 */
+
+#if DPACK_STRLEN_MAX >= 65536
+
+CUTE_TEST(dpackut_str_decode_strcpy_65536)
+{
+	DPACKUT_STR_DEC(data, 65536, 65536);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 65536) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_65536)
+{
+	cute_skip("string length >= 65536 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 65536 */
+
+CUTE_TEST(dpackut_str_decode_strcpy_max)
+{
+	DPACKUT_STR_DEC(data, DPACK_STRLEN_MAX, DPACK_STRLEN_MAX);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy);
+}
+
+CUTE_TEST(dpackut_str_decode_strcpy_maxplus1)
+{
+	DPACKUT_STR_DEC(data, DPACK_STRLEN_MAX + 1, -EMSGSIZE);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy);
 }
 
 static void
-dpack_utest_unpack_strcpy_equ(struct dpack_decoder *              decoder,
+dpackut_str_unpack_strcpy_equ(struct dpack_decoder *          decoder,
                               const struct dpackut_str_data * data)
 {
 	char * val;
@@ -1783,69 +2048,25 @@ dpack_utest_unpack_strcpy_equ(struct dpack_decoder *              decoder,
 	val = malloc(sz);
 	memset(val, 0xff, sz);
 
-	assert_int_equal(dpack_decode_strcpy_equ(decoder, data->equ + 1, val),
-	                 data->error);
+	cute_check_sint(dpack_decode_strcpy_equ(decoder, data->equ + 1, val),
+	                equal,
+	                data->error);
 
 	if (data->error >= 0) {
-		assert_int_equal(strlen(val), data->len);
-		assert_string_equal(val, data->value);
-		assert_int_equal(val[data->len], 0);
+		cute_check_uint(strlen(val), equal, data->len);
+		cute_check_str(val, equal, data->value);
+		cute_check_sint(val[data->len], equal, 0);
 		if (data->len < DPACK_STRLEN_MAX)
-			assert_int_equal(val[data->len + 1], (char)0xff);
+			cute_check_sint(val[data->len + 1], equal, (char)0xff);
 	}
 
 	free(val);
 }
 
-static void
-dpack_utest_decode_strcpy_equ(void ** state __unused)
-{
-	static struct dpackut_str_data data[] = {
-		DPACKUT_STR_DEC_EQU(0,  -EMSGSIZE, 1),
-		DPACKUT_STR_DEC_EQU(1,  1, 1),
-		DPACKUT_STR_DEC_EQU(2,  -EMSGSIZE, 1),
-#if DPACK_STRLEN_MAX >= 31
-		DPACKUT_STR_DEC_EQU(30, -EMSGSIZE, 31),
-		DPACKUT_STR_DEC_EQU(31, 31, 31),
-		DPACKUT_STR_DEC_EQU(32, -EMSGSIZE, 31),
-#endif
-#if DPACK_STRLEN_MAX >= 32
-		DPACKUT_STR_DEC_EQU(31, -EMSGSIZE, 32),
-		DPACKUT_STR_DEC_EQU(32, 32, 32),
-		DPACKUT_STR_DEC_EQU(33, -EMSGSIZE, 32),
-#endif
-#if DPACK_STRLEN_MAX >= 255
-		DPACKUT_STR_DEC_EQU(254, -EMSGSIZE, 255),
-		DPACKUT_STR_DEC_EQU(255, 255, 255),
-		DPACKUT_STR_DEC_EQU(256, -EMSGSIZE, 255),
-#endif
-#if DPACK_STRLEN_MAX >= 256
-		DPACKUT_STR_DEC_EQU(255, -EMSGSIZE, 256),
-		DPACKUT_STR_DEC_EQU(256, 256, 256),
-		DPACKUT_STR_DEC_EQU(257, -EMSGSIZE, 256),
-#endif
-#if DPACK_STRLEN_MAX >= 65535
-		DPACKUT_STR_DEC_EQU(65534, -EMSGSIZE, 65535),
-		DPACKUT_STR_DEC_EQU(65535, 65535, 65535),
-		DPACKUT_STR_DEC_EQU(65536, -EMSGSIZE, 65535),
-#endif
-#if DPACK_STRLEN_MAX >= 65536
-		DPACKUT_STR_DEC_EQU(65535, -EMSGSIZE, 65536),
-		DPACKUT_STR_DEC_EQU(65536, 65536, 65536),
-		DPACKUT_STR_DEC_EQU(65537, -EMSGSIZE, 65536),
-#endif
-		DPACKUT_STR_DEC_EQU(DPACK_STRLEN_MAX - 1,
-		                             -EMSGSIZE,
-		                             DPACK_STRLEN_MAX),
-		DPACKUT_STR_DEC_EQU(DPACK_STRLEN_MAX,
-		                             DPACK_STRLEN_MAX,
-		                             DPACK_STRLEN_MAX),
-		DPACKUT_STR_DEC_EQU(DPACK_STRLEN_MAX + 1,
-		                             -EMSGSIZE,
-		                             DPACK_STRLEN_MAX),
-	};
-
 #if defined(CONFIG_DPACK_ASSERT_API)
+
+CUTE_TEST(dpackut_str_decode_strcpy_equ_assert)
+{
 	struct dpack_decoder dec = { 0, };
 	char *               str = str;
 	char                 buff[8];
@@ -1864,15 +2085,203 @@ dpack_utest_decode_strcpy_equ(void ** state __unused)
 	                                                    2,
 	                                                    str));
 	dpack_decoder_fini(&dec);
-#endif
+}
 
-	dpack_str_utest_decode(data,
-	                       array_nr(data),
-	                       dpack_utest_unpack_strcpy_equ);
+#else  /* !(defined(CONFIG_DPACK_ASSERT_API)) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_equ_assert)
+{
+	cute_skip("assertion unsupported");
+}
+
+#endif  /* defined(CONFIG_DPACK_ASSERT_API) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_equ_1)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_EQU(0, -EMSGSIZE, 1);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+
+	data = DPACKUT_STR_DEC_EQU(1,  1, 1);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+
+	data = DPACKUT_STR_DEC_EQU(2,  -EMSGSIZE, 1);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+}
+
+#if DPACK_STRLEN_MAX >= 31
+
+CUTE_TEST(dpackut_str_decode_strcpy_equ_31)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_EQU(30, -EMSGSIZE, 31);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+
+	data = DPACKUT_STR_DEC_EQU(31, 31, 31);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+
+	data = DPACKUT_STR_DEC_EQU(32, -EMSGSIZE, 31);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 31) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_equ_31)
+{
+	cute_skip("string length >= 31 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 31 */
+
+#if DPACK_STRLEN_MAX >= 32
+
+CUTE_TEST(dpackut_str_decode_strcpy_equ_32)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_EQU(31, -EMSGSIZE, 32);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+
+	data = DPACKUT_STR_DEC_EQU(32, 32, 32);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+
+	data = DPACKUT_STR_DEC_EQU(33, -EMSGSIZE, 32);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 32) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_equ_32)
+{
+	cute_skip("string length >= 32 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 32 */
+
+#if DPACK_STRLEN_MAX >= 255
+
+CUTE_TEST(dpackut_str_decode_strcpy_equ_255)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_EQU(254, -EMSGSIZE, 255);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+
+	data = DPACKUT_STR_DEC_EQU(255, 255, 255);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+
+	data = DPACKUT_STR_DEC_EQU(256, -EMSGSIZE, 255);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 255) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_equ_255)
+{
+	cute_skip("string length >= 255 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 255 */
+
+#if DPACK_STRLEN_MAX >= 256
+
+CUTE_TEST(dpackut_str_decode_strcpy_equ_256)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_EQU(255, -EMSGSIZE, 256);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+
+	data = DPACKUT_STR_DEC_EQU(256, 256, 256);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+
+	data = DPACKUT_STR_DEC_EQU(257, -EMSGSIZE, 256);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 256) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_equ_256)
+{
+	cute_skip("string length >= 256 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 256 */
+
+#if DPACK_STRLEN_MAX >= 65535
+
+CUTE_TEST(dpackut_str_decode_strcpy_equ_65535)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_EQU(65534, -EMSGSIZE, 65535);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+
+	data = DPACKUT_STR_DEC_EQU(65535, 65535, 65535);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+
+	data = DPACKUT_STR_DEC_EQU(65536, -EMSGSIZE, 65535);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 65535) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_equ_65535)
+{
+	cute_skip("string length >= 65535 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 65535 */
+
+#if DPACK_STRLEN_MAX >= 65536
+
+CUTE_TEST(dpackut_str_decode_strcpy_equ_65536)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_EQU(65535, -EMSGSIZE, 65536);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+
+	data = DPACKUT_STR_DEC_EQU(65536, 65536, 65536);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+
+	data = DPACKUT_STR_DEC_EQU(65537, -EMSGSIZE, 65536);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 65536) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_equ_65536)
+{
+	cute_skip("string length >= 65536 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 65536 */
+
+CUTE_TEST(dpackut_str_decode_strcpy_equ_max)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_EQU(DPACK_STRLEN_MAX - 1,
+	                           -EMSGSIZE,
+	                           DPACK_STRLEN_MAX);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+
+	data = DPACKUT_STR_DEC_EQU(DPACK_STRLEN_MAX,
+	                           DPACK_STRLEN_MAX,
+	                           DPACK_STRLEN_MAX);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
+
+	data = DPACKUT_STR_DEC_EQU(DPACK_STRLEN_MAX + 1,
+	                           -EMSGSIZE,
+	                           DPACK_STRLEN_MAX);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
 }
 
 static void
-dpack_utest_unpack_strcpy_range(struct dpack_decoder *              decoder,
+dpackut_str_unpack_strcpy_range(struct dpack_decoder *          decoder,
                                 const struct dpackut_str_data * data)
 {
 	char * val;
@@ -1881,87 +2290,28 @@ dpack_utest_unpack_strcpy_range(struct dpack_decoder *              decoder,
 	val = malloc(sz);
 	memset(val, 0xff, sz);
 
-	assert_int_equal(dpack_decode_strcpy_range(decoder,
-	                                           data->low,
-	                                           data->high + 1,
-	                                           val),
-	                 data->error);
+	cute_check_sint(dpack_decode_strcpy_range(decoder,
+	                                          data->low,
+	                                          data->high + 1,
+	                                          val),
+	                equal,
+	                data->error);
 
 	if (data->error >= 0) {
-		assert_int_equal(strlen(val), data->len);
-		assert_string_equal(val, data->value);
-		assert_int_equal(val[data->len], 0);
+		cute_check_uint(strlen(val), equal, data->len);
+		cute_check_str(val, equal, data->value);
+		cute_check_sint(val[data->len], equal, 0);
 		if (data->len < DPACK_STRLEN_MAX)
-			assert_int_equal(val[data->len + 1], (char)0xff);
+			cute_check_sint(val[data->len + 1], equal, (char)0xff);
 	}
 
 	free(val);
-
 }
 
-static void
-dpack_utest_decode_strcpy_range(void ** state __unused)
-{
-	static struct dpackut_str_data data[] = {
-		DPACKUT_STR_DEC_RANGE(0,  -EMSGSIZE, 1,  2),
-		DPACKUT_STR_DEC_RANGE(1,  1,         1,  2),
-		DPACKUT_STR_DEC_RANGE(2,  2,         1,  2),
-		DPACKUT_STR_DEC_RANGE(3,  -EMSGSIZE, 1,  2),
-#if DPACK_STRLEN_MAX >= 31
-		DPACKUT_STR_DEC_RANGE(29, -EMSGSIZE, 30, 31),
-		DPACKUT_STR_DEC_RANGE(30, 30,        30, 31),
-		DPACKUT_STR_DEC_RANGE(31, 31,        30, 31),
-		DPACKUT_STR_DEC_RANGE(32, -EMSGSIZE, 30, 31),
-#endif
-#if DPACK_STRLEN_MAX >= 32
-		DPACKUT_STR_DEC_RANGE(30, -EMSGSIZE, 31, 32),
-		DPACKUT_STR_DEC_RANGE(31, 31,        31, 32),
-		DPACKUT_STR_DEC_RANGE(32, 32,        31, 32),
-		DPACKUT_STR_DEC_RANGE(33, -EMSGSIZE, 31, 32),
-#endif
-#if DPACK_STRLEN_MAX >= 255
-		DPACKUT_STR_DEC_RANGE(253, -EMSGSIZE, 254, 255),
-		DPACKUT_STR_DEC_RANGE(254, 254,       254, 255),
-		DPACKUT_STR_DEC_RANGE(255, 255,       254, 255),
-		DPACKUT_STR_DEC_RANGE(256, -EMSGSIZE, 254, 255),
-#endif
-#if DPACK_STRLEN_MAX >= 256
-		DPACKUT_STR_DEC_RANGE(254, -EMSGSIZE, 255, 256),
-		DPACKUT_STR_DEC_RANGE(255, 255,       255, 256),
-		DPACKUT_STR_DEC_RANGE(256, 256,       255, 256),
-		DPACKUT_STR_DEC_RANGE(257, -EMSGSIZE, 255, 256),
-#endif
-#if DPACK_STRLEN_MAX >= 65535
-		DPACKUT_STR_DEC_RANGE(65533, -EMSGSIZE, 65534, 65535),
-		DPACKUT_STR_DEC_RANGE(65534, 65534,     65534, 65535),
-		DPACKUT_STR_DEC_RANGE(65535, 65535,     65534, 65535),
-		DPACKUT_STR_DEC_RANGE(65536, -EMSGSIZE, 65534, 65535),
-#endif
-#if DPACK_STRLEN_MAX >= 65536
-		DPACKUT_STR_DEC_RANGE(65534, -EMSGSIZE, 65535, 65536),
-		DPACKUT_STR_DEC_RANGE(65535, 65535,     65535, 65536),
-		DPACKUT_STR_DEC_RANGE(65536, 65536,     65535, 65536),
-		DPACKUT_STR_DEC_RANGE(65537, -EMSGSIZE, 65535, 65536),
-#endif
-		DPACKUT_STR_DEC_RANGE(DPACK_STRLEN_MAX - 2,
-		                               -EMSGSIZE,
-		                               DPACK_STRLEN_MAX - 1,
-		                               DPACK_STRLEN_MAX),
-		DPACKUT_STR_DEC_RANGE(DPACK_STRLEN_MAX - 1,
-		                               DPACK_STRLEN_MAX - 1,
-		                               DPACK_STRLEN_MAX - 1,
-		                               DPACK_STRLEN_MAX),
-		DPACKUT_STR_DEC_RANGE(DPACK_STRLEN_MAX,
-		                               DPACK_STRLEN_MAX,
-		                               DPACK_STRLEN_MAX - 1,
-		                               DPACK_STRLEN_MAX),
-		DPACKUT_STR_DEC_RANGE(DPACK_STRLEN_MAX + 1,
-		                               -EMSGSIZE,
-		                               DPACK_STRLEN_MAX - 1,
-		                               DPACK_STRLEN_MAX)
-	};
-
 #if defined(CONFIG_DPACK_ASSERT_API)
+
+CUTE_TEST(dpackut_str_decode_strcpy_range_assert)
+{
 	struct dpack_decoder dec = { 0, };
 	char *               str = str;
 	char                 buff[8];
@@ -1981,7 +2331,7 @@ dpack_utest_decode_strcpy_range(void ** state __unused)
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
 	cute_expect_assertion(ret = dpack_decode_strcpy_range(&dec,
 	                                                      1,
-	                                                      3,
+	                                                      31,
 	                                                      NULL));
 	cute_expect_assertion(ret = dpack_decode_strcpy_range(&dec,
 	                                                      0,
@@ -1990,28 +2340,237 @@ dpack_utest_decode_strcpy_range(void ** state __unused)
 	cute_expect_assertion(ret = dpack_decode_strcpy_range(&dec,
 	                                                      1,
 	                                                      DPACK_STRLEN_MAX +
-	                                                      1,
+	                                                      2,
 	                                                      str));
 	cute_expect_assertion(ret = dpack_decode_strcpy_range(&dec,
 	                                                      1,
 	                                                      2,
 	                                                      str));
 	dpack_decoder_fini(&dec);
-#endif /* defined(CONFIG_DPACK_ASSERT_API) */
-
-	dpack_str_utest_decode(data,
-	                       array_nr(data),
-	                       dpack_utest_unpack_strcpy_range);
 }
 
-static const struct CMUnitTest dpack_str_utests[] = {
-	cmocka_unit_test(dpack_utest_decode_strdup_range),
-	cmocka_unit_test(dpack_utest_decode_strcpy),
-	cmocka_unit_test(dpack_utest_decode_strcpy_equ),
-	cmocka_unit_test(dpack_utest_decode_strcpy_range)
-};
+#else  /* !(defined(CONFIG_DPACK_ASSERT_API)) */
 
-#endif
+CUTE_TEST(dpackut_str_decode_strcpy_range_assert)
+{
+	cute_skip("assertion unsupported");
+}
+
+#endif /* defined(CONFIG_DPACK_ASSERT_API) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_range_1_2)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_RANGE(0, -EMSGSIZE, 1, 2);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+
+	data = DPACKUT_STR_DEC_RANGE(1, 1, 1, 2);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+
+	data = DPACKUT_STR_DEC_RANGE(2, 2, 1, 2);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+
+	data = DPACKUT_STR_DEC_RANGE(3, -EMSGSIZE, 1, 2);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+}
+
+#if DPACK_STRLEN_MAX >= 31
+
+CUTE_TEST(dpackut_str_decode_strcpy_range_30_31)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_RANGE(29, -EMSGSIZE, 30, 31);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+
+	data = DPACKUT_STR_DEC_RANGE(30, 30, 30, 31);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+
+	data = DPACKUT_STR_DEC_RANGE(31, 31, 30, 31);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+	
+	data = DPACKUT_STR_DEC_RANGE(32, -EMSGSIZE, 30, 31);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 31) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_range_30_31)
+{
+	cute_skip("string length >= 31 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 31 */
+
+#if DPACK_STRLEN_MAX >= 32
+
+CUTE_TEST(dpackut_str_decode_strcpy_range_31_32)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_RANGE(30, -EMSGSIZE, 31, 32);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+
+	data = DPACKUT_STR_DEC_RANGE(31, 31, 31, 32);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+
+	data = DPACKUT_STR_DEC_RANGE(32, 32, 31, 32);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+	
+	data = DPACKUT_STR_DEC_RANGE(33, -EMSGSIZE, 31, 32);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 32) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_range_31_32)
+{
+	cute_skip("string length >= 32 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 32 */
+
+#if DPACK_STRLEN_MAX >= 255
+
+CUTE_TEST(dpackut_str_decode_strcpy_range_254_255)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_RANGE(253, -EMSGSIZE, 254, 255);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+
+	data = DPACKUT_STR_DEC_RANGE(254, 254, 254, 255);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+
+	data = DPACKUT_STR_DEC_RANGE(255, 255, 254, 255);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+	
+	data = DPACKUT_STR_DEC_RANGE(256, -EMSGSIZE, 254, 255);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 255) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_range_254_255)
+{
+	cute_skip("string length >= 255 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 255 */
+
+#if DPACK_STRLEN_MAX >= 256
+
+CUTE_TEST(dpackut_str_decode_strcpy_range_255_256)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_RANGE(254, -EMSGSIZE, 255, 256);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+
+	data = DPACKUT_STR_DEC_RANGE(255, 255, 255, 256);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+
+	data = DPACKUT_STR_DEC_RANGE(256, 256, 255, 256);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+	
+	data = DPACKUT_STR_DEC_RANGE(257, -EMSGSIZE, 255, 256);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 256) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_range_255_256)
+{
+	cute_skip("string length >= 256 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 256 */
+
+#if DPACK_STRLEN_MAX >= 65535
+
+CUTE_TEST(dpackut_str_decode_strcpy_range_65534_65535)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_RANGE(65533, -EMSGSIZE, 65534, 65535);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+
+	data = DPACKUT_STR_DEC_RANGE(65534, 65534, 65534, 65535);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+
+	data = DPACKUT_STR_DEC_RANGE(65535, 65535, 65534, 65535);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+	
+	data = DPACKUT_STR_DEC_RANGE(65536, -EMSGSIZE, 65534, 65535);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 65535) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_range_65534_65535)
+{
+	cute_skip("string length >= 65535 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 65535 */
+
+#if DPACK_STRLEN_MAX >= 65536
+
+CUTE_TEST(dpackut_str_decode_strcpy_range_65535_65536)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_RANGE(65534, -EMSGSIZE, 65535, 65536);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+
+	data = DPACKUT_STR_DEC_RANGE(65535, 65535, 65535, 65536);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+
+	data = DPACKUT_STR_DEC_RANGE(65536, 65536, 65535, 65536);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+	
+	data = DPACKUT_STR_DEC_RANGE(65537, -EMSGSIZE, 65535, 65536);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+}
+
+#else  /* !(DPACK_STRLEN_MAX >= 65536) */
+
+CUTE_TEST(dpackut_str_decode_strcpy_range_65535_65536)
+{
+	cute_skip("string length >= 65536 support not compiled-in");
+}
+
+#endif /* DPACK_STRLEN_MAX >= 65536 */
+
+CUTE_TEST(dpackut_str_decode_strcpy_range_maxminu1_max)
+{
+	struct dpackut_str_data data;
+
+	data = DPACKUT_STR_DEC_RANGE(DPACK_STRLEN_MAX - 2,
+	                             -EMSGSIZE,
+	                             DPACK_STRLEN_MAX - 1,
+	                             DPACK_STRLEN_MAX);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+
+	data = DPACKUT_STR_DEC_RANGE(DPACK_STRLEN_MAX - 1,
+	                             DPACK_STRLEN_MAX - 1,
+	                             DPACK_STRLEN_MAX - 1,
+	                             DPACK_STRLEN_MAX);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+
+	data = DPACKUT_STR_DEC_RANGE(DPACK_STRLEN_MAX,
+	                             DPACK_STRLEN_MAX,
+	                             DPACK_STRLEN_MAX - 1,
+	                             DPACK_STRLEN_MAX);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+
+	data = DPACKUT_STR_DEC_RANGE(DPACK_STRLEN_MAX + 1,
+	                             -EMSGSIZE,
+	                             DPACK_STRLEN_MAX - 1,
+	                             DPACK_STRLEN_MAX);
+	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
+}
 
 CUTE_GROUP(dpackut_str_group) = {
 	CUTE_REF(dpackut_fixstr_sizes),
@@ -2086,10 +2645,52 @@ CUTE_GROUP(dpackut_str_group) = {
 	CUTE_REF(dpackut_str_decode_dup_max_65535),
 	CUTE_REF(dpackut_str_decode_dup_max_65536),
 	CUTE_REF(dpackut_str_decode_dup_max_max),
+
+	CUTE_REF(dpackut_str_decode_dup_range_assert),
+	CUTE_REF(dpackut_str_decode_dup_range_1_2),
+	CUTE_REF(dpackut_str_decode_dup_range_30_31),
+	CUTE_REF(dpackut_str_decode_dup_range_31_32),
+	CUTE_REF(dpackut_str_decode_dup_range_254_255),
+	CUTE_REF(dpackut_str_decode_dup_range_255_256),
+	CUTE_REF(dpackut_str_decode_dup_range_65535),
+	CUTE_REF(dpackut_str_decode_dup_range_65536),
+	CUTE_REF(dpackut_str_decode_dup_range_maxminus1_max),
+
+	CUTE_REF(dpackut_str_decode_strcpy_assert),
+	CUTE_REF(dpackut_str_decode_strcpy_0),
+	CUTE_REF(dpackut_str_decode_strcpy_1),
+	CUTE_REF(dpackut_str_decode_strcpy_31),
+	CUTE_REF(dpackut_str_decode_strcpy_32),
+	CUTE_REF(dpackut_str_decode_strcpy_255),
+	CUTE_REF(dpackut_str_decode_strcpy_256),
+	CUTE_REF(dpackut_str_decode_strcpy_65535),
+	CUTE_REF(dpackut_str_decode_strcpy_65536),
+	CUTE_REF(dpackut_str_decode_strcpy_max),
+	CUTE_REF(dpackut_str_decode_strcpy_maxplus1),
+
+	CUTE_REF(dpackut_str_decode_strcpy_equ_assert),
+	CUTE_REF(dpackut_str_decode_strcpy_equ_1),
+	CUTE_REF(dpackut_str_decode_strcpy_equ_31),
+	CUTE_REF(dpackut_str_decode_strcpy_equ_32),
+	CUTE_REF(dpackut_str_decode_strcpy_equ_255),
+	CUTE_REF(dpackut_str_decode_strcpy_equ_256),
+	CUTE_REF(dpackut_str_decode_strcpy_equ_65535),
+	CUTE_REF(dpackut_str_decode_strcpy_equ_65536),
+	CUTE_REF(dpackut_str_decode_strcpy_equ_max),
+
+	CUTE_REF(dpackut_str_decode_strcpy_range_assert),
+	CUTE_REF(dpackut_str_decode_strcpy_range_1_2),
+	CUTE_REF(dpackut_str_decode_strcpy_range_30_31),
+	CUTE_REF(dpackut_str_decode_strcpy_range_31_32),
+	CUTE_REF(dpackut_str_decode_strcpy_range_254_255),
+	CUTE_REF(dpackut_str_decode_strcpy_range_255_256),
+	CUTE_REF(dpackut_str_decode_strcpy_range_65534_65535),
+	CUTE_REF(dpackut_str_decode_strcpy_range_65535_65536),
+	CUTE_REF(dpackut_str_decode_strcpy_range_maxminu1_max)
 };
 
 CUTE_SUITE_EXTERN(dpackut_str_suite,
                   dpackut_str_group,
                   CUTE_NULL_SETUP,
                   CUTE_NULL_TEARDOWN,
-
+                  CUTE_DFLT_TMOUT);
