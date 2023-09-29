@@ -1,3 +1,10 @@
+################################################################################
+# SPDX-License-Identifier: LGPL-3.0-only
+#
+# This file is part of DPack.
+# Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+################################################################################
+
 sample-cflags  := -Wall \
                   -Wextra \
                   -Wformat=2 \
@@ -42,4 +49,4 @@ test-map_sample-cflags           := $(sample-cflags)
 test-map_sample-ldflags          := $(sample-ldflags) -l:builtin.a -ldpack
 test-map_sample-pkgconf          := libstroll
 
-# vim: filetype=make :
+# ex: filetype=make :

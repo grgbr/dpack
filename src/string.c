@@ -1,3 +1,10 @@
+/******************************************************************************
+ * SPDX-License-Identifier: LGPL-3.0-only
+ *
+ * This file is part of DPack.
+ * Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ ******************************************************************************/
+
 #include "dpack/string.h"
 #include "dpack/codec.h"
 #include "common.h"

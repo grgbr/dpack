@@ -1,3 +1,10 @@
+/******************************************************************************
+ * SPDX-License-Identifier: LGPL-3.0-only
+ *
+ * This file is part of DPack.
+ * Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ ******************************************************************************/
+
 #ifndef _SCALAR_ARRAY_SAMPLE_H
 #define _SCALAR_ARRAY_SAMPLE_H
 

@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+################################################################################
+# SPDX-License-Identifier: LGPL-3.0-only
+#
+# This file is part of DPack.
+# Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+################################################################################
 
 import sys
 import os

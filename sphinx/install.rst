@@ -1,12 +1,16 @@
+.. SPDX-License-Identifier: GPL-3.0-only
+   
+   This file is part of DPack.
+   Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+
 .. _breathe:              https://github.com/breathe-doc/breathe
-.. _cmocka:               https://cmocka.org/
+.. _cute:                 https://github.com/grgbr/cute/
 .. _ebuild:               https://github.com/grgbr/ebuild/
 .. _stroll:               https://github.com/grgbr/stroll/
 .. _gnu_make:             https://www.gnu.org/software/make/
 .. |eBuild|               replace:: `eBuild <ebuild_>`_
 .. |eBuild User Guide|    replace:: :external+ebuild:doc:`eBuild User Guide <user>`
 .. |eBuild Prerequisites| replace:: :external+ebuild:ref:`eBuild Prerequisites <sect-user-prerequisites>`
-.. |Stroll|               replace:: `Stroll <stroll_>`_
 .. |Configure|            replace:: :external+ebuild:ref:`sect-user-configure`
 .. |Build|                replace:: :external+ebuild:ref:`sect-user-build`
 .. |Install|              replace:: :external+ebuild:ref:`sect-user-install`
@@ -31,9 +35,9 @@ Prerequisites
 =============
 
 In addition to the standard |eBuild Prerequisites|, DPack requires a working
-|Stroll| install at build time and runtime.
+Stroll_ install at build time and runtime.
 
-Optionally, you will need cmocka_ at build time and at runtime when unit
+Optionally, you will need CUTe_ at build time and at runtime when unit
 testsuite is enabled (see :ref:`CONFIG_DPACK_UTEST`).
 
 Optionally, you will need multiple packages installed to build the

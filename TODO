@@ -1,8 +1,16 @@
 TODO
 ====
 
-* unit tests
-* utf8 ?
-* nil ?
+* unit tests:
+  * bincpy
+  * lvstr
+  * list / array
+  * map
+* doc:
+  * bincpy
+  * lvstr
+  * list / array
+  * map
 * gcc attributes
-* doc
+* utf8 support ?
+* nil support ?

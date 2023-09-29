@@ -3,7 +3,9 @@
    This file is part of DPack.
    Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
 
-Todo
-====
+*********
+Licensing
+*********
 
-.. todolist::
+.. include:: license/lgpl.rst
+.. include:: license/gpl.rst

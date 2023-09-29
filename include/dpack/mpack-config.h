@@ -1,4 +1,11 @@
 /******************************************************************************
+ * SPDX-License-Identifier: LGPL-3.0-only
+ *
+ * This file is part of DPack.
+ * Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ ******************************************************************************/
+
+/******************************************************************************
  * Setup mpack build configuration. For available features, see:
  * <mpack>/src/mpack/mpack-platform.h
  *

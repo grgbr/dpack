@@ -1,27 +1,19 @@
+/******************************************************************************
+ * SPDX-License-Identifier: LGPL-3.0-only
+ *
+ * This file is part of DPack.
+ * Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ ******************************************************************************/
+
 /**
  * @file
  * String encoding / decoding interface
  *
- * @author       Grégor Boirie <gregor.boirie@free.fr>
- * @date         10 May 2023
- * @copyright    Copyright (C) 2017-2023 Grégor Boirie.
- * @licensestart GNU Lesser General Public License (LGPL) v3
- *
- * This file is part of libdpack
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Lesser General Public License as published by the Free
- * Software Foundation; either version 3 of the License, or (at your option) any
- * later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, If not, see <http://www.gnu.org/licenses/>.
- * @licenseend
+ * @author    Grégor Boirie <gregor.boirie@free.fr>
+ * @date      10 May 2023
+ * @copyright Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ * @license   [GNU Lesser General Public License (LGPL) v3]
+ *            (https://www.gnu.org/licenses/lgpl+gpl-3.0.txt)
  */
 #ifndef _DPACK_STRING_H
 #define _DPACK_STRING_H

@@ -1,3 +1,21 @@
+/******************************************************************************
+ * SPDX-License-Identifier: LGPL-3.0-only
+ *
+ * This file is part of DPack.
+ * Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ ******************************************************************************/
+
+/**
+ * @file
+ * Array encoding / decoding interface
+ *
+ * @author    Grégor Boirie <gregor.boirie@free.fr>
+ * @date      22 Feb 2023
+ * @copyright Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ * @license   [GNU Lesser General Public License (LGPL) v3]
+ *            (https://www.gnu.org/licenses/lgpl+gpl-3.0.txt)
+ */
+
 #ifndef _DPACK_ARRAY_H
 #define _DPACK_ARRAY_H
 

@@ -1,3 +1,8 @@
+.. SPDX-License-Identifier: GPL-3.0-only
+
+   This file is part of DPack.
+   Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+
 .. include:: _cdefs.rst
 
 .. |MessagePack format|        replace:: :doc:`msgpack`
@@ -6,6 +11,8 @@
 .. |MessagePack float format|  replace:: :ref:`MessagePack float format <sect-msgpack-float>`
 .. |MessagePack string format| replace:: :ref:`MessagePack string format <sect-msgpack-str>`
 .. |MessagePack bin format|    replace:: :ref:`MessagePack bin format <sect-msgpack-bin>`
+
+.. _dpack:                     https://github.com/grgbr/dpack
 
 .. _mpack:                     https://github.com/ludocode/mpack
 .. |MPack|                     replace:: `MPack <mpack_>`_
@@ -24,11 +31,10 @@
 Overview
 ========
 
-What follows here provides a thorough description of how to use DPack library.
+What follows here provides a thorough description of how to use DPack_ library.
 
-Basically, DPack library is a C library that wraps calls to |MPack| to
-(de)serialize objects according to |MessagePack format|. As stated onto the home
-page:
+Basically, DPack_ is a C library that wraps calls to |MPack| to (de)serialize
+objects according to |MessagePack format|. As stated onto the home page:
 
    It's like JSON but fast and small.
 
@@ -44,7 +50,11 @@ The library is implemented to run on GNU Linux / |GLibc| platforms only
 (although porting to alternate C library such as `musl libc
 <https://www.musl-libc.org/>`_ should not be much of a hassle).
 
-DPack library API is organized around the following functional areas which
+DPack_ sources are distributed under the :ref:`GNU Lesser General Public License
+<lgpl>` whereas documentation manuals are distributed under the :ref:`GNU
+General Public License <gpl>`.
+
+DPack_ library API is organized around the following functional areas which
 you can refer to for further details :
 
 * Encoder_,
@@ -64,7 +74,7 @@ Build configuration
 ===================
 
 At :ref:`Build configuration time <workflow-configure-phase>`, multiple build
-options are available to customize final DPack build. From client code, you may
+options are available to customize final DPack_ build. From client code, you may
 eventually refer to the corresponding C macros listed below:
 
 * :c:macro:`CONFIG_DPACK_ASSERT_API`
@@ -87,7 +97,7 @@ eventually refer to the corresponding C macros listed below:
 Encoder
 =======
 
-The DPack library serialization interface is provided through to the
+The DPack_ library serialization interface is provided through to the
 :c:struct:`dpack_encoder` interface. The following operations are available:
 
 * :c:func:`dpack_encoder_init_buffer`
@@ -102,7 +112,7 @@ You *MUST* include :file:`dpack/codec.h` header to use this interface.
 Decoder
 =======
 
-The DPack library unserialization interface is provided through to the
+The DPack_ library unserialization interface is provided through to the
 :c:struct:`dpack_decoder` interface. The following operations are available:
 
 * :c:func:`dpack_decoder_init_buffer`
@@ -119,8 +129,8 @@ Boolean
 =======
 
 When compiled with the :c:macro:`CONFIG_DPACK_SCALAR` build configuration
-option enabled, the DPack library provides support for boolean (de)serialization
-operations according to the |MessagePack bool format|.
+option enabled, the DPack_ library provides support for boolean
+(de)serialization operations according to the |MessagePack bool format|.
 
 Available operations are:
 
@@ -136,8 +146,8 @@ Integer
 ========
 
 When compiled with the :c:macro:`CONFIG_DPACK_SCALAR` build configuration
-option enabled, the DPack library provides support for integer (de)serialization
-operations according to the |MessagePack int format|.
+option enabled, the DPack_ library provides support for integer
+(de)serialization operations according to the |MessagePack int format|.
 
 Available operations are:
 
@@ -253,9 +263,9 @@ Floating point number
 =====================
 
 When compiled with the :c:macro:`CONFIG_DPACK_FLOAT` build configuration
-option enabled, the DPack library provides support for single precision floating
-point numbers (de)serialization operations according to the |MessagePack float
-format|.
+option enabled, the DPack_ library provides support for single precision
+floating point numbers (de)serialization operations according to the
+|MessagePack float format|.
 
 Available operations are:
 
@@ -267,9 +277,9 @@ Available operations are:
 * :c:func:`dpack_decode_float_range`
 
 When compiled with the :c:macro:`CONFIG_DPACK_DOUBLE` build configuration
-option enabled, the DPack library provides support for double precision floating
-point numbers (de)serialization operations according to the |MessagePack float
-format|.
+option enabled, the DPack_ library provides support for double precision
+floating point numbers (de)serialization operations according to the
+|MessagePack float format|.
 
 Available operations are:
 
@@ -288,7 +298,7 @@ String
 ======
 
 When compiled with the :c:macro:`CONFIG_DPACK_STRING` build configuration option
-enabled, the DPack library provides support for string (de)serialization
+enabled, the DPack_ library provides support for string (de)serialization
 according to the |MessagePack string format|.
 
 Available operations are:
@@ -336,7 +346,7 @@ Bin
 ===
 
 When compiled with the :c:macro:`CONFIG_DPACK_BIN` build configuration option
-enabled, the DPack library provides support for bin (de)serialization
+enabled, the DPack_ library provides support for bin (de)serialization
 operations.
 
 *Bins* are binary objects / bytes array that |MessagePack| can serialize

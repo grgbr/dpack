@@ -1,3 +1,21 @@
+/******************************************************************************
+ * SPDX-License-Identifier: LGPL-3.0-only
+ *
+ * This file is part of DPack.
+ * Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ ******************************************************************************/
+
+/**
+ * @file
+ * Length-Value String encoding / decoding interface
+ *
+ * @author    Grégor Boirie <gregor.boirie@free.fr>
+ * @date      10 Apr 2023
+ * @copyright Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ * @license   [GNU Lesser General Public License (LGPL) v3]
+ *            (https://www.gnu.org/licenses/lgpl+gpl-3.0.txt)
+ */
+
 #ifndef _DPACK_LVSTR_H
 #define _DPACK_LVSTR_H
 

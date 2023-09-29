@@ -1,3 +1,9 @@
+################################################################################
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of DPack.
+# Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+################################################################################
 # -*- coding: utf-8 -*-
 #
 # DPack documentation build configuration file, created by sphinx-quickstart
@@ -155,7 +161,7 @@ latex_documents = [
 # entries into generated document.
 # See comments into latex.rst for more informations.
 latex_toplevel_sectioning = 'chapter'
-latex_appendices = [ 'msgpack', 'todo' ]
+latex_appendices = [ 'msgpack', 'license', 'todo' ]
 latex_show_urls = 'footnote'
 latex_show_pagerefs = False
 
@@ -191,7 +197,7 @@ texinfo_documents = [
 
 # Request texinfo backend to generate the following appendix entries to benefit
 # from its appendix section numbering scheme.
-texinfo_appendices = [ 'msgpack', 'todo' ]
+texinfo_appendices = [ 'msgpack', 'license', 'todo' ]
 texinfo_domain_indices = True
 texinfo_show_urls = 'footnote'
 texinfo_no_detailmenu = True
