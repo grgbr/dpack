@@ -43,11 +43,13 @@ dpackut_int16_encode(const struct dpackut_scalar_data * data)
 CUTE_TEST(dpackut_int16_encode_assert)
 {
 	int16_t              val = false;
-	struct dpack_encoder enc = { 0, };
 	int                  ret __unused;
+#if defined(CONFIG_DPACK_DEBUG)
+	struct dpack_encoder enc = { 0, };
 
-	cute_expect_assertion(ret = dpack_encode_int16(NULL, val));
 	cute_expect_assertion(ret = dpack_encode_int16(&enc, val));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
+	cute_expect_assertion(ret = dpack_encode_int16(NULL, val));
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -132,7 +134,9 @@ CUTE_TEST(dpackut_int16_decode_assert)
 	int                  ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_int16(NULL, &val));
+#if defined(CONFIG_DPACK_DEBUG)
 	cute_expect_assertion(ret = dpack_decode_int16(&dec, &val));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
 	cute_expect_assertion(ret = dpack_decode_int16(&dec, NULL));
@@ -246,7 +250,9 @@ CUTE_TEST(dpackut_int16_decode_min_assert)
 	int                  ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_int16_min(NULL, 1, &val));
+#if defined(CONFIG_DPACK_DEBUG)
 	cute_expect_assertion(ret = dpack_decode_int16_min(&dec, 1, &val));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
 	cute_expect_assertion(ret = dpack_decode_int16_min(&dec,
 	                                                   INT16_MIN,
 	                                                   &val));
@@ -417,7 +423,9 @@ CUTE_TEST(dpackut_int16_decode_max_assert)
 	int                  ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_int16_max(NULL, 1, &val));
+#if defined(CONFIG_DPACK_DEBUG)
 	cute_expect_assertion(ret = dpack_decode_int16_max(&dec, 1, &val));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
 	cute_expect_assertion(ret = dpack_decode_int16_max(&dec,
@@ -592,7 +600,9 @@ CUTE_TEST(dpackut_int16_decode_range_assert)
 	int                  ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_int16_range(NULL, 1, 2, &val));
+#if defined(CONFIG_DPACK_DEBUG)
 	cute_expect_assertion(ret = dpack_decode_int16_range(&dec, 1, 2, &val));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
 	cute_expect_assertion(ret = dpack_decode_int16_range(&dec,

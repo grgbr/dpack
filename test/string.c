@@ -1884,7 +1884,7 @@ dpackut_str_unpack_strcpy(struct dpack_decoder *          decoder,
 
 CUTE_TEST(dpackut_str_decode_strcpy_assert)
 {
-	struct dpack_decoder dec = { 0, };
+	struct dpack_decoder dec = { .mpack.error = mpack_error_bug };
 	char *               str = str;
 	char                 buff[8];
 	ssize_t              ret __unused;
@@ -2067,7 +2067,7 @@ dpackut_str_unpack_strcpy_equ(struct dpack_decoder *          decoder,
 
 CUTE_TEST(dpackut_str_decode_strcpy_equ_assert)
 {
-	struct dpack_decoder dec = { 0, };
+	struct dpack_decoder dec = { .mpack.error = mpack_error_bug };
 	char *               str = str;
 	char                 buff[8];
 	ssize_t              ret __unused;
@@ -2312,7 +2312,7 @@ dpackut_str_unpack_strcpy_range(struct dpack_decoder *          decoder,
 
 CUTE_TEST(dpackut_str_decode_strcpy_range_assert)
 {
-	struct dpack_decoder dec = { 0, };
+	struct dpack_decoder dec = { .mpack.error = mpack_error_bug };
 	char *               str = str;
 	char                 buff[8];
 	ssize_t              ret __unused;

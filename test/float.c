@@ -148,7 +148,9 @@ CUTE_TEST(dpackut_float_decode_assert)
 	int                  ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_float(NULL, &val));
+#if defined(CONFIG_DPACK_DEBUG)
 	cute_expect_assertion(ret = dpack_decode_float(&dec, &val));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
 	cute_expect_assertion(ret = dpack_decode_float(&dec, NULL));
@@ -280,7 +282,9 @@ CUTE_TEST(dpackut_float_decode_min_assert)
 	int                  ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_float_min(NULL, 1.0f, &val));
+#if defined(CONFIG_DPACK_DEBUG)
 	cute_expect_assertion(ret = dpack_decode_float_min(&dec, 1.0f, &val));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
 	cute_expect_assertion(ret = dpack_decode_float_min(&dec,
@@ -636,7 +640,9 @@ CUTE_TEST(dpackut_float_decode_max_assert)
 	int                  ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_float_max(NULL, 1.0f, &val));
+#if defined(CONFIG_DPACK_DEBUG)
 	cute_expect_assertion(ret = dpack_decode_float_max(&dec, 1.0f, &val));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
 	cute_expect_assertion(ret = dpack_decode_float_max(&dec,
@@ -999,10 +1005,12 @@ CUTE_TEST(dpackut_float_decode_range_assert)
 	                                                     1.0f,
 	                                                     2.0f,
 	                                                     &val));
+#if defined(CONFIG_DPACK_DEBUG)
 	cute_expect_assertion(ret = dpack_decode_float_range(&dec,
 	                                                     1.0f,
 	                                                     2.0f,
 	                                                     &val));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
 	cute_expect_assertion(ret = dpack_decode_float_range(&dec,

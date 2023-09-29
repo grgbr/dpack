@@ -41,11 +41,13 @@ dpackut_bool_encode(const struct dpackut_scalar_data * data)
 CUTE_TEST(dpackut_bool_encode_assert)
 {
 	bool                 val = false;
-	struct dpack_encoder enc = { 0, };
 	int                  ret __unused;
+#if defined(CONFIG_DPACK_DEBUG)
+	struct dpack_encoder enc = { 0, };
 
-	cute_expect_assertion(ret = dpack_encode_bool(NULL, val));
 	cute_expect_assertion(ret = dpack_encode_bool(&enc, val));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
+	cute_expect_assertion(ret = dpack_encode_bool(NULL, val));
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -101,7 +103,9 @@ CUTE_TEST(dpackut_bool_decode_assert)
 	int                  ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_bool(NULL, &val));
+#if defined(CONFIG_DPACK_DEBUG)
 	cute_expect_assertion(ret = dpack_decode_bool(&dec, &val));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
 	cute_expect_assertion(ret = dpack_decode_bool(&dec, NULL));

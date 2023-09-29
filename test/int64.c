@@ -43,11 +43,14 @@ dpackut_int64_encode(const struct dpackut_scalar_data * data)
 CUTE_TEST(dpackut_int64_encode_assert)
 {
 	int64_t              val = false;
-	struct dpack_encoder enc = { 0, };
 	int                  ret __unused;
+#if defined(CONFIG_DPACK_DEBUG)
+	struct dpack_encoder enc = { 0, };
+
+	cute_expect_assertion(ret = dpack_encode_int64(&enc, val));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	cute_expect_assertion(ret = dpack_encode_int64(NULL, val));
-	cute_expect_assertion(ret = dpack_encode_int64(&enc, val));
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -141,7 +144,9 @@ CUTE_TEST(dpackut_int64_decode_assert)
 	int                  ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_int64(NULL, &val));
+#if defined(CONFIG_DPACK_DEBUG)
 	cute_expect_assertion(ret = dpack_decode_int64(&dec, &val));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
 	cute_expect_assertion(ret = dpack_decode_int64(&dec, NULL));
@@ -260,7 +265,9 @@ CUTE_TEST(dpackut_int64_decode_min_assert)
 	int                  ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_int64_min(NULL, 1, &val));
+#if defined(CONFIG_DPACK_DEBUG)
 	cute_expect_assertion(ret = dpack_decode_int64_min(&dec, 1, &val));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
 	cute_expect_assertion(ret = dpack_decode_int64_min(&dec,
 	                                                   INT64_MIN,
 	                                                   &val));
@@ -445,7 +452,9 @@ CUTE_TEST(dpackut_int64_decode_max_assert)
 	int                  ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_int64_max(NULL, 1, &val));
+#if defined(CONFIG_DPACK_DEBUG)
 	cute_expect_assertion(ret = dpack_decode_int64_max(&dec, 1, &val));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
 	cute_expect_assertion(ret = dpack_decode_int64_max(&dec,
@@ -634,7 +643,9 @@ CUTE_TEST(dpackut_int64_decode_range_assert)
 	int                  ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_int64_range(NULL, 1, 2, &val));
+#if defined(CONFIG_DPACK_DEBUG)
 	cute_expect_assertion(ret = dpack_decode_int64_range(&dec, 1, 2, &val));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
 	cute_expect_assertion(ret = dpack_decode_int64_range(&dec,

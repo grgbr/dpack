@@ -43,11 +43,13 @@ dpackut_int8_encode(const struct dpackut_scalar_data * data)
 CUTE_TEST(dpackut_int8_encode_assert)
 {
 	int8_t               val = false;
-	struct dpack_encoder enc = { 0, };
 	int                  ret __unused;
+#if defined(CONFIG_DPACK_DEBUG)
+	struct dpack_encoder enc = { 0, };
 
-	cute_expect_assertion(ret = dpack_encode_int8(NULL, val));
 	cute_expect_assertion(ret = dpack_encode_int8(&enc, val));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
+	cute_expect_assertion(ret = dpack_encode_int8(NULL, val));
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -132,7 +134,9 @@ CUTE_TEST(dpackut_int8_decode_assert)
 	int                  ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_int8(NULL, &val));
+#if defined(CONFIG_DPACK_DEBUG)
 	cute_expect_assertion(ret = dpack_decode_int8(&dec, &val));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
 	cute_expect_assertion(ret = dpack_decode_int8(&dec, NULL));
@@ -246,7 +250,9 @@ CUTE_TEST(dpackut_int8_decode_min_assert)
 	int                  ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_int8_min(NULL, 1, &val));
+#if defined(CONFIG_DPACK_DEBUG)
 	cute_expect_assertion(ret = dpack_decode_int8_min(&dec, 1, &val));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
 	cute_expect_assertion(ret = dpack_decode_int8_min(&dec,
 	                                                  INT8_MIN,
 	                                                  &val));
@@ -401,7 +407,9 @@ CUTE_TEST(dpackut_int8_decode_max_assert)
 	int                  ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_int8_max(NULL, 1, &val));
+#if defined(CONFIG_DPACK_DEBUG)
 	cute_expect_assertion(ret = dpack_decode_int8_max(&dec, 1, &val));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
 	cute_expect_assertion(ret = dpack_decode_int8_max(&dec,
@@ -560,7 +568,9 @@ CUTE_TEST(dpackut_int8_decode_range_assert)
 	int                  ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_int8_range(NULL, 1, 2, &val));
+#if defined(CONFIG_DPACK_DEBUG)
 	cute_expect_assertion(ret = dpack_decode_int8_range(&dec, 1, 2, &val));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
 	cute_expect_assertion(ret = dpack_decode_int8_range(&dec,
