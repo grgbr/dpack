@@ -213,6 +213,7 @@ dpack_encode_bin(struct dpack_encoder * encoder,
  * @retval 0         Success
  * @retval -EPROTO   Not a valid MessagePack stream
  * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -ENOMSG   Invalid MessagePack stream data type
  * @retval -EMSGSIZE Not enough space to complete operation
  * @retval -ENOMEM   Memory allocation failure
  *
@@ -260,6 +261,7 @@ dpack_decode_bindup(struct dpack_decoder * decoder,
  * @retval 0         Success
  * @retval -EPROTO   Not a valid MessagePack stream
  * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -ENOMSG   Invalid MessagePack stream data type
  * @retval -EMSGSIZE Not enough space to complete operation
  * @retval -ENOMEM   Memory allocation failure
  *
@@ -311,6 +313,7 @@ dpack_decode_bindup_equ(struct dpack_decoder * decoder,
  * @retval 0         Success
  * @retval -EPROTO   Not a valid MessagePack stream
  * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -ENOMSG   Invalid MessagePack stream data type
  * @retval -EMSGSIZE Not enough space to complete operation
  * @retval -ENOMEM   Memory allocation failure
  *
@@ -363,7 +366,7 @@ dpack_decode_bindup_max(struct dpack_decoder * decoder,
  * @retval 0         Success
  * @retval -EPROTO   Not a valid MessagePack stream
  * @retval -ENOTSUP  Unsupported MessagePack stream data
- * @retval -EBADMSG  Invalid MessagePack bin data
+ * @retval -ENOMSG   Invalid MessagePack stream data type
  * @retval -EMSGSIZE Not enough space to complete operation
  * @retval -ENOMEM   Memory allocation failure
  *
@@ -409,20 +412,158 @@ dpack_decode_bindup_range(struct dpack_decoder * decoder,
                                                         __warn_result
                                                         __dpack_export;
 
+/**
+ * Decode a bin encoded according to the MessagePack format
+ *
+ * @param[in]  decoder decoder
+ * @param[in]  size    size of decoded bin storage area
+ * @param[out] value   location where to store decoded bin
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -ENOMSG   Invalid MessagePack stream data type
+ * @retval -EMSGSIZE Not enough space to complete operation
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack bin format} into @p value from buffer assigned to
+ * @p decoder at initialization time.
+ *
+ * The decoded bin will be stored into the memory area specified by @p value.
+ * @p value should point to a memory area of size @p size bytes and should be
+ * large enough to hold at most #DPACK_BINSZ_MAX bytes of data.
+ *
+ * Decoding a bin larger than @p size will cause a ``-EMSGSIZE`` error code to
+ * be returned.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p size is zero or greater than ``DPACK_BINSZ_MAX``, result is undefined.
+ *   An assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_bindup()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
 extern ssize_t
 dpack_decode_bincpy(struct dpack_decoder * decoder,
                     size_t                 size,
-                    char *                 value) __dpack_export;
+                    char *                 value) __dpack_nonull(1, 3)
+                                                  __dpack_nothrow
+                                                  __leaf
+                                                  __warn_result
+                                                  __dpack_export;
 
+/**
+ * Decode a bin encoded according to the MessagePack format with requested size.
+ *
+ * @param[in]  decoder decoder
+ * @param[in]  size    expected size of decoded bin
+ * @param[out] value   location where to store decoded bin
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -ENOMSG   Invalid MessagePack stream data type
+ * @retval -EMSGSIZE Not enough space to complete operation
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack bin format} into @p value from buffer assigned to
+ * @p decoder at initialization time.
+ *
+ * The decoded bin will be stored into the memory area specified by @p value.
+ * @p value should point to a memory area of size @p size bytes or more.
+ *
+ * Decoding a bin which size is different from @p size will cause a
+ * ``-EMSGSIZE`` error code to be returned.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p size is zero or greater than ``DPACK_BINSZ_MAX``, result is undefined.
+ *   An assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_bindup_equ()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
 extern ssize_t
 dpack_decode_bincpy_equ(struct dpack_decoder * decoder,
                         size_t                 size,
-                        char *                 value) __dpack_export;
+                        char *                 value) __dpack_nonull(1, 3)
+                                                      __dpack_nothrow
+                                                      __leaf
+                                                      __warn_result
+                                                      __dpack_export;
 
+/**
+ * Decode a bin encoded according to the MessagePack format with requested
+ * minimum and maximum size.
+ *
+ * @param[in]  decoder decoder
+ * @param[in]  min_sz  minimum size of decoded bin
+ * @param[in]  max_sz  maximum size of decoded bin
+ * @param[out] value   location where to store decoded bin
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -ENOMSG   Invalid MessagePack stream data type
+ * @retval -EMSGSIZE Not enough space to complete operation
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack bin format} into @p value from buffer assigned to
+ * @p decoder at initialization time.
+ *
+ * The decoded bin will be stored into the memory area specified by @p value.
+ * @p value should point to a memory area of size @p max_sz bytes or more.
+ *
+ * Decoding a bin which size is smaller than @p min_sz or greater than
+ * @p max_sz will cause a ``-EMSGSIZE`` error code to be returned.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p min_sz is zero or greater than or equal to @p max_sz, result is
+ *   undefined.  An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p max_size value is greater than #DPACK_BINSZ_MAX, result is undefined. An
+ *   assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_bindup_range()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
 extern ssize_t
 dpack_decode_bincpy_range(struct dpack_decoder * decoder,
                           size_t                 min_sz,
                           size_t                 max_sz,
-                          char *                 value) __dpack_export;
+                          char *                 value) __dpack_nonull(1, 4)
+                                                        __dpack_nothrow
+                                                        __leaf
+                                                        __warn_result
+                                                        __dpack_export;
 
 #endif /* _DPACK_BIN_H */

@@ -502,7 +502,6 @@ dpack_decode_strdup_range(struct dpack_decoder * decoder,
  * @retval -ENOTSUP  Unsupported MessagePack stream data
  * @retval -EBADMSG  Invalid MessagePack string data
  * @retval -EMSGSIZE Not enough space to complete operation
- * @retval -ENOMEM   Memory allocation failure
  *
  * Decode / unpack / deserialize data item encoded according to the
  * @rstsubst{MessagePack string format} into @p value string from buffer
@@ -555,7 +554,6 @@ dpack_decode_strcpy(struct dpack_decoder * decoder,
  * @retval -ENOTSUP  Unsupported MessagePack stream data
  * @retval -EBADMSG  Invalid MessagePack string data
  * @retval -EMSGSIZE Not enough space to complete operation
- * @retval -ENOMEM   Memory allocation failure
  *
  * Decode / unpack / deserialize data item encoded according to the
  * @rstsubst{MessagePack string format} into @p value string from buffer
@@ -608,7 +606,6 @@ dpack_decode_strcpy_equ(struct dpack_decoder * decoder,
  * @retval -ENOTSUP  Unsupported MessagePack stream data
  * @retval -EBADMSG  Invalid MessagePack string data
  * @retval -EMSGSIZE Not enough space to complete operation
- * @retval -ENOMEM   Memory allocation failure
  *
  * Decode / unpack / deserialize data item encoded according to the
  * @rstsubst{MessagePack string format} into @p value string from buffer
@@ -628,7 +625,7 @@ dpack_decode_strcpy_equ(struct dpack_decoder * decoder,
  * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
  *   @p decoder is in error state before calling this function, result is
  *   undefined. An assertion is triggered otherwise.
-  * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
  *   @p min_len value is zero or greater than ``max_size - 1``, result is
  *   undefined.  An assertion is triggered otherwise.
  * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and

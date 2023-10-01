@@ -855,7 +855,7 @@ CUTE_TEST(dpackut_bin_decode_dup_equ_uninit_dec)
 /**
  * @internal
  *
- * Perform a duplicated bin decoding test with requested  size
+ * Perform a duplicated bin decoding test with requested size
  *
  * @param[in] ret       expected code returned by dpack_decode_bindup_equ()
  * @param[in] ref_size  size of (unpacked) data from which to generate
@@ -1756,7 +1756,8 @@ CUTE_TEST(dpackut_bin_decode_dup_range_uninit_dec)
 /**
  * @internal
  *
- * Perform a duplicated bin decoding test with requested maximum size
+ * Perform a duplicated bin decoding test with requested minimum and maximum
+ * size
  *
  * @param[in] ret       expected code returned by dpack_decode_bindup_range()
  * @param[in] ref_size  size of (unpacked) data from which to generate
@@ -2135,6 +2136,1187 @@ CUTE_TEST(dpackut_bin_decode_dup_range_nok_binszplus_short_sup)
 	                             DPACK_BINSZ_MAX);
 }
 
+#if defined(CONFIG_DPACK_ASSERT_API)
+
+CUTE_TEST(dpackut_bin_decode_cpy_null_dec)
+{
+	char *  data = data;
+	ssize_t ret __unused;
+
+	cute_expect_assertion(ret = dpack_decode_bincpy(NULL, 2, data));
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_null_data)
+{
+	struct dpack_decoder dec;
+	char                 data = data;
+	ssize_t              ret __unused;
+
+	dpack_decoder_init_buffer(&dec, &data, 1);
+	cute_expect_assertion(ret = dpack_decode_bincpy(&dec, 1, NULL));
+	dpack_decoder_fini(&dec);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_zero)
+{
+	struct dpack_decoder dec;
+	char                 data = data;
+	ssize_t              ret __unused;
+
+	dpack_decoder_init_buffer(&dec, &data, 1);
+	cute_expect_assertion(ret = dpack_decode_bincpy(&dec, 0, &data));
+	dpack_decoder_fini(&dec);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_huge)
+{
+	struct dpack_decoder dec;
+	char                 data = data;
+	ssize_t              ret __unused;
+
+	dpack_decoder_init_buffer(&dec, &data, 1);
+	cute_expect_assertion(ret = dpack_decode_bincpy(&dec,
+	                                                DPACK_BINSZ_MAX + 1,
+	                                                &data));
+	dpack_decoder_fini(&dec);
+}
+
+#else  /* !(defined(CONFIG_DPACK_ASSERT_API)) */
+
+CUTE_TEST(dpackut_bin_decode_cpy_null_dec)
+{
+	cute_skip("assertion unsupported");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_null_data)
+{
+	cute_skip("assertion unsupported");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_zero)
+{
+	cute_skip("assertion unsupported");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_huge)
+{
+	cute_skip("assertion unsupported");
+}
+
+#endif  /* defined(CONFIG_DPACK_ASSERT_API) */
+
+/**
+ * @internal
+ *
+ * Perform a duplicated bin decoding test
+ *
+ * @param[in] ret       expected code returned by dpack_decode_bindup()
+ * @param[in] ref_size  size of (unpacked) data from which to generate
+ *                      reference packed data
+ * @param[in] test_size size of (unpacked) data from which to compute encoded
+ *                      data buffer size given to dpack_decoder_init_buffer()
+ */
+static void
+dpackut_bin_decode_cpy(ssize_t ret, size_t ref_size, size_t test_size)
+{
+	const struct cute_uint_range range = CUTE_UINT_RANGE(1,
+	                                                     DPACK_BINSZ_MAX);
+	struct dpackut_bin_data      data;
+	struct dpack_decoder         dec;
+	char *                       val;
+	ssize_t                      sz;
+
+	cute_check_uint_range(ref_size, in, range);
+	cute_check_uint_range(test_size, in, range);
+
+	dpackut_bin_gen_data(&data, ref_size);
+
+	val = malloc(test_size);
+	memset(val, 0xff, test_size);
+
+	dpack_decoder_init_buffer(&dec,
+	                          data.pack_buff,
+	                          dpack_bin_size(test_size));
+
+	sz = dpack_decode_bincpy(&dec, test_size, val);
+	cute_check_sint(sz, equal, ret);
+
+	if (sz >= 0) {
+		cute_check_uint((size_t)sz, equal, data.value_size);
+		cute_check_mem(val, equal, data.value_buff, (size_t)sz);
+		cute_check_uint(dpack_bin_size((size_t)sz),
+		                equal,
+		                data.pack_size);
+	}
+
+	dpack_decoder_fini(&dec);
+
+	free(val);
+
+	dpackut_bin_fini_data(&data);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_ok_1)
+{
+	dpackut_bin_decode_cpy(1, 1, 1);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_nok_2_short)
+{
+	dpackut_bin_decode_cpy(-EMSGSIZE, 2, 1);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_ok_2)
+{
+	dpackut_bin_decode_cpy(2, 2, 2);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_nok_3_short)
+{
+	dpackut_bin_decode_cpy(-EMSGSIZE, 3, 2);
+}
+
+#if DPACK_BINSZ_MAX >= (UINT8_MAX)
+
+CUTE_TEST(dpackut_bin_decode_cpy_ok_uint8)
+{
+	dpackut_bin_decode_cpy(UINT8_MAX, UINT8_MAX, UINT8_MAX);
+}
+
+#else  /* !(DPACK_BINSZ_MAX >= (UINT8_MAX)) */
+
+CUTE_TEST(dpackut_bin_decode_cpy_ok_uint8)
+{
+	cute_skip("maximum MsgPack bin size < 255");
+}
+
+#endif /* DPACK_BINSZ_MAX >= (UINT8_MAX) */
+
+#if DPACK_BINSZ_MAX >= (UINT8_MAX + 1)
+
+CUTE_TEST(dpackut_bin_decode_cpy_nok_uint8plus_short)
+{
+	dpackut_bin_decode_cpy(-EMSGSIZE, UINT8_MAX + 1, UINT8_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_ok_uint8plus)
+{
+	dpackut_bin_decode_cpy(UINT8_MAX + 1, UINT8_MAX + 1, UINT8_MAX + 1);
+}
+
+#else  /* !(DPACK_BINSZ_MAX >= (UINT8_MAX + 1)) */
+
+CUTE_TEST(dpackut_bin_decode_cpy_nok_uint8plus_short)
+{
+	cute_skip("maximum MsgPack bin size < 256");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_ok_uint8plus)
+{
+	cute_skip("maximum MsgPack bin size < 256");
+}
+
+#endif /* DPACK_BINSZ_MAX >= (UINT8_MAX + 1) */
+
+#if DPACK_BINSZ_MAX >= (UINT16_MAX)
+
+CUTE_TEST(dpackut_bin_decode_cpy_ok_uint16)
+{
+	dpackut_bin_decode_cpy(UINT16_MAX, UINT16_MAX, UINT16_MAX);
+}
+
+#else  /* !(DPACK_BINSZ_MAX >= (UINT16_MAX)) */
+
+CUTE_TEST(dpackut_bin_decode_cpy_ok_uint16)
+{
+	cute_skip("maximum MsgPack bin size < 65536");
+}
+
+#endif /* DPACK_BINSZ_MAX >= (UINT16_MAX) */
+
+#if DPACK_BINSZ_MAX >= (UINT16_MAX + 1)
+
+CUTE_TEST(dpackut_bin_decode_cpy_nok_uint16plus_short)
+{
+	dpackut_bin_decode_cpy(-EMSGSIZE, UINT16_MAX + 1, UINT16_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_ok_uint16plus)
+{
+	dpackut_bin_decode_cpy(UINT16_MAX + 1, UINT16_MAX + 1, UINT16_MAX + 1);
+}
+
+#else  /* !(DPACK_BINSZ_MAX >= (UINT16_MAX + 1)) */
+
+CUTE_TEST(dpackut_bin_decode_cpy_nok_uint16plus_short)
+{
+	cute_skip("maximum MsgPack bin size < 65537");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_ok_uint16plus)
+{
+	cute_skip("maximum MsgPack bin size < 65537");
+}
+
+#endif /* DPACK_BINSZ_MAX >= (UINT16_MAX + 1) */
+
+CUTE_TEST(dpackut_bin_decode_cpy_ok_max)
+{
+	dpackut_bin_decode_cpy(DPACK_BINSZ_MAX,
+	                       DPACK_BINSZ_MAX,
+	                       DPACK_BINSZ_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_nok_max_short)
+{
+	dpackut_bin_decode_cpy(-EMSGSIZE, DPACK_BINSZ_MAX, DPACK_BINSZ_MAX - 1);
+}
+
+#if defined(CONFIG_DPACK_ASSERT_API)
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_null_dec)
+{
+	char *  data = data;
+	ssize_t ret __unused;
+
+	cute_expect_assertion(ret = dpack_decode_bincpy_equ(NULL, 2, data));
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_null_data)
+{
+	struct dpack_decoder dec = { 0, };
+	char                 data = data;
+	ssize_t              ret __unused;
+
+	dpack_decoder_init_buffer(&dec, &data, 1);
+	cute_expect_assertion(ret = dpack_decode_bincpy_equ(&dec, 2, NULL));
+	dpack_decoder_fini(&dec);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_0)
+{
+	struct dpack_decoder dec = { 0, };
+	char                 data = data;
+	char *               bin = bin;
+	ssize_t              ret __unused;
+
+	dpack_decoder_init_buffer(&dec, &data, 1);
+	cute_expect_assertion(ret = dpack_decode_bincpy_equ(&dec, 0, bin));
+	dpack_decoder_fini(&dec);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_binsz)
+{
+	struct dpack_decoder dec = { 0, };
+	char                 data = data;
+	char *               bin = bin;
+	ssize_t              ret __unused;
+
+	dpack_decoder_init_buffer(&dec, &data, 1);
+	cute_expect_assertion(ret = dpack_decode_bincpy_equ(&dec,
+	                                                    DPACK_BINSZ_MAX + 1,
+	                                                    bin));
+	dpack_decoder_fini(&dec);
+}
+
+#else  /* !defined(CONFIG_DPACK_ASSERT_API) */
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_null_dec)
+{
+	cute_skip("assertion unsupported");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_null_data)
+{
+	cute_skip("assertion unsupported");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_0)
+{
+	cute_skip("assertion unsupported");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_binsz)
+{
+	cute_skip("assertion unsupported");
+}
+
+#endif /* defined(CONFIG_DPACK_ASSERT_API) */
+
+#if defined(CONFIG_DPACK_DEBUG)
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_uninit_dec)
+{
+	struct dpack_decoder dec = { 0, };
+	char *               data = data;
+	ssize_t              ret __unused;
+
+	cute_expect_assertion(ret = dpack_decode_bincpy_equ(&dec, 2, data));
+}
+
+#else  /* !defined(CONFIG_DPACK_DEBUG) */
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_uninit_dec)
+{
+	cute_skip("debug build disabled");
+}
+
+#endif /* defined(CONFIG_DPACK_DEBUG) */
+
+/**
+ * @internal
+ *
+ * Perform a bin decoding test with requested size
+ *
+ * @param[in] ret       expected code returned by dpack_decode_bincpy_equ()
+ * @param[in] ref_size  size of (unpacked) data from which to generate
+ *                      reference packed data
+ * @param[in] test_size size of (unpacked) data from which to compute encoded
+ *                      data buffer size given to dpack_decoder_init_buffer()
+ * @param[in] equ_size  expected size of (packed) data given to
+ *                      dpack_decode_bincpy_equ() for unpacking data to compare
+ *                      with reference unpacked data
+ */
+static void
+dpackut_bin_decode_cpy_equ(ssize_t ret,
+                           size_t  ref_size,
+                           size_t  test_size,
+                           size_t  equ_size)
+{
+	const struct cute_uint_range range = CUTE_UINT_RANGE(1,
+	                                                     DPACK_BINSZ_MAX);
+	struct dpackut_bin_data      data;
+	struct dpack_decoder         dec;
+	char *                       val;
+	ssize_t                      sz;
+	size_t                       alloc;
+
+	cute_check_uint_range(ref_size, in, range);
+	cute_check_uint_range(test_size, in, range);
+	cute_check_uint_range(equ_size,
+	                      in,
+	                      CUTE_UINT_RANGE(1, DPACK_BINSZ_MAX));
+
+	dpackut_bin_gen_data(&data, ref_size);
+
+	alloc = stroll_max(test_size, equ_size);
+	val = malloc(alloc);
+	memset(val, 0xff, alloc);
+
+	dpack_decoder_init_buffer(&dec,
+	                          data.pack_buff,
+	                          dpack_bin_size(test_size));
+
+	sz = dpack_decode_bincpy_equ(&dec, equ_size, val);
+	cute_check_sint(sz, equal, ret);
+
+	if (sz >= 0) {
+		cute_check_uint((size_t)sz, equal, data.value_size);
+		cute_check_mem(val, equal, data.value_buff, (size_t)sz);
+		cute_check_uint(dpack_bin_size((size_t)sz),
+		                equal,
+		                data.pack_size);
+	}
+
+	dpack_decoder_fini(&dec);
+
+	free(val);
+
+	dpackut_bin_fini_data(&data);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_ok_1)
+{
+	dpackut_bin_decode_cpy_equ(1, 1, 1, 1);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_1_sup)
+{
+	dpackut_bin_decode_cpy_equ(-EMSGSIZE, 1, 1, 2);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_2_short_inf)
+{
+	dpackut_bin_decode_cpy_equ(-EMSGSIZE, 2, 1, 1);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_2_short_equ)
+{
+	dpackut_bin_decode_cpy_equ(-EPROTO, 2, 1, 2);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_2_short_sup)
+{
+	dpackut_bin_decode_cpy_equ(-EMSGSIZE, 2, 1, 3);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_2_inf)
+{
+	dpackut_bin_decode_cpy_equ(-EMSGSIZE, 2, 2, 1);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_ok_2)
+{
+	dpackut_bin_decode_cpy_equ(2, 2, 2, 2);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_2_sup)
+{
+	dpackut_bin_decode_cpy_equ(-EMSGSIZE, 2, 2, 3);
+}
+
+#if DPACK_BINSZ_MAX >= (UINT8_MAX)
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint8_short_inf)
+{
+	dpackut_bin_decode_cpy_equ(-EMSGSIZE,
+	                           UINT8_MAX,
+	                           UINT8_MAX - 1,
+	                           UINT8_MAX - 1);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint8_short_equ)
+{
+	dpackut_bin_decode_cpy_equ(-EPROTO,
+	                           UINT8_MAX,
+	                           UINT8_MAX - 1,
+	                           UINT8_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint8_inf)
+{
+	dpackut_bin_decode_cpy_equ(-EMSGSIZE,
+	                           UINT8_MAX,
+	                           UINT8_MAX,
+	                           UINT8_MAX - 1);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_ok_uint8)
+{
+	dpackut_bin_decode_cpy_equ(UINT8_MAX,
+	                           UINT8_MAX,
+	                           UINT8_MAX,
+	                           UINT8_MAX);
+}
+
+#else  /* !(DPACK_BINSZ_MAX >= (UINT8_MAX)) */
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint8_short_inf)
+{
+	cute_skip("maximum MsgPack bin size < 255");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint8_short_equ)
+{
+	cute_skip("maximum MsgPack bin size < 255");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint8_inf)
+{
+	cute_skip("maximum MsgPack bin size < 255");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpcpyqu_ok_uint8)
+{
+	cute_skip("maximum MsgPack bin size < 255");
+}
+
+#endif /* DPACK_BINSZ_MAX >= (UINT8_MAX) */
+
+#if DPACK_BINSZ_MAX >= (UINT8_MAX + 1)
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint8_short_sup)
+{
+	dpackut_bin_decode_cpy_equ(-EMSGSIZE,
+	                           UINT8_MAX,
+	                           UINT8_MAX - 1,
+	                           UINT8_MAX + 1);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint8_sup)
+{
+	dpackut_bin_decode_cpy_equ(-EMSGSIZE,
+	                           UINT8_MAX,
+	                           UINT8_MAX,
+	                           UINT8_MAX + 1);
+}
+
+#else  /* !(DPACK_BINSZ_MAX >= (UINT8_MAX + 1)) */
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint8_short_sup)
+{
+	cute_skip("maximum MsgPack bin size < 256");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint8_sup)
+{
+	cute_skip("maximum MsgPack bin size < 256");
+}
+
+#endif /* DPACK_BINSZ_MAX >= (UINT8_MAX + 1) */
+
+#if DPACK_BINSZ_MAX >= (UINT16_MAX)
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint16_short_inf)
+{
+	dpackut_bin_decode_cpy_equ(-EMSGSIZE,
+	                           UINT16_MAX,
+	                           UINT16_MAX - 1,
+	                           UINT16_MAX - 1);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint16_short_equ)
+{
+	dpackut_bin_decode_cpy_equ(-EPROTO,
+	                           UINT16_MAX,
+	                           UINT16_MAX - 1,
+	                           UINT16_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint16_inf)
+{
+	dpackut_bin_decode_cpy_equ(-EMSGSIZE,
+	                           UINT16_MAX,
+	                           UINT16_MAX,
+	                           UINT16_MAX - 1);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_ok_uint16)
+{
+	dpackut_bin_decode_cpy_equ(UINT16_MAX,
+	                           UINT16_MAX,
+	                           UINT16_MAX,
+	                           UINT16_MAX);
+}
+
+#else  /* !(DPACK_BINSZ_MAX >= (UINT16_MAX)) */
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint16_short_inf)
+{
+	cute_skip("maximum MsgPack bin size < 65536");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint16_short_equ)
+{
+	cute_skip("maximum MsgPack bin size < 65536");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint16_inf)
+{
+	cute_skip("maximum MsgPack bin size < 65536");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_ok_uint16)
+{
+	cute_skip("maximum MsgPack bin size < 65536");
+}
+
+#endif /* DPACK_BINSZ_MAX >= (UINT16_MAX) */
+
+#if DPACK_BINSZ_MAX >= (UINT16_MAX + 1)
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint16_short_sup)
+{
+	dpackut_bin_decode_cpy_equ(-EMSGSIZE,
+	                           UINT16_MAX,
+	                           UINT16_MAX - 1,
+	                           UINT16_MAX + 1);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint16_sup)
+{
+	dpackut_bin_decode_cpy_equ(-EMSGSIZE,
+	                           UINT16_MAX,
+	                           UINT16_MAX,
+	                           UINT16_MAX + 1);
+}
+
+#else  /* !(DPACK_BINSZ_MAX >= (UINT16_MAX + 1)) */
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint16_short_sup)
+{
+	cute_skip("maximum MsgPack bin size < 65537");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint16_sup)
+{
+	cute_skip("maximum MsgPack bin size < 65537");
+}
+
+#endif /* DPACK_BINSZ_MAX >= (UINT16_MAX + 1) */
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_binsz_sup)
+{
+	dpackut_bin_decode_cpy_equ(-EMSGSIZE,
+	                           DPACK_BINSZ_MAX - 1,
+	                           DPACK_BINSZ_MAX - 1,
+	                           DPACK_BINSZ_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_binsz_short_sup)
+{
+	dpackut_bin_decode_cpy_equ(-EMSGSIZE,
+	                           DPACK_BINSZ_MAX - 1,
+	                           DPACK_BINSZ_MAX - 2,
+	                           DPACK_BINSZ_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_binsz_short_inf)
+{
+	dpackut_bin_decode_cpy_equ(-EMSGSIZE,
+	                           DPACK_BINSZ_MAX,
+	                           DPACK_BINSZ_MAX - 1,
+	                           DPACK_BINSZ_MAX - 1);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_binsz_short_equ)
+{
+	dpackut_bin_decode_cpy_equ(-EPROTO,
+	                           DPACK_BINSZ_MAX,
+	                           DPACK_BINSZ_MAX - 1,
+	                           DPACK_BINSZ_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_binsz_inf)
+{
+	dpackut_bin_decode_cpy_equ(-EMSGSIZE,
+	                           DPACK_BINSZ_MAX,
+	                           DPACK_BINSZ_MAX,
+	                           DPACK_BINSZ_MAX - 1);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_equ_ok_binsz)
+{
+	dpackut_bin_decode_cpy_equ(DPACK_BINSZ_MAX,
+	                           DPACK_BINSZ_MAX,
+	                           DPACK_BINSZ_MAX,
+	                           DPACK_BINSZ_MAX);
+}
+
+#if defined(CONFIG_DPACK_ASSERT_API)
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_null_dec)
+{
+	char *  data = data;
+	ssize_t ret __unused;
+
+	cute_expect_assertion(ret = dpack_decode_bincpy_range(NULL,
+	                                                      1,
+	                                                      2,
+	                                                      data));
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_null_data)
+{
+	struct dpack_decoder dec = { 0, };
+	char                 data = data;
+	ssize_t              ret __unused;
+
+	dpack_decoder_init_buffer(&dec, &data, 1);
+	cute_expect_assertion(ret = dpack_decode_bincpy_range(&dec,
+	                                                      1,
+	                                                      2,
+	                                                      NULL));
+	dpack_decoder_fini(&dec);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_02)
+{
+	struct dpack_decoder dec = { 0, };
+	char                 data = data;
+	char *               bin = bin;
+	ssize_t              ret __unused;
+
+	dpack_decoder_init_buffer(&dec, &data, 1);
+	cute_expect_assertion(ret = dpack_decode_bincpy_range(&dec,
+	                                                      0,
+	                                                      2,
+	                                                      bin));
+	dpack_decoder_fini(&dec);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_10)
+{
+	struct dpack_decoder dec = { 0, };
+	char                 data = data;
+	char *               bin = bin;
+	ssize_t              ret __unused;
+
+	dpack_decoder_init_buffer(&dec, &data, 1);
+	cute_expect_assertion(ret = dpack_decode_bincpy_range(&dec,
+	                                                      1,
+	                                                      0,
+	                                                      bin));
+	dpack_decoder_fini(&dec);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_21)
+{
+	struct dpack_decoder dec = { 0, };
+	char                 data[8] = { 0, };
+	char *               bin = bin;
+	ssize_t              ret __unused;
+
+	dpack_decoder_init_buffer(&dec, data, 1);
+	cute_expect_assertion(ret = dpack_decode_bincpy_range(&dec,
+	                                                      2,
+	                                                      1,
+	                                                      bin));
+	dpack_decoder_fini(&dec);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_binsz)
+{
+	struct dpack_decoder dec = { 0, };
+	char                 data[8] = { 0, };
+	char *               bin = bin;
+	ssize_t              ret __unused;
+
+	dpack_decoder_init_buffer(&dec, data, 1);
+	cute_expect_assertion(ret = dpack_decode_bincpy_range(&dec,
+	                                                      1,
+	                                                      DPACK_BINSZ_MAX +
+	                                                      1,
+	                                                      bin));
+	dpack_decoder_fini(&dec);
+}
+
+#else  /* !defined(CONFIG_DPACK_ASSERT_API) */
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_null_dec)
+{
+	cute_skip("assertion unsupported");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_null_data)
+{
+	cute_skip("assertion unsupported");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_02)
+{
+	cute_skip("assertion unsupported");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_10)
+{
+	cute_skip("assertion unsupported");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_21)
+{
+	cute_skip("assertion unsupported");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_binsz)
+{
+	cute_skip("assertion unsupported");
+}
+
+#endif /* defined(CONFIG_DPACK_ASSERT_API) */
+
+#if defined(CONFIG_DPACK_DEBUG)
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_uninit_dec)
+{
+	struct dpack_decoder dec = { 0, };
+	char *               data = data;
+	ssize_t              ret __unused;
+
+	cute_expect_assertion(ret = dpack_decode_bincpy_range(&dec,
+	                                                      1,
+	                                                      2,
+	                                                      data));
+}
+
+#else  /* !defined(CONFIG_DPACK_DEBUG) */
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_uninit_dec)
+{
+	cute_skip("debug build disabled");
+}
+
+#endif /* defined(CONFIG_DPACK_DEBUG) */
+
+/**
+ * @internal
+ *
+ * Perform a duplicated bin decoding test with requested minimum and maximum
+ * size
+ *
+ * @param[in] ret       expected code returned by dpack_decode_bindup_range()
+ * @param[in] ref_size  size of (unpacked) data from which to generate
+ *                      reference packed data
+ * @param[in] test_size size of (unpacked) data from which to compute encoded
+ *                      data buffer size given to dpack_decoder_init_buffer()
+ * @param[in] min_size  minimum size of (packed) data given to
+ *                      dpack_decode_bindup_range() for unpacking data to
+ *                      compare with reference unpacked data
+ * @param[in] max_size  maximum size of (packed) data given to
+ *                      dpack_decode_bindup_range() for unpacking data to
+ *                      compare with reference unpacked data
+ */
+static void
+dpackut_bin_decode_cpy_range(ssize_t ret,
+                             size_t  ref_size,
+                             size_t  test_size,
+                             size_t  min_size,
+                             size_t  max_size)
+{
+	const struct cute_uint_range range = CUTE_UINT_RANGE(1,
+	                                                     DPACK_BINSZ_MAX);
+	struct dpackut_bin_data data;
+	struct dpack_decoder    dec;
+	char *                  val;
+	ssize_t                 sz;
+	size_t                  alloc;
+
+	cute_check_uint_range(ref_size, in, range);
+	cute_check_uint_range(test_size, in, range);
+	cute_check_uint_range(min_size, in, CUTE_UINT_RANGE(1,
+	                                                    DPACK_BINSZ_MAX -
+	                                                    1));
+	cute_check_uint_range(max_size, in, CUTE_UINT_RANGE(2,
+	                                                    DPACK_BINSZ_MAX));
+
+	dpackut_bin_gen_data(&data, ref_size);
+
+	alloc = stroll_max(test_size, max_size);
+	val = malloc(alloc);
+	memset(val, 0xff, alloc);
+
+	dpack_decoder_init_buffer(&dec,
+	                          data.pack_buff,
+	                          dpack_bin_size(test_size));
+
+	sz = dpack_decode_bincpy_range(&dec, min_size, max_size, val);
+	cute_check_sint(sz, equal, ret);
+
+	if (sz >= 0) {
+		cute_check_uint((size_t)sz, equal, data.value_size);
+		cute_check_mem(val, equal, data.value_buff, (size_t)sz);
+		cute_check_uint(dpack_bin_size((size_t)sz),
+		                equal,
+		                data.pack_size);
+	}
+
+	dpack_decoder_fini(&dec);
+
+	free(val);
+
+	dpackut_bin_fini_data(&data);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_ok_1)
+{
+	dpackut_bin_decode_cpy_range(1, 1, 1, 1, 2);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_1_short)
+{
+	dpackut_bin_decode_cpy_range(-EPROTO, 2, 1, 1, 2);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_1)
+{
+	dpackut_bin_decode_cpy_range(-EMSGSIZE, 1, 1, 2, 3);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_ok_2)
+{
+	dpackut_bin_decode_cpy_range(2, 2, 2, 2, 3);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_2_short)
+{
+	dpackut_bin_decode_cpy_range(-EPROTO, 2, 1, 2, 3);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_ok_3)
+{
+	dpackut_bin_decode_cpy_range(3, 3, 3, 2, 3);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_3_short)
+{
+	dpackut_bin_decode_cpy_range(-EPROTO, 3, 2, 2, 3);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_4)
+{
+	dpackut_bin_decode_cpy_range(-EMSGSIZE, 4, 4, 2, 3);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_4_short)
+{
+	dpackut_bin_decode_cpy_range(-EMSGSIZE, 4, 3, 2, 3);
+}
+
+#if DPACK_BINSZ_MAX >= UINT8_MAX
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint8minus2_sup)
+{
+	dpackut_bin_decode_cpy_range(-EMSGSIZE,
+	                             UINT8_MAX - 2,
+	                             UINT8_MAX - 2,
+	                             UINT8_MAX - 1,
+	                             UINT8_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_ok_uint8minus_sup)
+{
+	dpackut_bin_decode_cpy_range(UINT8_MAX - 1,
+	                             UINT8_MAX - 1,
+	                             UINT8_MAX - 1,
+	                             UINT8_MAX - 1,
+	                             UINT8_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint8minus_short_sup)
+{
+	dpackut_bin_decode_cpy_range(-EPROTO,
+	                             UINT8_MAX - 1,
+	                             UINT8_MAX - 2,
+	                             UINT8_MAX - 1,
+	                             UINT8_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_ok_uint8)
+{
+	dpackut_bin_decode_cpy_range(UINT8_MAX,
+	                             UINT8_MAX,
+	                             UINT8_MAX,
+	                             UINT8_MAX - 1,
+	                             UINT8_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint8_short)
+{
+	dpackut_bin_decode_cpy_range(-EPROTO,
+	                             UINT8_MAX,
+	                             UINT8_MAX - 1,
+	                             UINT8_MAX - 1,
+	                             UINT8_MAX);
+}
+
+#else  /* !(DPACK_BINSZ_MAX >= UINT8_MAX) */
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint8minus2_sup)
+{
+	cute_skip("maximum MsgPack bin size < 255");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_ok_uint8minus_sup)
+{
+	cute_skip("maximum MsgPack bin size < 255");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint8minus_short_sup)
+{
+	cute_skip("maximum MsgPack bin size < 255");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_ok_uint8)
+{
+	cute_skip("maximum MsgPack bin size < 255");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint8_short)
+{
+	cute_skip("maximum MsgPack bin size < 255");
+}
+
+#endif /* !(DPACK_BINSZ_MAX >= UINT8_MAX) */
+
+#if  DPACK_BINSZ_MAX >= (UINT8_MAX + 1)
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint8plus_sup)
+{
+	dpackut_bin_decode_cpy_range(-EMSGSIZE,
+	                             UINT8_MAX + 1,
+	                             UINT8_MAX + 1,
+	                             UINT8_MAX - 1,
+	                             UINT8_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint8plus_short_sup)
+{
+	dpackut_bin_decode_cpy_range(-EMSGSIZE,
+	                             UINT8_MAX + 1,
+	                             UINT8_MAX,
+	                             UINT8_MAX - 1,
+	                             UINT8_MAX);
+}
+
+#else  /* !(DPACK_BINSZ_MAX >= (UINT8_MAX + 1)) */
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint8plus_sup)
+{
+	cute_skip("maximum MsgPack bin size < 256");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint8plus_short_sup)
+{
+	cute_skip("maximum MsgPack bin size < 256");
+}
+
+#endif /* DPACK_BINSZ_MAX >= (UINT8_MAX + 1) */
+
+#if DPACK_BINSZ_MAX >= UINT16_MAX
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint16minus2_sup)
+{
+	dpackut_bin_decode_cpy_range(-EMSGSIZE,
+	                             UINT16_MAX - 2,
+	                             UINT16_MAX - 2,
+	                             UINT16_MAX - 1,
+	                             UINT16_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_ok_uint16minus_sup)
+{
+	dpackut_bin_decode_cpy_range(UINT16_MAX - 1,
+	                             UINT16_MAX - 1,
+	                             UINT16_MAX - 1,
+	                             UINT16_MAX - 1,
+	                             UINT16_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint16minus_short_sup)
+{
+	dpackut_bin_decode_cpy_range(-EPROTO,
+	                             UINT16_MAX - 1,
+	                             UINT16_MAX - 2,
+	                             UINT16_MAX - 1,
+	                             UINT16_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_ok_uint16)
+{
+	dpackut_bin_decode_cpy_range(UINT16_MAX,
+	                             UINT16_MAX,
+	                             UINT16_MAX,
+	                             UINT16_MAX - 1,
+	                             UINT16_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint16_short)
+{
+	dpackut_bin_decode_cpy_range(-EPROTO,
+	                             UINT16_MAX,
+	                             UINT16_MAX - 1,
+	                             UINT16_MAX - 1,
+	                             UINT16_MAX);
+}
+
+#else  /* !(DPACK_BINSZ_MAX >= UINT16_MAX) */
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint16minus2_sup)
+{
+	cute_skip("maximum MsgPack bin size < 65535");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_ok_uint16minus_sup)
+{
+	cute_skip("maximum MsgPack bin size < 65535");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint16minus_short_sup)
+{
+	cute_skip("maximum MsgPack bin size < 65535");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_ok_uint16)
+{
+	cute_skip("maximum MsgPack bin size < 65535");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint16_short)
+{
+	cute_skip("maximum MsgPack bin size < 65535");
+}
+
+#endif /* !(DPACK_BINSZ_MAX >= UINT16_MAX) */
+
+#if  DPACK_BINSZ_MAX >= (UINT16_MAX + 1)
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint16plus_sup)
+{
+	dpackut_bin_decode_cpy_range(-EMSGSIZE,
+	                             UINT16_MAX + 1,
+	                             UINT16_MAX + 1,
+	                             UINT16_MAX - 1,
+	                             UINT16_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint16plus_short_sup)
+{
+	dpackut_bin_decode_cpy_range(-EMSGSIZE,
+	                             UINT16_MAX + 1,
+	                             UINT16_MAX,
+	                             UINT16_MAX - 1,
+	                             UINT16_MAX);
+}
+
+#else  /* !(DPACK_BINSZ_MAX >= (UINT16_MAX + 1)) */
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint16plus_sup)
+{
+	cute_skip("maximum MsgPack bin size < 65536");
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint16plus_short_sup)
+{
+	cute_skip("maximum MsgPack bin size < 65536");
+}
+
+#endif /* DPACK_BINSZ_MAX >= (UINT16_MAX + 1) */
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_binszminus2_sup)
+{
+	dpackut_bin_decode_cpy_range(-EMSGSIZE,
+	                             DPACK_BINSZ_MAX - 2,
+	                             DPACK_BINSZ_MAX - 2,
+	                             DPACK_BINSZ_MAX - 1,
+	                             DPACK_BINSZ_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_ok_binszminus_sup)
+{
+	dpackut_bin_decode_cpy_range(DPACK_BINSZ_MAX - 1,
+	                             DPACK_BINSZ_MAX - 1,
+	                             DPACK_BINSZ_MAX - 1,
+	                             DPACK_BINSZ_MAX - 1,
+	                             DPACK_BINSZ_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_binszminus_short_sup)
+{
+	dpackut_bin_decode_cpy_range(-EPROTO,
+	                             DPACK_BINSZ_MAX - 1,
+	                             DPACK_BINSZ_MAX - 2,
+	                             DPACK_BINSZ_MAX - 1,
+	                             DPACK_BINSZ_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_ok_binsz)
+{
+	dpackut_bin_decode_cpy_range(DPACK_BINSZ_MAX,
+	                             DPACK_BINSZ_MAX,
+	                             DPACK_BINSZ_MAX,
+	                             DPACK_BINSZ_MAX - 1,
+	                             DPACK_BINSZ_MAX);
+}
+
+CUTE_TEST(dpackut_bin_decode_cpy_range_nok_binsz_short)
+{
+	dpackut_bin_decode_cpy_range(-EPROTO,
+	                             DPACK_BINSZ_MAX,
+	                             DPACK_BINSZ_MAX - 1,
+	                             DPACK_BINSZ_MAX - 1,
+	                             DPACK_BINSZ_MAX);
+}
+
 CUTE_GROUP(dpackut_bin_group) = {
 	CUTE_REF(dpackut_bin8_sizes),
 	CUTE_REF(dpackut_bin16_sizes),
@@ -2281,7 +3463,94 @@ CUTE_GROUP(dpackut_bin_group) = {
 	CUTE_REF(dpackut_bin_decode_dup_range_nok_binszminus_short_sup),
 	CUTE_REF(dpackut_bin_decode_dup_range_ok_binsz),
 	CUTE_REF(dpackut_bin_decode_dup_range_nok_binsz_short),
-	CUTE_REF(dpackut_bin_decode_dup_range_nok_binszplus_short_sup)
+	CUTE_REF(dpackut_bin_decode_dup_range_nok_binszplus_short_sup),
+
+	CUTE_REF(dpackut_bin_decode_cpy_null_dec),
+	CUTE_REF(dpackut_bin_decode_cpy_null_data),
+	CUTE_REF(dpackut_bin_decode_cpy_zero),
+	CUTE_REF(dpackut_bin_decode_cpy_huge),
+	CUTE_REF(dpackut_bin_decode_cpy_ok_1),
+	CUTE_REF(dpackut_bin_decode_cpy_nok_2_short),
+	CUTE_REF(dpackut_bin_decode_cpy_ok_2),
+	CUTE_REF(dpackut_bin_decode_cpy_nok_3_short),
+	CUTE_REF(dpackut_bin_decode_cpy_ok_uint8),
+	CUTE_REF(dpackut_bin_decode_cpy_nok_uint8plus_short),
+	CUTE_REF(dpackut_bin_decode_cpy_ok_uint8plus),
+	CUTE_REF(dpackut_bin_decode_cpy_ok_uint16),
+	CUTE_REF(dpackut_bin_decode_cpy_nok_uint16plus_short),
+	CUTE_REF(dpackut_bin_decode_cpy_ok_uint16plus),
+	CUTE_REF(dpackut_bin_decode_cpy_ok_max),
+	CUTE_REF(dpackut_bin_decode_cpy_nok_max_short),
+
+	CUTE_REF(dpackut_bin_decode_cpy_equ_null_dec),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_uninit_dec),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_null_data),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_0),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_binsz),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_ok_1),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_1_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_2_short_inf),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_2_short_equ),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_2_short_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_2_inf),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_ok_2),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_2_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_uint8_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_uint8_short_inf),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_uint8_short_equ),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_uint8_short_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_uint8_inf),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_ok_uint8),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_uint8_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_uint16_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_uint16_short_inf),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_uint16_short_equ),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_uint16_short_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_uint16_inf),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_ok_uint16),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_uint16_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_binsz_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_binsz_short_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_binsz_short_inf),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_binsz_short_equ),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_nok_binsz_inf),
+	CUTE_REF(dpackut_bin_decode_cpy_equ_ok_binsz),
+
+	CUTE_REF(dpackut_bin_decode_cpy_range_null_dec),
+	CUTE_REF(dpackut_bin_decode_cpy_range_null_data),
+	CUTE_REF(dpackut_bin_decode_cpy_range_02),
+	CUTE_REF(dpackut_bin_decode_cpy_range_10),
+	CUTE_REF(dpackut_bin_decode_cpy_range_21),
+	CUTE_REF(dpackut_bin_decode_cpy_range_binsz),
+	CUTE_REF(dpackut_bin_decode_cpy_range_uninit_dec),
+	CUTE_REF(dpackut_bin_decode_cpy_range_ok_1),
+	CUTE_REF(dpackut_bin_decode_cpy_range_nok_1_short),
+	CUTE_REF(dpackut_bin_decode_cpy_range_nok_1),
+	CUTE_REF(dpackut_bin_decode_cpy_range_ok_2),
+	CUTE_REF(dpackut_bin_decode_cpy_range_nok_2_short),
+	CUTE_REF(dpackut_bin_decode_cpy_range_ok_3),
+	CUTE_REF(dpackut_bin_decode_cpy_range_nok_3_short),
+	CUTE_REF(dpackut_bin_decode_cpy_range_nok_4),
+	CUTE_REF(dpackut_bin_decode_cpy_range_nok_4_short),
+	CUTE_REF(dpackut_bin_decode_cpy_range_nok_uint8minus2_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_range_ok_uint8minus_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_range_nok_uint8minus_short_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_range_ok_uint8),
+	CUTE_REF(dpackut_bin_decode_cpy_range_nok_uint8_short),
+	CUTE_REF(dpackut_bin_decode_cpy_range_nok_uint8plus_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_range_nok_uint8plus_short_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_range_nok_uint16minus2_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_range_ok_uint16minus_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_range_nok_uint16minus_short_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_range_ok_uint16),
+	CUTE_REF(dpackut_bin_decode_cpy_range_nok_uint16_short),
+	CUTE_REF(dpackut_bin_decode_cpy_range_nok_uint16plus_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_range_nok_uint16plus_short_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_range_nok_binszminus2_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_range_ok_binszminus_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_range_nok_binszminus_short_sup),
+	CUTE_REF(dpackut_bin_decode_cpy_range_ok_binsz),
+	CUTE_REF(dpackut_bin_decode_cpy_range_nok_binsz_short)
 };
 
 CUTE_SUITE_EXTERN(dpackut_bin_suite,

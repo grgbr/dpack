@@ -2,12 +2,10 @@ TODO
 ====
 
 * unit tests:
-  * bincpy
   * lvstr
   * list / array
   * map
 * doc:
-  * bincpy
   * lvstr
   * list / array
   * map

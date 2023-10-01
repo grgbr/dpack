@@ -126,7 +126,7 @@ dpack_xtract_bindup(struct mpack_reader_t * reader,
 	return (ssize_t)size;
 }
 
-static ssize_t
+static ssize_t __dpack_nonull(1, 2) __dpack_nothrow __warn_result
 dpack_xtract_bincpy(struct mpack_reader_t * reader,
                     char *                  value,
                     uint32_t                size)
@@ -253,6 +253,7 @@ dpack_decode_bincpy_equ(struct dpack_decoder * decoder,
 {
 	dpack_assert_api(decoder);
 	dpack_assert_api(size);
+	dpack_assert_api(size <= DPACK_BINSZ_MAX);
 	dpack_assert_api(value);
 
 	int err;
