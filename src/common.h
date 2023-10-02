@@ -9,10 +9,11 @@
 #define _DPACK_COMMON_H
 
 #include "dpack/codec.h"
-#include <stroll/assert.h>
 #include <errno.h>
 
 #if defined(CONFIG_DPACK_ASSERT_API)
+
+#include <stroll/assert.h>
 
 #define dpack_assert_api(_cond) \
 	stroll_assert("dpack", _cond)
