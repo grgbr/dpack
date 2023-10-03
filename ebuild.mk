@@ -50,7 +50,7 @@ libdpack.pc-tmpl := libdpack_pkgconf_tmpl
 # Source code tags generation
 ################################################################################
 
-tag-files        := $(shell find $(addprefix $(CURDIR)/,$(subdirs)) \
+tag-files        := $(shell find $(addprefix $(CURDIR)/,$(subdirs) mpack) \
                                  $(HEADERDIR) \
                                  -type f)
 .PHONY: ctags
