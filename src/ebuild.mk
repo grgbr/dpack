@@ -36,7 +36,7 @@ endif # ($(filter y,$(CONFIG_DPACK_ASSERT_API) $(CONFIG_DPACK_ASSERT_INTERN)),)
 
 solibs                := libdpack.so
 libdpack.so-objs      += shared/codec.o shared/common.o shared/mpack.o
-shared/mpack.o-cflags := $(common-cflags) -fpic
+shared/mpack.o-cflags := $(filter-out -Wcast-align,$(common-cflags)) -fpic
 libdpack.so-objs      += $(call kconf_enabled,DPACK_SCALAR,shared/scalar.o)
 libdpack.so-objs      += $(call kconf_enabled,DPACK_STRING,shared/string.o)
 libdpack.so-objs      += $(call kconf_enabled,DPACK_LVSTR,shared/lvstr.o)
@@ -50,7 +50,7 @@ libdpack.so-pkgconf   := libstroll
 
 arlibs                := libdpack.a
 libdpack.a-objs       += static/codec.o static/common.o static/mpack.o
-static/mpack.o-cflags := $(common-cflags)
+static/mpack.o-cflags := $(filter-out -Wcast-align,$(common-cflags))
 libdpack.a-objs       += $(call kconf_enabled,DPACK_SCALAR,static/scalar.o)
 libdpack.a-objs       += $(call kconf_enabled,DPACK_STRING,static/string.o)
 libdpack.a-objs       += $(call kconf_enabled,DPACK_LVSTR,static/lvstr.o)
@@ -71,7 +71,7 @@ headers               := $(PACKAGE)/mpack.h
 ################################################################################
 
 # The generated mpack source implementation file.
-mpack.o-src   := $(BUILDDIR)/mpack/mpack.c
+mpack.o-src    := $(BUILDDIR)/mpack/mpack.c
 # The generated mpack source header file. If modifying this, ensure this matches
 # with the $(headers) definition above.
 mpack-header  := $(HEADERDIR)/$(PACKAGE)/mpack.h
