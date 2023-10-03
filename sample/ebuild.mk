@@ -19,7 +19,8 @@ sample-cflags  := -Wall \
                   $(EXTRA_CFLAGS)
 sample-ldflags := $(common-cflags) \
                   -L$(BUILDDIR)/../src \
-                  $(EXTRA_LDFLAGS)
+                  $(EXTRA_LDFLAGS) \
+                  -Wl,-z,start-stop-visibility=hidden
 
 ifneq ($(filter y,$(CONFIG_DPACK_ASSERT_API) $(CONFIG_DPACK_ASSERT_INTERN)),)
 sample-cflags  := $(filter-out -DNDEBUG,$(sample-cflags))
