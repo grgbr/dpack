@@ -45,16 +45,6 @@ struct dpack_encoder;
 typedef int (dpackut_pack_fn)(struct dpack_encoder *,
                               const struct dpackut_scalar_data *);
 
-extern void
-dpackut_scalar_decode(const struct dpackut_scalar_data * data,
-                      unsigned int                       nr,
-                      dpackut_unpack_fn *                unpack);
-
-extern void
-dpackut_scalar_encode(const struct dpackut_scalar_data * data,
-                      unsigned int                       nr,
-                      dpackut_pack_fn *                  pack);
-
 extern void free(void * ptr);
 extern void dpackut_expect_free(const void * data, size_t size);
 

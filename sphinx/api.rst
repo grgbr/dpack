@@ -11,6 +11,7 @@
 .. |MessagePack float format|  replace:: :ref:`MessagePack float format <sect-msgpack-float>`
 .. |MessagePack string format| replace:: :ref:`MessagePack string format <sect-msgpack-str>`
 .. |MessagePack bin format|    replace:: :ref:`MessagePack bin format <sect-msgpack-bin>`
+.. |MessagePack nil format|    replace:: :ref:`MessagePack nil format <sect-msgpack-nil>`
 
 .. _dpack:                     https://github.com/grgbr/dpack
 
@@ -292,6 +293,23 @@ Available operations are:
 
 You *MUST* include :file:`dpack/scalar.h` header to use these interfaces.
 
+.. index:: nil, null
+
+Nil
+===
+
+When compiled with the :c:macro:`CONFIG_DPACK_SCALAR` build configuration
+option enabled, the DPack_ library provides support for nil / null
+(de)serialization operations according to the |MessagePack nil format|.
+
+Available operations are:
+
+* :c:macro:`DPACK_NIL_SIZE`
+* :c:func:`dpack_encode_nil`
+* :c:func:`dpack_decode_nil`
+
+You *MUST* include :file:`dpack/scalar.h` header to use this interface.
+
 .. index:: string
 
 String
@@ -490,6 +508,11 @@ CONFIG_DPACK_VALGRIND
 Macros
 ------
 
+DPACK_ABORT
+***********
+
+.. doxygendefine:: DPACK_ABORT
+
 DPACK_BIN_SIZE
 **************
 
@@ -504,6 +527,11 @@ DPACK_BOOL_SIZE
 ***************
 
 .. doxygendefine:: DPACK_BOOL_SIZE
+
+DPACK_DONE
+**********
+
+.. doxygendefine:: DPACK_DONE
 
 DPACK_DOUBLE_SIZE
 *****************
@@ -564,6 +592,11 @@ DPACK_INT_SIZE_MIN
 ******************
 
 .. doxygendefine:: DPACK_INT_SIZE_MIN
+
+DPACK_NIL_SIZE
+**************
+
+.. doxygendefine:: DPACK_NIL_SIZE
 
 DPACK_STDINT_SIZE_MIN
 *********************
@@ -831,6 +864,11 @@ dpack_decode_int_range
 
 .. doxygenfunction:: dpack_decode_int_range
    
+dpack_decode_nil
+****************
+
+.. doxygenfunction:: dpack_decode_nil
+
 dpack_decode_strdup
 *******************
 
@@ -1035,6 +1073,11 @@ dpack_encode_int8
 *****************
 
 .. doxygenfunction:: dpack_encode_int8
+
+dpack_encode_nil
+****************
+
+.. doxygenfunction:: dpack_encode_nil
 
 dpack_encode_str
 ****************

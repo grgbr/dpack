@@ -42,7 +42,7 @@ dpackut_int32_encode(const struct dpackut_scalar_data * data)
 	cute_check_uint(dpack_encoder_space_used(&enc), equal, sz);
 	cute_check_uint(dpack_encoder_space_left(&enc), equal, 0);
 
-	dpack_encoder_fini(&enc);
+	dpack_encoder_fini(&enc, DPACK_DONE);
 }
 
 #if defined(CONFIG_DPACK_ASSERT_API)

@@ -32,6 +32,8 @@ def pack_dict(packer, dic):
 def pack_scalar(packer, scalar):
     return make_hexstr(packer.pack(scalar))
 
+def pack_blob(packer, blob):
+    return make_hexstr(packer.pack(blob))
 
 def pack(packer, data):
     if isinstance(data, list):
@@ -45,6 +47,9 @@ def pack(packer, data):
          isinstance(data, bool) or \
          isinstance(data, str):
         return pack_scalar(packer, data)
+    elif isinstance(data, bytes) or \
+         isinstance(data, bytearray):
+        return pack_blob(packer, data)
     else:
         raise TypeError("{}: Unsupported type.".format(type(data)))
 

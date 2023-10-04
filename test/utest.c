@@ -264,54 +264,6 @@ dpackut_expect_malloc(void)
 	return 0;
 }
 
-void
-dpackut_scalar_decode(const struct dpackut_scalar_data * data,
-                      unsigned int                       nr,
-                      dpackut_unpack_fn *                unpack)
-{
-	struct dpack_decoder dec = { 0, };
-	unsigned int         d;
-
-	for (d = 0; d < nr; d++) {
-		dpack_decoder_init_buffer(&dec, data[d].packed, data[d].size);
-
-		unpack(&dec, &data[d]);
-		if (!data[d].error)
-			cute_check_uint(dpack_decoder_data_left(&dec),
-			                equal,
-			                0);
-
-		dpack_decoder_fini(&dec);
-	}
-}
-
-void
-dpackut_scalar_encode(const struct dpackut_scalar_data * data,
-                      unsigned int                       nr,
-                      dpackut_pack_fn *                  pack)
-{
-	struct dpack_encoder enc = { 0, };
-	unsigned int         d;
-
-	for (d = 0; d < nr; d++) {
-		size_t sz = data[d].size;
-		char   buff[sz];
-		int    err;
-
-		memset(buff, 0xa5, sz);
-		dpack_encoder_init_buffer(&enc, buff, sz);
-
-		err = pack(&enc, &data[d]);
-		cute_check_sint(err, equal, data[d].error);
-		cute_check_mem(buff, equal, data[d].packed, sz);
-
-		cute_check_uint(dpack_encoder_space_used(&enc), equal, sz);
-		cute_check_uint(dpack_encoder_space_left(&enc), equal, 0);
-
-		dpack_encoder_fini(&enc);
-	}
-}
-
 #if defined(CONFIG_DPACK_ARRAY)
 extern CUTE_SUITE_DECL(dpackut_array_suite);
 #endif

@@ -543,7 +543,7 @@ CUTE_TEST(dpackut_str_encode_assert)
 	cute_expect_assertion(ret = dpack_encode_str(&enc, buff));
 	cute_expect_assertion(ret = dpack_encode_str(&enc, NULL));
 	cute_expect_assertion(ret = dpack_encode_str(&enc, ""));
-	dpack_encoder_fini(&enc);
+	dpack_encoder_fini(&enc, DPACK_DONE);
 
 	free(buff);
 }
@@ -583,7 +583,7 @@ dpackut_str_encode(struct dpackut_str_data * data,
 	cute_check_uint(dpack_encoder_space_used(&enc), equal, data->size);
 	cute_check_uint(dpack_encoder_space_left(&enc), equal, 0);
 
-	dpack_encoder_fini(&enc);
+	dpack_encoder_fini(&enc, DPACK_DONE);
 
 	free(buff);
 
@@ -748,7 +748,7 @@ CUTE_TEST(dpackut_str_encode_fix_assert)
 	                                                 DPACK_STRLEN_MAX + 1));
 	cute_expect_assertion(ret = dpack_encode_str_fix(&enc, NULL, len));
 	cute_expect_assertion(ret = dpack_encode_str_fix(&enc, "", 0));
-	dpack_encoder_fini(&enc);
+	dpack_encoder_fini(&enc, DPACK_DONE);
 
 	free(buff);
 }

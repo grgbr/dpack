@@ -21,11 +21,14 @@
 
 #include <dpack/codec.h>
 #include <dpack/scalar.h>
+#include <dpack/string.h>
+#include <dpack/bin.h>
 
 /* Maximum number of elements of a dpack array */
 #define DPACK_ARRAY_ELMNR_MAX    (1024U)
 /* Maximum size of a dpack array */
-#define DPACK_ARRAY_SIZE_MAX     (64U * 1024U)
+#define DPACK_ARRAY_SIZE_MAX     (64U * STROLL_CONST_MAX(DPACK_STRLEN_MAX, \
+                                                         DPACK_BINSZ_MAX))
 
 /* Maximum number of elements an msgpack fixarray may encode */
 #define DPACK_FIXARRAY_ELMNR_MAX (15U)
@@ -166,25 +169,51 @@
 #define DPACK_ARRAY_BOOL_SIZE(_elm_nr) \
 	DPACK_ARRAY_SIZE(DPACK_BOOL_SIZE, _elm_nr)
 
+#define DPACK_ARRAY_INT8_SIZE_MIN(_elm_nr) \
+	DPACK_ARRAY_SIZE(DPACK_INT8_SIZE_MIN, _elm_nr)
+#define DPACK_ARRAY_INT8_SIZE_MAX(_elm_nr) \
+	DPACK_ARRAY_SIZE(DPACK_INT8_SIZE_MAX, _elm_nr)
+
 #define DPACK_ARRAY_UINT8_SIZE_MIN(_elm_nr) \
 	DPACK_ARRAY_SIZE(DPACK_UINT8_SIZE_MIN, _elm_nr)
 #define DPACK_ARRAY_UINT8_SIZE_MAX(_elm_nr) \
 	DPACK_ARRAY_SIZE(DPACK_UINT8_SIZE_MAX, _elm_nr)
+
+#define DPACK_ARRAY_INT16_SIZE_MIN(_elm_nr) \
+	DPACK_ARRAY_SIZE(DPACK_INT16_SIZE_MIN, _elm_nr)
+#define DPACK_ARRAY_INT16_SIZE_MAX(_elm_nr) \
+	DPACK_ARRAY_SIZE(DPACK_INT16_SIZE_MAX, _elm_nr)
 
 #define DPACK_ARRAY_UINT16_SIZE_MIN(_elm_nr) \
 	DPACK_ARRAY_SIZE(DPACK_UINT16_SIZE_MIN, _elm_nr)
 #define DPACK_ARRAY_UINT16_SIZE_MAX(_elm_nr) \
 	DPACK_ARRAY_SIZE(DPACK_UINT16_SIZE_MAX, _elm_nr)
 
+#define DPACK_ARRAY_INT32_SIZE_MIN(_elm_nr) \
+	DPACK_ARRAY_SIZE(DPACK_INT32_SIZE_MIN, _elm_nr)
+#define DPACK_ARRAY_INT32_SIZE_MAX(_elm_nr) \
+	DPACK_ARRAY_SIZE(DPACK_INT32_SIZE_MAX, _elm_nr)
+
 #define DPACK_ARRAY_UINT32_SIZE_MIN(_elm_nr) \
 	DPACK_ARRAY_SIZE(DPACK_UINT32_SIZE_MIN, _elm_nr)
 #define DPACK_ARRAY_UINT32_SIZE_MAX(_elm_nr) \
 	DPACK_ARRAY_SIZE(DPACK_UINT32_SIZE_MAX, _elm_nr)
 
+#define DPACK_ARRAY_INT64_SIZE_MIN(_elm_nr) \
+	DPACK_ARRAY_SIZE(DPACK_INT64_SIZE_MIN, _elm_nr)
+#define DPACK_ARRAY_INT64_SIZE_MAX(_elm_nr) \
+	DPACK_ARRAY_SIZE(DPACK_INT64_SIZE_MAX, _elm_nr)
+
 #define DPACK_ARRAY_UINT64_SIZE_MIN(_elm_nr) \
 	DPACK_ARRAY_SIZE(DPACK_UINT64_SIZE_MIN, _elm_nr)
 #define DPACK_ARRAY_UINT64_SIZE_MAX(_elm_nr) \
 	DPACK_ARRAY_SIZE(DPACK_UINT64_SIZE_MAX, _elm_nr)
+
+#define DPACK_ARRAY_FLOAT_SIZE(_elm_nr) \
+	DPACK_ARRAY_SIZE(DPACK_FLOAT_SIZE, _elm_nr)
+
+#define DPACK_ARRAY_DOUBLE_SIZE(_elm_nr) \
+	DPACK_ARRAY_SIZE(DPACK_DOUBLE_SIZE, _elm_nr)
 
 #define DPACK_ARRAY_STR_SIZE(_len, _elm_nr) \
 	DPACK_ARRAY_SIZE(DPACK_STR_SIZE(_len), _elm_nr)
@@ -192,6 +221,13 @@
         DPACK_ARRAY_STR_SIZE(1, _elm_nr)
 #define DPACK_ARRAY_STR_SIZE_MAX(_elm_nr) \
         DPACK_ARRAY_STR_SIZE(DPACK_STRLEN_MAX, _elm_nr)
+
+#define DPACK_ARRAY_BIN_SIZE(_sz, _elm_nr) \
+	DPACK_ARRAY_SIZE(DPACK_BIN_SIZE(_sz), _elm_nr)
+#define DPACK_ARRAY_BIN_SIZE_MIN(_elm_nr) \
+        DPACK_ARRAY_BIN_SIZE(1, _elm_nr)
+#define DPACK_ARRAY_BIN_SIZE_MAX(_elm_nr) \
+        DPACK_ARRAY_BIN_SIZE(DPACK_BINSZ_MAX, _elm_nr)
 
 extern size_t
 dpack_array_size(size_t elm_size, unsigned int elm_nr) __dpack_export;

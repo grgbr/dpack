@@ -82,15 +82,20 @@ dpack_encoder_init_buffer(struct dpack_encoder * encoder,
  * See Stroll's __leaf documentation for more infos.
  */
 void
-dpack_encoder_fini(struct dpack_encoder * encoder)
+dpack_encoder_fini(struct dpack_encoder * encoder, bool abort __unused)
 {
 	dpack_assert_api(encoder);
 
+#if MPACK_WRITE_TRACKING == 1
 	/*
 	 * As stated into documentation, calling mpack_writer_destroy() with
 	 * any unclosed compound types will assert in tracking mode.
 	 * Flag an error before destruction to prevent from asserting.
 	 */
+	if (abort)
+		mpack_writer_flag_error(&encoder->mpack, mpack_error_data);
+#endif /* defined(CONFIG_DPACK_DEBUG) */
+
 	mpack_writer_destroy(&encoder->mpack);
 }
 

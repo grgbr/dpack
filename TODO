@@ -1,6 +1,7 @@
 TODO
 ====
 
+* nil: implement / test / document decoding
 * unit tests:
   * lvstr
   * list / array
@@ -11,4 +12,3 @@ TODO
   * map
 * gcc attributes
 * utf8 support ?
-* nil support ?

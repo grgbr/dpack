@@ -821,3 +821,17 @@ dpack_decode_double_range(struct dpack_decoder * decoder,
 }
 
 #endif /* defined(CONFIG_DPACK_DOUBLE) */
+
+/******************************************************************************
+ * Nil / NULL
+ ******************************************************************************/
+
+int
+dpack_encode_nil(struct dpack_encoder * encoder)
+{
+	dpack_assert_api_encoder(encoder);
+
+	mpack_write_nil(&encoder->mpack);
+
+	return dpack_encoder_error_state(&encoder->mpack);
+}

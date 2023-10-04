@@ -41,7 +41,7 @@ dpackut_float_encode(const struct dpackut_scalar_data * data)
 	cute_check_uint(dpack_encoder_space_used(&enc), equal, sz);
 	cute_check_uint(dpack_encoder_space_left(&enc), equal, 0);
 
-	dpack_encoder_fini(&enc);
+	dpack_encoder_fini(&enc, DPACK_DONE);
 }
 
 #if defined(CONFIG_DPACK_ASSERT_API)
@@ -58,7 +58,7 @@ CUTE_TEST(dpackut_float_encode_assert)
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 	cute_expect_assertion(ret = dpack_encode_float(&enc, NAN));
-	dpack_encoder_fini(&enc);
+	dpack_encoder_fini(&enc, DPACK_DONE);
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */

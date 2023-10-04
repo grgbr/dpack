@@ -248,7 +248,7 @@ CUTE_TEST(dpackut_bin_encode_null_data)
 
 	dpack_encoder_init_buffer(&enc, data, array_nr(data));
 	cute_expect_assertion(ret = dpack_encode_bin(&enc, NULL, 1));
-	dpack_encoder_fini(&enc);
+	dpack_encoder_fini(&enc, DPACK_DONE);
 }
 
 CUTE_TEST(dpackut_bin_encode_zero)
@@ -259,7 +259,7 @@ CUTE_TEST(dpackut_bin_encode_zero)
 
 	dpack_encoder_init_buffer(&enc, data, array_nr(data));
 	cute_expect_assertion(ret = dpack_encode_bin(&enc, data, 0));
-	dpack_encoder_fini(&enc);
+	dpack_encoder_fini(&enc, DPACK_DONE);
 }
 
 CUTE_TEST(dpackut_bin_encode_huge)
@@ -272,7 +272,7 @@ CUTE_TEST(dpackut_bin_encode_huge)
 	cute_expect_assertion(ret = dpack_encode_bin(&enc,
 	                                             data,
 	                                             DPACK_BINSZ_MAX + 1));
-	dpack_encoder_fini(&enc);
+	dpack_encoder_fini(&enc, DPACK_DONE);
 }
 
 #else /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -355,7 +355,7 @@ dpackut_bin_enc(const struct dpackut_bin_data * data,
 		                (char)0xa5);
 
 fini:
-	dpack_encoder_fini(&enc);
+	dpack_encoder_fini(&enc, DPACK_DONE);
 
 	free(buff);
 }

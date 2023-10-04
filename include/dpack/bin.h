@@ -29,7 +29,7 @@ struct dpack_decoder;
  *
  * Maximum size in bytes of a bin.
  */
-#define DPACK_BINSZ_MAX (4U * 1024U * 1024U)
+#define DPACK_BINSZ_MAX (64U * 1024U)
 
 /* Maximum number of bytes an 8 bits msgpack bin may encode */
 #define DPACK_BIN8_SIZE_MAX  UINT8_MAX

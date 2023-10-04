@@ -200,6 +200,8 @@ Variable number of objects stored in |MessagePack| format::
 ``X``, ``Y``, ``Z`` and ``A`` are the symbols that will be replaced by an actual
 bit.
 
+.. _sect-msgpack-nil:
+
 nil format
 ~~~~~~~~~~
 

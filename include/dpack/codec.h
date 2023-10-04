@@ -119,20 +119,52 @@ dpack_encoder_init_buffer(struct dpack_encoder * encoder,
 	__dpack_nonull(1, 2) __dpack_nothrow __leaf __dpack_export;
 
 /**
+ * Complete current serialization.
+ *
+ * Use #DPACK_DONE to instruct dpack_encoder_fini() to complete current
+ * serialization process successfully.
+ *
+ * @see
+ * - #DPACK_ABORT
+ * - dpack_encoder_fini()
+ */
+#define DPACK_DONE  (false)
+
+/**
+ * Abort current serialization.
+ *
+ * Use #DPACK_ABORT to instruct dpack_encoder_fini() to abort current
+ * serialization process.
+ *
+ * @see
+ * - #DPACK_DONE
+ * - dpack_encoder_fini()
+ */
+#define DPACK_ABORT (true)
+
+/**
  * Finalize a MessagePack encoder
  *
  * @param[in] encoder encoder
+ * @param[in] abort   request abortion
  *
  * Release resources allocated for @p encoder.
+ *
+ * When specified as #DPACK_ABORT, @p abort argument request abortion of current
+ * serialization and content of @p buffer previously registered at
+ * dpack_encoder_init_buffer() time is undefined. Passing #DPACK_DONE instead
+ * completes serialization successfully.
  *
  * @p buffer previously registered at dpack_encoder_init_buffer() time may
  * safely be @man{free(3)}'ed once dpack_encoder_fini() has been called only.
  *
  * @see
- * dpack_encoder_init_buffer()
+ * - dpack_encoder_init_buffer()
+ * - #DPACK_DONE
+ * - #DPACK_ABORT
  */
 extern void
-dpack_encoder_fini(struct dpack_encoder * encoder)
+dpack_encoder_fini(struct dpack_encoder * encoder, bool abort)
 	__dpack_nonull(1) __dpack_nothrow __leaf __dpack_export;
 
 /******************************************************************************

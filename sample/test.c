@@ -84,7 +84,7 @@ pack_to_file(const char * path, const struct test_ops * ops)
 	else
 		err = save_to_file(path, buff, dpack_encoder_space_used(&enc));
 
-	dpack_encoder_fini(&enc);
+	dpack_encoder_fini(&enc, DPACK_DONE);
 
 	free(buff);
 

@@ -3021,4 +3021,46 @@ dpack_decode_double_range(struct dpack_decoder * decoder,
 
 #endif /* defined(CONFIG_DPACK_DOUBLE) */
 
+/******************************************************************************
+ * Nil / NULL
+ ******************************************************************************/
+
+/**
+ * Size of a serialized nil.
+ *
+ * Size in bytes of a ``nil`` serialized according to the
+ * @rstsubst{MessagePack nil format}.
+ */
+#define DPACK_NIL_SIZE 1
+
+/**
+ * Encode a nil according to the MessagePack format
+ *
+ * @param[in] encoder encoder
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ *
+ * Encode / pack / serialize a ``nil`` into the buffer assigned to @p encoder at
+ * initialization time according to the @rstsubst{MessagePack nil format}.
+ *
+ * @warning
+ * - @p encoder *MUST* have been initialized using dpack_encoder_init_buffer()
+ *   before calling this function. Result is undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p encoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_encoder_init_buffer()
+ */
+extern int
+dpack_encode_nil(struct dpack_encoder  * encoder) __dpack_nonull(1)
+                                                  __dpack_nothrow
+                                                  __leaf
+                                                  __warn_result
+                                                  __dpack_export;
+
 #endif /* _DPACK_SCALAR_H */
