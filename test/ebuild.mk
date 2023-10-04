@@ -5,6 +5,8 @@
 # Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
 ################################################################################
 
+# Enable a bunch of warning options and disable -fno-signed-zeros optimization
+# since negative floating point zero is tested.
 test-cflags  := -Wall \
                 -Wextra \
                 -Wformat=2 \
@@ -17,7 +19,9 @@ test-cflags  := -Wall \
                 -D_GNU_SOURCE \
                 -DDPACK_VERSION_STRING="\"$(VERSION)\"" \
                 -I $(TOPDIR)/include \
-                $(EXTRA_CFLAGS)
+                $(filter-out -fno-signed-zeros -fassociative-math, \
+                             $(EXTRA_CFLAGS)) \
+                -fsigned-zeros -fno-associative-math
 test-ldflags := $(test-cflags) \
                 -L$(BUILDDIR)/../src \
                 $(EXTRA_LDFLAGS) \

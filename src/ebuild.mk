@@ -5,6 +5,9 @@
 # Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
 ################################################################################
 
+# Enable a bunch of warning options and disable -ffinite-math-only optimizations
+# so that floating point number classification macros such as isnan() works
+# properly (since NaN and Infinity values are tested).
 common-cflags         := -Wall \
                          -Wextra \
                          -Wformat=2 \
@@ -16,21 +19,17 @@ common-cflags         := -Wall \
                          -Wmissing-declarations \
                          -D_GNU_SOURCE \
                          -I $(TOPDIR)/include \
-                         $(EXTRA_CFLAGS) \
+                         $(filter-out -ffinite-math-only,$(EXTRA_CFLAGS)) \
+                         -fno-finite-math-only \
                          -fvisibility=hidden
 common-ldflags        := $(common-cflags) \
                          $(EXTRA_LDFLAGS) \
                          -Wl,-z,start-stop-visibility=hidden
 
-# When assertions are enabled:
-# * ensure NDEBUG macro is not set to enable glibc assertions ;
-# * disable -ffinite-math-only optimizations so that floating point number
-#   assertion checking works properly (since NaN and Infinity values are
-#   tested).
+# When assertions are enabled, ensure NDEBUG macro is not set to enable glibc
+# assertions.
 ifneq ($(filter y,$(CONFIG_DPACK_ASSERT_API) $(CONFIG_DPACK_ASSERT_INTERN)),)
 common-cflags         := $(filter-out -DNDEBUG,$(common-cflags))
-common-cflags         := $(filter-out -ffinite-math-only,$(common-cflags)) \
-                         -fno-finite-math-only
 common-ldflags        := $(filter-out -DNDEBUG,$(common-ldflags))
 endif # ($(filter y,$(CONFIG_DPACK_ASSERT_API) $(CONFIG_DPACK_ASSERT_INTERN)),)
 
