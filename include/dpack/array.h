@@ -236,12 +236,14 @@ dpack_array_size(size_t elm_size, unsigned int elm_nr) __dpack_export;
  * Array encoding
  ******************************************************************************/
 
-extern void
+extern int
 dpack_array_begin_encode(struct dpack_encoder * encoder,
-                         unsigned int           nr) __dpack_export;
+                         unsigned int           nr)
+	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
 
 extern void
-dpack_array_end_encode(struct dpack_encoder * encoder) __dpack_export;
+dpack_array_end_encode(struct dpack_encoder * encoder)
+	__dpack_nonull(1) __dpack_nothrow __leaf __dpack_export;
 
 /******************************************************************************
  * Array decoding

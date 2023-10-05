@@ -40,7 +40,21 @@ dpack_array_size(size_t elm_size, unsigned int elm_nr)
  * Array encoding
  ******************************************************************************/
 
-void
+/*
+ * Watch out !!
+ *
+ * This function is marked as __leaf for now. However, it calls
+ * mpack_writer_flag_error() which in turn may call a function from the current
+ * compilation unit thanks to the writer error_fn() function pointer of mpack.
+ *
+ * If modifying dpack_encoder_init_buffer() and / or registering an error
+ * function (thanks to mpack_writer_set_error_handler()) is required for
+ * internal DPack purposes, MAKE SURE you return to current compilation unit
+ * only by return or by exception handling.
+ *
+ * See Stroll's __leaf documentation for more infos.
+ */
+int
 dpack_array_begin_encode(struct dpack_encoder * encoder, unsigned int nr)
 {
 	dpack_assert_api_encoder(encoder);
@@ -48,8 +62,25 @@ dpack_array_begin_encode(struct dpack_encoder * encoder, unsigned int nr)
 	dpack_assert_api(nr <= DPACK_ARRAY_ELMNR_MAX);
 
 	mpack_start_array(&encoder->mpack, nr);
+
+	return dpack_encoder_error_state(&encoder->mpack);
 }
 
+/*
+ * Watch out !!
+ *
+ * This function is marked as __leaf for now. However, when built with mpack's
+ * write tracking support, it calls mpack_writer_flag_error() which in turn may
+ * call a function from the current compilation unit thanks to the writer
+ * error_fn() function pointer of mpack.
+ *
+ * If modifying dpack_encoder_init_buffer() and / or registering an error
+ * function (thanks to mpack_writer_set_error_handler()) is required for
+ * internal DPack purposes, MAKE SURE you return to current compilation unit
+ * only by return or by exception handling.
+ *
+ * See Stroll's __leaf documentation for more infos.
+ */
 void
 dpack_array_end_encode(struct dpack_encoder * encoder)
 {

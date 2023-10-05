@@ -36,12 +36,16 @@ scalar_array_sample_pack(struct dpack_encoder             * encoder,
 	if (err)
 		return err;
 
-	dpack_array_begin_encode(encoder, array_nr(data->array));
+	err = dpack_array_begin_encode(encoder, array_nr(data->array));
+	if (err)
+		return err;
+
 	for (elm = 0; elm < array_nr(data->array); elm++) {
 		err = dpack_encode_uint16(encoder, data->array[elm]);
 		if (err)
 			return err;
 	}
+
 	dpack_array_end_encode(encoder);
 
 	err = dpack_encode_uint8(encoder, data->eight);

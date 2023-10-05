@@ -10,6 +10,7 @@
 #include <cute/check.h>
 #include <cute/expect.h>
 #include <math.h>
+#include <errno.h>
 
 #define DPACKUT_ARRAY_ELMSIZE \
 	(1U)
@@ -126,9 +127,10 @@ CUTE_TEST(dpackut_array_encode_begin_null_enc)
 {
 	struct dpack_encoder enc;
 	char                 buff;
+	int                  ret __unused;
 
 	dpack_encoder_init_buffer(&enc, &buff, 1);
-	cute_expect_assertion(dpack_array_begin_encode(NULL, 1));
+	cute_expect_assertion(ret = dpack_array_begin_encode(NULL, 1));
 	dpack_encoder_fini(&enc, DPACK_ABORT);
 }
 
@@ -137,9 +139,10 @@ CUTE_TEST(dpackut_array_encode_begin_zero)
 {
 	struct dpack_encoder enc;
 	char                 buff;
+	int                  ret __unused;
 
 	dpack_encoder_init_buffer(&enc, &buff, 1);
-	cute_expect_assertion(dpack_array_begin_encode(&enc, 0));
+	cute_expect_assertion(ret = dpack_array_begin_encode(&enc, 0));
 	dpack_encoder_fini(&enc, DPACK_ABORT);
 }
 
@@ -147,11 +150,12 @@ CUTE_TEST(dpackut_array_encode_begin_huge)
 {
 	struct dpack_encoder enc;
 	char                 buff;
+	int                  ret __unused;
 
 	dpack_encoder_init_buffer(&enc, &buff, 1);
-	cute_expect_assertion(dpack_array_begin_encode(&enc,
-	                                               DPACK_ARRAY_ELMNR_MAX +
-	                                               1));
+	cute_expect_assertion(
+		ret = dpack_array_begin_encode(&enc,
+		                               DPACK_ARRAY_ELMNR_MAX + 1));
 	dpack_encoder_fini(&enc, DPACK_ABORT);
 }
 
@@ -194,8 +198,9 @@ CUTE_TEST(dpackut_array_encode_end_null_enc)
 CUTE_TEST(dpackut_array_encode_begin_uninit_enc)
 {
 	struct dpack_encoder enc = { 0, };
+	int                  ret __unused;
 
-	cute_expect_assertion(dpack_array_begin_encode(&enc, 1));
+	cute_expect_assertion(ret = dpack_array_begin_encode(&enc, 1));
 }
 
 CUTE_TEST(dpackut_array_encode_end_uninit_enc)
@@ -212,7 +217,7 @@ CUTE_TEST(dpackut_array_encode_end_empty)
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	dpack_array_begin_encode(&enc, 1);
+	cute_check_sint(dpack_array_begin_encode(&enc, 1), equal, 0);
 	cute_expect_assertion(dpack_array_end_encode(&enc));
 
 	dpack_encoder_fini(&enc, DPACK_ABORT);
@@ -225,7 +230,7 @@ CUTE_TEST(dpackut_array_encode_end_partial)
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	dpack_array_begin_encode(&enc, 2);
+	cute_check_sint(dpack_array_begin_encode(&enc, 2), equal, 0);
 	cute_check_sint(dpack_encode_bool(&enc, true), equal, 0);
 	cute_expect_assertion(dpack_array_end_encode(&enc));
 
@@ -256,6 +261,32 @@ CUTE_TEST(dpackut_array_encode_end_partial)
 
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
+CUTE_TEST(dpackut_array_encode_begin_msgsize)
+{
+	struct dpack_encoder enc;
+	char                 buff[1] = { 0, };
+
+	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
+
+	cute_check_sint(dpack_array_begin_encode(&enc, 512), equal, -EMSGSIZE);
+
+	dpack_encoder_fini(&enc, DPACK_ABORT);
+}
+
+CUTE_TEST(dpackut_array_encode_goon_msgsize)
+{
+	struct dpack_encoder enc;
+	char                 buff[3] = { 0, };
+
+	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
+
+	cute_check_sint(dpack_array_begin_encode(&enc, 2), equal, 0);
+	cute_check_sint(dpack_encode_int8(&enc, INT8_MIN), equal, 0);
+	cute_check_sint(dpack_encode_int8(&enc, 0), equal, -EMSGSIZE);
+
+	dpack_encoder_fini(&enc, DPACK_ABORT);
+}
+
 /* dpack-utest-gen.py "[False,True]" */
 #define DPACKUT_ARRAY_BOOL_ELM_NR \
 	(2U)
@@ -273,7 +304,10 @@ CUTE_TEST(dpackut_array_encode_bool)
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	dpack_array_begin_encode(&enc, DPACKUT_ARRAY_BOOL_ELM_NR);
+	cute_check_sint(dpack_array_begin_encode(&enc,
+	                                         DPACKUT_ARRAY_BOOL_ELM_NR),
+	                equal,
+	                0);
 	cute_check_sint(dpack_encode_bool(&enc, false), equal, 0);
 	cute_check_sint(dpack_encode_bool(&enc, true), equal, 0);
 	dpack_array_end_encode(&enc);
@@ -303,7 +337,10 @@ CUTE_TEST(dpackut_array_encode_int8)
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	dpack_array_begin_encode(&enc, DPACKUT_ARRAY_INT8_ELM_NR);
+	cute_check_sint(dpack_array_begin_encode(&enc,
+	                                         DPACKUT_ARRAY_INT8_ELM_NR),
+	                equal,
+	                0);
 	cute_check_sint(dpack_encode_int8(&enc, INT8_MIN), equal, 0);
 	cute_check_sint(dpack_encode_int8(&enc, 0), equal, 0);
 	cute_check_sint(dpack_encode_int8(&enc, INT8_MAX), equal, 0);
@@ -334,7 +371,10 @@ CUTE_TEST(dpackut_array_encode_uint8)
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	dpack_array_begin_encode(&enc, DPACKUT_ARRAY_UINT8_ELM_NR);
+	cute_check_sint(dpack_array_begin_encode(&enc,
+	                                         DPACKUT_ARRAY_UINT8_ELM_NR),
+	                equal,
+	                0);
 	cute_check_sint(dpack_encode_uint8(&enc, 0), equal, 0);
 	cute_check_sint(dpack_encode_uint8(&enc, UINT8_MAX), equal, 0);
 	dpack_array_end_encode(&enc);
@@ -364,7 +404,10 @@ CUTE_TEST(dpackut_array_encode_int16)
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	dpack_array_begin_encode(&enc, DPACKUT_ARRAY_INT16_ELM_NR);
+	cute_check_sint(dpack_array_begin_encode(&enc,
+	                                         DPACKUT_ARRAY_INT16_ELM_NR),
+	                equal,
+	                0);
 	cute_check_sint(dpack_encode_int16(&enc, INT16_MIN), equal, 0);
 	cute_check_sint(dpack_encode_int16(&enc, 0), equal, 0);
 	cute_check_sint(dpack_encode_int16(&enc, INT16_MAX), equal, 0);
@@ -395,7 +438,10 @@ CUTE_TEST(dpackut_array_encode_uint16)
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	dpack_array_begin_encode(&enc, DPACKUT_ARRAY_UINT16_ELM_NR);
+	cute_check_sint(dpack_array_begin_encode(&enc,
+	                                         DPACKUT_ARRAY_UINT16_ELM_NR),
+	                equal,
+	                0);
 	cute_check_sint(dpack_encode_uint16(&enc, 0), equal, 0);
 	cute_check_sint(dpack_encode_uint16(&enc, UINT16_MAX), equal, 0);
 	dpack_array_end_encode(&enc);
@@ -425,7 +471,10 @@ CUTE_TEST(dpackut_array_encode_int32)
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	dpack_array_begin_encode(&enc, DPACKUT_ARRAY_INT32_ELM_NR);
+	cute_check_sint(dpack_array_begin_encode(&enc,
+	                                         DPACKUT_ARRAY_INT32_ELM_NR),
+	                equal,
+	                0);
 	cute_check_sint(dpack_encode_int32(&enc, INT32_MIN), equal, 0);
 	cute_check_sint(dpack_encode_int32(&enc, 0), equal, 0);
 	cute_check_sint(dpack_encode_int32(&enc, INT32_MAX), equal, 0);
@@ -456,7 +505,10 @@ CUTE_TEST(dpackut_array_encode_uint32)
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	dpack_array_begin_encode(&enc, DPACKUT_ARRAY_UINT32_ELM_NR);
+	cute_check_sint(dpack_array_begin_encode(&enc,
+	                                         DPACKUT_ARRAY_UINT32_ELM_NR),
+	                equal,
+	                0);
 	cute_check_sint(dpack_encode_uint32(&enc, 0), equal, 0);
 	cute_check_sint(dpack_encode_uint32(&enc, UINT32_MAX), equal, 0);
 	dpack_array_end_encode(&enc);
@@ -489,7 +541,10 @@ CUTE_TEST(dpackut_array_encode_int64)
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	dpack_array_begin_encode(&enc, DPACKUT_ARRAY_INT64_ELM_NR);
+	cute_check_sint(dpack_array_begin_encode(&enc,
+	                                         DPACKUT_ARRAY_INT64_ELM_NR),
+	                equal,
+	                0);
 	cute_check_sint(dpack_encode_int64(&enc, INT64_MIN), equal, 0);
 	cute_check_sint(dpack_encode_int64(&enc, 0), equal, 0);
 	cute_check_sint(dpack_encode_int64(&enc, INT64_MAX), equal, 0);
@@ -520,7 +575,10 @@ CUTE_TEST(dpackut_array_encode_uint64)
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	dpack_array_begin_encode(&enc, DPACKUT_ARRAY_UINT64_ELM_NR);
+	cute_check_sint(dpack_array_begin_encode(&enc,
+	                                         DPACKUT_ARRAY_UINT64_ELM_NR),
+	                equal,
+	                0);
 	cute_check_sint(dpack_encode_uint64(&enc, 0), equal, 0);
 	cute_check_sint(dpack_encode_uint64(&enc, UINT64_MAX), equal, 0);
 	dpack_array_end_encode(&enc);
@@ -550,7 +608,10 @@ CUTE_TEST(dpackut_array_encode_float)
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	dpack_array_begin_encode(&enc, DPACKUT_ARRAY_FLOAT_ELM_NR);
+	cute_check_sint(dpack_array_begin_encode(&enc,
+	                                         DPACKUT_ARRAY_FLOAT_ELM_NR),
+	                equal,
+	                0);
 	cute_check_sint(dpack_encode_float(&enc, -1.005f), equal, 0);
 	cute_check_sint(dpack_encode_float(&enc, 10.0f), equal, 0);
 	dpack_array_end_encode(&enc);
@@ -582,7 +643,10 @@ CUTE_TEST(dpackut_array_encode_double)
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	dpack_array_begin_encode(&enc, DPACKUT_ARRAY_DOUBLE_ELM_NR);
+	cute_check_sint(dpack_array_begin_encode(&enc,
+	                                         DPACKUT_ARRAY_DOUBLE_ELM_NR),
+	                equal,
+	                0);
 	cute_check_sint(dpack_encode_double(&enc, -1.005), equal, 0);
 	cute_check_sint(dpack_encode_double(&enc, INFINITY), equal, 0);
 	dpack_array_end_encode(&enc);
@@ -615,7 +679,10 @@ CUTE_TEST(dpackut_array_encode_str)
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	dpack_array_begin_encode(&enc, DPACKUT_ARRAY_STR_ELM_NR);
+	cute_check_sint(dpack_array_begin_encode(&enc,
+	                                         DPACKUT_ARRAY_STR_ELM_NR),
+	                equal,
+	                0);
 	cute_check_sint(dpack_encode_str(&enc, "a"), equal, 0);
 	cute_check_sint(dpack_encode_str(&enc, "list"), equal, 0);
 	cute_check_sint(dpack_encode_str(&enc, "of strings"), equal, 0);
@@ -648,7 +715,10 @@ CUTE_TEST(dpackut_array_encode_bin)
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	dpack_array_begin_encode(&enc, DPACKUT_ARRAY_BIN_ELM_NR);
+	cute_check_sint(dpack_array_begin_encode(&enc,
+	                                         DPACKUT_ARRAY_BIN_ELM_NR),
+	                equal,
+	                0);
 	cute_check_sint(dpack_encode_bin(&enc, blob0, sizeof(blob0) - 1),
 	                equal,
 	                0);
@@ -707,7 +777,10 @@ CUTE_TEST(dpackut_array_encode_multi)
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	dpack_array_begin_encode(&enc, DPACKUT_ARRAY_MULTI_ELM_NR);
+	cute_check_sint(dpack_array_begin_encode(&enc,
+	                                         DPACKUT_ARRAY_MULTI_ELM_NR),
+	                equal,
+	                0);
 	cute_check_sint(dpack_encode_bool(&enc, true), equal, 0);
 	cute_check_sint(dpack_encode_double(&enc, 1.005), equal, 0);
 	cute_check_sint(dpack_encode_str(&enc, "test"), equal, 0);
@@ -727,6 +800,50 @@ CUTE_TEST(dpackut_array_encode_multi)
 	               DPACKUT_ARRAY_MULTI_PACK_SIZE);
 }
 
+/* dpack-utest-gen.py '[True, [-32768, 1.005], "test"]' */
+#define DPACKUT_ARRAY_NEST_LVL0_ELM_NR (3U)
+#define DPACKUT_ARRAY_NEST_LVL1_ELM_NR (2U)
+#define DPACKUT_ARRAY_NEST_PACK_DATA \
+	"\x93" \
+		"\xc3" \
+		"\x92" \
+			"\xd1\x80\x00" \
+			"\xcb\x3f\xf0\x14\x7a\xe1\x47\xae\x14" \
+		"\xa4\x74\x65\x73\x74"
+#define DPACKUT_ARRAY_NEST_PACK_SIZE \
+	(sizeof(DPACKUT_ARRAY_NEST_PACK_DATA) - 1)
+#define DPACKUT_ARRAY_NEST_PACK_SIZE_MAX (128U)
+
+CUTE_TEST(dpackut_array_encode_nest)
+{
+	struct dpack_encoder enc;
+	char                 buff[DPACKUT_ARRAY_NEST_PACK_SIZE_MAX] = { 0, };
+
+	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
+
+	cute_check_sint(
+		dpack_array_begin_encode(&enc, DPACKUT_ARRAY_NEST_LVL0_ELM_NR),
+		equal,
+		0);
+	cute_check_sint(dpack_encode_bool(&enc, true), equal, 0);
+	cute_check_sint(
+		dpack_array_begin_encode(&enc, DPACKUT_ARRAY_NEST_LVL1_ELM_NR),
+		equal,
+		0);
+	cute_check_sint(dpack_encode_int16(&enc, INT16_MIN), equal, 0);
+	cute_check_sint(dpack_encode_double(&enc, 1.005), equal, 0);
+	dpack_array_end_encode(&enc);
+	cute_check_sint(dpack_encode_str(&enc, "test"), equal, 0);
+	dpack_array_end_encode(&enc);
+
+	dpack_encoder_fini(&enc, DPACK_DONE);
+
+	cute_check_mem(buff,
+	               equal,
+	               DPACKUT_ARRAY_NEST_PACK_DATA,
+	               DPACKUT_ARRAY_NEST_PACK_SIZE);
+}
+
 CUTE_GROUP(dpackut_array_group) = {
 	CUTE_REF(dpackut_fixarray_sizes),
 	CUTE_REF(dpackut_array16_sizes),
@@ -740,6 +857,8 @@ CUTE_GROUP(dpackut_array_group) = {
 	CUTE_REF(dpackut_array_encode_end_uninit_enc),
 	CUTE_REF(dpackut_array_encode_end_empty),
 	CUTE_REF(dpackut_array_encode_end_partial),
+	CUTE_REF(dpackut_array_encode_begin_msgsize),
+	CUTE_REF(dpackut_array_encode_goon_msgsize),
 
 	CUTE_REF(dpackut_array_encode_bool),
 	CUTE_REF(dpackut_array_encode_int8),
@@ -755,6 +874,7 @@ CUTE_GROUP(dpackut_array_group) = {
 	CUTE_REF(dpackut_array_encode_str),
 	CUTE_REF(dpackut_array_encode_bin),
 	CUTE_REF(dpackut_array_encode_multi),
+	CUTE_REF(dpackut_array_encode_nest),
 };
 
 CUTE_SUITE_EXTERN(dpackut_array_suite,
