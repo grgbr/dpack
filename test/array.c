@@ -28,16 +28,31 @@ CUTE_TEST(dpackut_fixarray_sizes)
 	cute_check_uint(DPACKUT_ARRAY_SIZE(1),
 	                equal,
 	                1 + (1 * DPACKUT_ARRAY_ELMSIZE));
+	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, 1),
+	                equal,
+	                1 + (1 * DPACKUT_ARRAY_ELMSIZE));
+
 	cute_check_uint(DPACKUT_ARRAY_SIZE(2),
 	                equal,
 	                1 + (2 * DPACKUT_ARRAY_ELMSIZE));
+	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, 2),
+	                equal,
+	                1 + (2 * DPACKUT_ARRAY_ELMSIZE));
+
 #if DPACKUT_ARRAY_ENABLED(14)
 	cute_check_uint(DPACKUT_ARRAY_SIZE(14),
 	                equal,
 	                1 + (14 * DPACKUT_ARRAY_ELMSIZE));
+	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, 14),
+	                equal,
+	                1 + (14 * DPACKUT_ARRAY_ELMSIZE));
 #endif
+
 #if DPACKUT_ARRAY_ENABLED(15)
 	cute_check_uint(DPACKUT_ARRAY_SIZE(15),
+	                equal,
+	                1 + (15 * DPACKUT_ARRAY_ELMSIZE));
+	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, 15),
 	                equal,
 	                1 + (15 * DPACKUT_ARRAY_ELMSIZE));
 #endif
@@ -51,23 +66,42 @@ CUTE_TEST(dpackut_array16_sizes)
 	cute_check_uint(DPACKUT_ARRAY_SIZE(16),
 	                equal,
 	                3U + (16 * DPACKUT_ARRAY_ELMSIZE));
+	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, 16),
+	                equal,
+	                3U + (16 * DPACKUT_ARRAY_ELMSIZE));
+
 #if DPACKUT_ARRAY_ENABLED(17)
 	cute_check_uint(DPACKUT_ARRAY_SIZE(17),
 	                equal,
 	                3U + (17 * DPACKUT_ARRAY_ELMSIZE));
+	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, 17),
+	                equal,
+	                3U + (17 * DPACKUT_ARRAY_ELMSIZE));
 #endif
+
 #if DPACKUT_ARRAY_ENABLED(UINT16_MAX - 2)
 	cute_check_uint(DPACKUT_ARRAY_SIZE(UINT16_MAX - 2),
 	                equal,
 	                3U + ((UINT16_MAX - 2) * DPACKUT_ARRAY_ELMSIZE));
+	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, UINT16_MAX - 2),
+	                equal,
+	                3U + ((UINT16_MAX - 2) * DPACKUT_ARRAY_ELMSIZE));
 #endif
+
 #if DPACKUT_ARRAY_ENABLED(UINT16_MAX - 1)
 	cute_check_uint(DPACKUT_ARRAY_SIZE(UINT16_MAX - 1),
 	                equal,
 	                3U + ((UINT16_MAX - 1) * DPACKUT_ARRAY_ELMSIZE));
+	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, UINT16_MAX - 1),
+	                equal,
+	                3U + ((UINT16_MAX - 1) * DPACKUT_ARRAY_ELMSIZE));
 #endif
+
 #if DPACKUT_ARRAY_ENABLED(UINT16_MAX)
 	cute_check_uint(DPACKUT_ARRAY_SIZE(UINT16_MAX),
+	                equal,
+	                3U + (UINT16_MAX * DPACKUT_ARRAY_ELMSIZE));
+	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, UINT16_MAX),
 	                equal,
 	                3U + (UINT16_MAX * DPACKUT_ARRAY_ELMSIZE));
 #endif
@@ -90,23 +124,41 @@ CUTE_TEST(dpackut_array32_sizes)
 	cute_check_uint(DPACKUT_ARRAY_SIZE(UINT16_MAX + 1),
 	                equal,
 	                5U + ((UINT16_MAX + 1) * DPACKUT_ARRAY_ELMSIZE));
+	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, UINT16_MAX + 1),
+	                equal,
+	                5U + ((UINT16_MAX + 1) * DPACKUT_ARRAY_ELMSIZE));
+
 #if DPACKUT_ARRAY_ENABLED(UINT16_MAX + 2)
 	cute_check_uint(DPACKUT_ARRAY_SIZE(UINT16_MAX + 2),
 	                equal,
 	                5U + ((UINT16_MAX + 2) * DPACKUT_ARRAY_ELMSIZE));
+	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, UINT16_MAX + 2),
+	                equal,
+	                5U + ((UINT16_MAX + 2) * DPACKUT_ARRAY_ELMSIZE));
 #endif
+
 #if DPACKUT_ARRAY_ENABLED(UINT32_MAX - 2)
 	cute_check_uint(DPACKUT_ARRAY_SIZE(UINT32_MAX - 2),
 	                equal,
 	                5U + ((UINT32_MAX - 2) * DPACKUT_ARRAY_ELMSIZE));
+	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, UINT32_MAX - 2),
+	                equal,
+	                5U + ((UINT32_MAX - 2) * DPACKUT_ARRAY_ELMSIZE));
 #endif
+
 #if DPACKUT_ARRAY_ENABLED(UINT32_MAX - 1)
 	cute_check_uint(DPACKUT_ARRAY_SIZE(UINT32_MAX - 1),
+	                equal,
+	                5U + ((UINT32_MAX - 1) * DPACKUT_ARRAY_ELMSIZE));
+	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, UINT32_MAX - 1),
 	                equal,
 	                5U + ((UINT32_MAX - 1) * DPACKUT_ARRAY_ELMSIZE));
 #endif
 #if DPACKUT_ARRAY_ENABLED(UINT32_MAX)
 	cute_check_uint(DPACKUT_ARRAY_SIZE(UINT32_MAX),
+	                equal,
+	                5U + (UINT32_MAX * DPACKUT_ARRAY_ELMSIZE));
+	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, UINT32_MAX),
 	                equal,
 	                5U + (UINT32_MAX * DPACKUT_ARRAY_ELMSIZE));
 #endif

@@ -230,7 +230,8 @@
         DPACK_ARRAY_BIN_SIZE(DPACK_BINSZ_MAX, _elm_nr)
 
 extern size_t
-dpack_array_size(size_t elm_size, unsigned int elm_nr) __dpack_export;
+dpack_array_size(size_t elm_size, unsigned int elm_nr)
+	__dpack_const __dpack_nothrow __leaf __warn_result __dpack_export;
 
 /******************************************************************************
  * Array encoding
