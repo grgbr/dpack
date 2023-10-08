@@ -15,165 +15,188 @@
 #define DPACKUT_ARRAY_ELMSIZE \
 	(1U)
 
-#define DPACKUT_ARRAY_SIZE(_elm_nr) \
-	DPACK_ARRAY_SIZE(DPACKUT_ARRAY_ELMSIZE, _elm_nr)
+#define DPACKUT_ARRAY_FIXED_SIZE(_elm_nr) \
+	DPACK_ARRAY_FIXED_SIZE(_elm_nr, DPACKUT_ARRAY_ELMSIZE)
 
 #define DPACKUT_ARRAY_ENABLED(_elm_nr) \
 	((DPACK_ARRAY_ELMNR_MAX >= (_elm_nr)) && \
-	 (((_elm_nr) * DPACKUT_ARRAY_ELMSIZE) <= DPACK_ARRAY_DATA_SIZE_MAX))
+	 (((_elm_nr) * DPACKUT_ARRAY_ELMSIZE) <= _DPACK_ARRAY_DATA_SIZE_MAX))
 
 CUTE_TEST(dpackut_fixarray_sizes)
 {
 	/* Msgpack fixarray sizes. */
-	cute_check_uint(DPACKUT_ARRAY_SIZE(1),
+	cute_check_uint(DPACKUT_ARRAY_FIXED_SIZE(1),
 	                equal,
 	                1 + (1 * DPACKUT_ARRAY_ELMSIZE));
-	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, 1),
+	cute_check_uint(dpack_array_fixed_size(1, DPACKUT_ARRAY_ELMSIZE),
 	                equal,
 	                1 + (1 * DPACKUT_ARRAY_ELMSIZE));
 
-	cute_check_uint(DPACKUT_ARRAY_SIZE(2),
+	cute_check_uint(DPACKUT_ARRAY_FIXED_SIZE(2),
 	                equal,
 	                1 + (2 * DPACKUT_ARRAY_ELMSIZE));
-	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, 2),
+	cute_check_uint(dpack_array_fixed_size(2, DPACKUT_ARRAY_ELMSIZE),
 	                equal,
 	                1 + (2 * DPACKUT_ARRAY_ELMSIZE));
 
 #if DPACKUT_ARRAY_ENABLED(14)
-	cute_check_uint(DPACKUT_ARRAY_SIZE(14),
+	cute_check_uint(DPACKUT_ARRAY_FIXED_SIZE(14),
 	                equal,
 	                1 + (14 * DPACKUT_ARRAY_ELMSIZE));
-	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, 14),
+	cute_check_uint(dpack_array_fixed_size(14, DPACKUT_ARRAY_ELMSIZE),
 	                equal,
 	                1 + (14 * DPACKUT_ARRAY_ELMSIZE));
 #endif
 
 #if DPACKUT_ARRAY_ENABLED(15)
-	cute_check_uint(DPACKUT_ARRAY_SIZE(15),
+	cute_check_uint(DPACKUT_ARRAY_FIXED_SIZE(15),
 	                equal,
 	                1 + (15 * DPACKUT_ARRAY_ELMSIZE));
-	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, 15),
+	cute_check_uint(dpack_array_fixed_size(15, DPACKUT_ARRAY_ELMSIZE),
 	                equal,
 	                1 + (15 * DPACKUT_ARRAY_ELMSIZE));
 #endif
 }
 
-#if DPACK_ARRAY_ELMNR_MAX > DPACK_FIXARRAY_ELMNR_MAX
+#if DPACK_ARRAY_ELMNR_MAX > _DPACK_FIXARRAY_ELMNR_MAX
 
 CUTE_TEST(dpackut_array16_sizes)
 {
 	/* Msgpack fixarray sizes. */
-	cute_check_uint(DPACKUT_ARRAY_SIZE(16),
+	cute_check_uint(DPACKUT_ARRAY_FIXED_SIZE(16),
 	                equal,
 	                3U + (16 * DPACKUT_ARRAY_ELMSIZE));
-	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, 16),
+	cute_check_uint(dpack_array_fixed_size(16, DPACKUT_ARRAY_ELMSIZE),
 	                equal,
 	                3U + (16 * DPACKUT_ARRAY_ELMSIZE));
 
 #if DPACKUT_ARRAY_ENABLED(17)
-	cute_check_uint(DPACKUT_ARRAY_SIZE(17),
+	cute_check_uint(DPACKUT_ARRAY_FIXED_SIZE(17),
 	                equal,
 	                3U + (17 * DPACKUT_ARRAY_ELMSIZE));
-	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, 17),
+	cute_check_uint(dpack_array_fixed_size(17, DPACKUT_ARRAY_ELMSIZE),
 	                equal,
 	                3U + (17 * DPACKUT_ARRAY_ELMSIZE));
 #endif
 
 #if DPACKUT_ARRAY_ENABLED(UINT16_MAX - 2)
-	cute_check_uint(DPACKUT_ARRAY_SIZE(UINT16_MAX - 2),
+	cute_check_uint(DPACKUT_ARRAY_FIXED_SIZE(UINT16_MAX - 2),
 	                equal,
 	                3U + ((UINT16_MAX - 2) * DPACKUT_ARRAY_ELMSIZE));
-	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, UINT16_MAX - 2),
+	cute_check_uint(dpack_array_fixed_size(UINT16_MAX - 2,
+	                                       DPACKUT_ARRAY_ELMSIZE),
 	                equal,
 	                3U + ((UINT16_MAX - 2) * DPACKUT_ARRAY_ELMSIZE));
 #endif
 
 #if DPACKUT_ARRAY_ENABLED(UINT16_MAX - 1)
-	cute_check_uint(DPACKUT_ARRAY_SIZE(UINT16_MAX - 1),
+	cute_check_uint(DPACKUT_ARRAY_FIXED_SIZE(UINT16_MAX - 1),
 	                equal,
 	                3U + ((UINT16_MAX - 1) * DPACKUT_ARRAY_ELMSIZE));
-	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, UINT16_MAX - 1),
+	cute_check_uint(dpack_array_fixed_size(UINT16_MAX - 1,
+	                                       DPACKUT_ARRAY_ELMSIZE),
 	                equal,
 	                3U + ((UINT16_MAX - 1) * DPACKUT_ARRAY_ELMSIZE));
 #endif
 
 #if DPACKUT_ARRAY_ENABLED(UINT16_MAX)
-	cute_check_uint(DPACKUT_ARRAY_SIZE(UINT16_MAX),
+	cute_check_uint(DPACKUT_ARRAY_FIXED_SIZE(UINT16_MAX),
 	                equal,
 	                3U + (UINT16_MAX * DPACKUT_ARRAY_ELMSIZE));
-	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, UINT16_MAX),
+	cute_check_uint(dpack_array_fixed_size(UINT16_MAX,
+	                                       DPACKUT_ARRAY_ELMSIZE),
 	                equal,
 	                3U + (UINT16_MAX * DPACKUT_ARRAY_ELMSIZE));
 #endif
 }
 
-#else   /* !(DPACK_ARRAY_ELMNR_MAX > DPACK_FIXARRAY_ELMNR_MAX) */
+#else   /* !(DPACK_ARRAY_ELMNR_MAX > _DPACK_FIXARRAY_ELMNR_MAX) */
 
 CUTE_TEST(dpackut_array16_sizes)
 {
 	cute_skip("16-bits MessagePack array support not compiled-in");
 }
 
-#endif  /* DPACK_ARRAY_ELMNR_MAX > DPACK_FIXARRAY_ELMNR_MAX */
+#endif  /* DPACK_ARRAY_ELMNR_MAX > _DPACK_FIXARRAY_ELMNR_MAX */
 
-#if DPACK_ARRAY_ELMNR_MAX > DPACK_ARRAY16_ELMNR_MAX
+#if DPACK_ARRAY_ELMNR_MAX > _DPACK_ARRAY16_ELMNR_MAX
 
 CUTE_TEST(dpackut_array32_sizes)
 {
 	/* Msgpack fixarray sizes. */
-	cute_check_uint(DPACKUT_ARRAY_SIZE(UINT16_MAX + 1),
+	cute_check_uint(DPACKUT_ARRAY_FIXED_SIZE(UINT16_MAX + 1),
 	                equal,
 	                5U + ((UINT16_MAX + 1) * DPACKUT_ARRAY_ELMSIZE));
-	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, UINT16_MAX + 1),
+	cute_check_uint(dpack_array_fixed_size(UINT16_MAX + 1,
+	                                       DPACKUT_ARRAY_ELMSIZE),
 	                equal,
 	                5U + ((UINT16_MAX + 1) * DPACKUT_ARRAY_ELMSIZE));
 
 #if DPACKUT_ARRAY_ENABLED(UINT16_MAX + 2)
-	cute_check_uint(DPACKUT_ARRAY_SIZE(UINT16_MAX + 2),
+	cute_check_uint(DPACKUT_ARRAY_FIXED_SIZE(UINT16_MAX + 2),
 	                equal,
 	                5U + ((UINT16_MAX + 2) * DPACKUT_ARRAY_ELMSIZE));
-	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, UINT16_MAX + 2),
+	cute_check_uint(dpack_array_fixed_size(UINT16_MAX + 2,
+	                                       DPACKUT_ARRAY_ELMSIZE),
 	                equal,
 	                5U + ((UINT16_MAX + 2) * DPACKUT_ARRAY_ELMSIZE));
 #endif
 
 #if DPACKUT_ARRAY_ENABLED(UINT32_MAX - 2)
-	cute_check_uint(DPACKUT_ARRAY_SIZE(UINT32_MAX - 2),
+	cute_check_uint(DPACKUT_ARRAY_FIXED_SIZE(UINT32_MAX - 2),
 	                equal,
 	                5U + ((UINT32_MAX - 2) * DPACKUT_ARRAY_ELMSIZE));
-	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, UINT32_MAX - 2),
+	cute_check_uint(dpack_array_fixed_size(UINT32_MAX - 2,
+	                                       DPACKUT_ARRAY_ELMSIZE),
 	                equal,
 	                5U + ((UINT32_MAX - 2) * DPACKUT_ARRAY_ELMSIZE));
 #endif
 
 #if DPACKUT_ARRAY_ENABLED(UINT32_MAX - 1)
-	cute_check_uint(DPACKUT_ARRAY_SIZE(UINT32_MAX - 1),
+	cute_check_uint(DPACKUT_ARRAY_FIXED_SIZE(UINT32_MAX - 1),
 	                equal,
 	                5U + ((UINT32_MAX - 1) * DPACKUT_ARRAY_ELMSIZE));
-	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, UINT32_MAX - 1),
+	cute_check_uint(dpack_array_fixed_size(UINT32_MAX - 1,
+	                                       DPACKUT_ARRAY_ELMSIZE),
 	                equal,
 	                5U + ((UINT32_MAX - 1) * DPACKUT_ARRAY_ELMSIZE));
 #endif
 #if DPACKUT_ARRAY_ENABLED(UINT32_MAX)
-	cute_check_uint(DPACKUT_ARRAY_SIZE(UINT32_MAX),
+	cute_check_uint(DPACKUT_ARRAY_FIXED_SIZE(UINT32_MAX),
 	                equal,
 	                5U + (UINT32_MAX * DPACKUT_ARRAY_ELMSIZE));
-	cute_check_uint(dpack_array_size(DPACKUT_ARRAY_ELMSIZE, UINT32_MAX),
+	cute_check_uint(dpack_array_fixed_size(UINT32_MAX,
+	                                       DPACKUT_ARRAY_ELMSIZE),
 	                equal,
 	                5U + (UINT32_MAX * DPACKUT_ARRAY_ELMSIZE));
 #endif
 }
 
-#else   /* !(DPACK_ARRAY_ELMNR_MAX > DPACK_ARRAY16_ELMNR_MAX) */
+#else   /* !(DPACK_ARRAY_ELMNR_MAX > _DPACK_ARRAY16_ELMNR_MAX) */
 
 CUTE_TEST(dpackut_array32_sizes)
 {
 	cute_skip("32-bits MessagePack array support not compiled-in");
 }
 
-#endif  /* DPACK_ARRAY_ELMNR_MAX > DPACK_ARRAY16_ELMNR_MAX */
+#endif  /* DPACK_ARRAY_ELMNR_MAX > _DPACK_ARRAY16_ELMNR_MAX */
 
 #if defined(CONFIG_DPACK_ASSERT_API)
+
+CUTE_TEST(dpackut_array_fixed_size_assert)
+{
+	size_t ret __unused;
+
+	cute_expect_assertion(ret = dpack_array_fixed_size(0, 1));
+
+	cute_expect_assertion(
+		ret = dpack_array_fixed_size(DPACK_ARRAY_ELMNR_MAX + 1, 1));
+
+	ret = dpack_array_fixed_size(1, _DPACK_ARRAY_DATA_SIZE_MAX);
+	cute_expect_assertion(
+		ret = dpack_array_fixed_size(1,
+		                             _DPACK_ARRAY_DATA_SIZE_MAX + 1));
+}
 
 CUTE_TEST(dpackut_array_encode_begin_null_enc)
 {
@@ -222,6 +245,11 @@ CUTE_TEST(dpackut_array_encode_end_null_enc)
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
+
+CUTE_TEST(dpackut_array_fixed_size_assert)
+{
+	cute_skip("assertion unsupported");
+}
 
 CUTE_TEST(dpackut_array_encode_begin_null_enc)
 {
@@ -798,14 +826,14 @@ CUTE_TEST(dpackut_array_encode_bin)
  */
 #define DPACKUT_ARRAY_MULTI_ELM_NR \
 	(7U)
-#define DPACKUT_ARRAY_MULTI_ELM_SIZE \
-	STROLL_CONST_MAX(DPACK_BOOL_SIZE, \
-		STROLL_CONST_MAX(DPACK_DOUBLE_SIZE, \
-			STROLL_CONST_MAX(DPACK_STR_SIZE(4), \
-				STROLL_CONST_MAX(DPACK_INT16_SIZE_MAX, \
-					STROLL_CONST_MAX(DPACK_BIN_SIZE(3), \
-						STROLL_CONST_MAX(DPACK_UINT32_SIZE_MAX, \
-						                 DPACK_NIL_SIZE))))))
+#define DPACKUT_ARRAY_MULTI_DATA_SIZE \
+	(DPACK_BOOL_SIZE + \
+	 DPACK_DOUBLE_SIZE + \
+	 DPACK_STR_SIZE(4) + \
+	 DPACK_INT16_SIZE_MAX + \
+	 DPACK_BIN_SIZE(3) + \
+	 DPACK_UINT32_SIZE_MAX + \
+	 DPACK_NIL_SIZE)
 #define DPACKUT_ARRAY_MULTI_PACK_DATA \
 	"\x97" \
 	"\xc3" \
@@ -818,8 +846,8 @@ CUTE_TEST(dpackut_array_encode_bin)
 #define DPACKUT_ARRAY_MULTI_PACK_SIZE \
 	(sizeof(DPACKUT_ARRAY_MULTI_PACK_DATA) - 1)
 #define DPACKUT_ARRAY_MULTI_PACK_SIZE_MAX \
-	DPACK_ARRAY_SIZE(DPACKUT_ARRAY_MULTI_ELM_SIZE, \
-	                 DPACKUT_ARRAY_MULTI_ELM_NR)
+	DPACK_ARRAY_MIXED_SIZE(DPACKUT_ARRAY_MULTI_ELM_NR, \
+	                       DPACKUT_ARRAY_MULTI_DATA_SIZE)
 
 CUTE_TEST(dpackut_array_encode_multi)
 {
@@ -864,7 +892,14 @@ CUTE_TEST(dpackut_array_encode_multi)
 		"\xa4\x74\x65\x73\x74"
 #define DPACKUT_ARRAY_NEST_PACK_SIZE \
 	(sizeof(DPACKUT_ARRAY_NEST_PACK_DATA) - 1)
-#define DPACKUT_ARRAY_NEST_PACK_SIZE_MAX (128U)
+#define DPACKUT_ARRAY_NEST_LVL1_SIZE_MAX \
+	DPACK_ARRAY_MIXED_SIZE(DPACKUT_ARRAY_NEST_LVL1_ELM_NR, \
+	                       DPACK_INT16_SIZE_MAX + DPACK_DOUBLE_SIZE)
+#define DPACKUT_ARRAY_NEST_PACK_SIZE_MAX \
+	DPACK_ARRAY_MIXED_SIZE(DPACKUT_ARRAY_NEST_LVL0_ELM_NR, \
+	                       DPACK_BOOL_SIZE + \
+	                       DPACKUT_ARRAY_NEST_LVL1_SIZE_MAX + \
+	                       DPACK_STR_SIZE(4))
 
 CUTE_TEST(dpackut_array_encode_nest)
 {
@@ -900,6 +935,7 @@ CUTE_GROUP(dpackut_array_group) = {
 	CUTE_REF(dpackut_fixarray_sizes),
 	CUTE_REF(dpackut_array16_sizes),
 	CUTE_REF(dpackut_array32_sizes),
+	CUTE_REF(dpackut_array_fixed_size_assert),
 
 	CUTE_REF(dpackut_array_encode_begin_null_enc),
 	CUTE_REF(dpackut_array_encode_begin_zero),

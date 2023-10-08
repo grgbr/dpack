@@ -12,6 +12,7 @@
 .. |MessagePack string format| replace:: :ref:`MessagePack string format <sect-msgpack-str>`
 .. |MessagePack bin format|    replace:: :ref:`MessagePack bin format <sect-msgpack-bin>`
 .. |MessagePack nil format|    replace:: :ref:`MessagePack nil format <sect-msgpack-nil>`
+.. |MessagePack array format|  replace:: :ref:`MessagePack array format <sect-msgpack-array>`
 
 .. _dpack:                     https://github.com/grgbr/dpack
 
@@ -66,7 +67,7 @@ you can refer to for further details :
 * String_,
 * `Length-Value string`_,
 * Bin_,
-* List_,
+* Array_,
 * Map_.
 
 .. index:: build configuration, configuration macros
@@ -399,16 +400,80 @@ Available operations are:
 
 You *MUST* include :file:`dpack/bin.h` header to use these interfaces.
 
-.. index:: list, collection, array
+.. index:: list, array, collection
 
-.. _sect-api-list:
+.. _sect-api-array:
 
-List
-====
+Array
+=====
 
-.. todo::
+When compiled with the :c:macro:`CONFIG_DPACK_ARRAY` build configuration option
+enabled, the DPack_ library provides support for array (de)serialization
+operations.
 
-   Document lists
+*Arrays* are collections of |MessagePack| objects serialized according to the
+|MessagePack array format|.
+
+Available operations are:
+
+.. hlist::
+
+   * array utilities:
+
+      * :c:macro:`DPACK_ARRAY_ELMNR_MAX`
+      * :c:macro:`DPACK_ARRAY_FIXED_SIZE()`
+      * :c:macro:`DPACK_ARRAY_HEAD_SIZE()`
+      * :c:macro:`DPACK_ARRAY_MIXED_SIZE()`
+      * :c:func:`dpack_array_fixed_size()`
+      * :c:func:`dpack_array_mixed_size()`
+
+   * array encoding:
+
+      * :c:func:`dpack_array_begin_encode`
+      * :c:func:`dpack_array_end_encode`
+
+   * boolean array:
+
+      * :c:macro:`DPACK_ARRAY_BOOL_SIZE()`
+
+   * signed integer array:
+
+      * :c:macro:`DPACK_ARRAY_INT8_SIZE_MAX()`
+      * :c:macro:`DPACK_ARRAY_INT8_SIZE_MIN()`
+      * :c:macro:`DPACK_ARRAY_INT16_SIZE_MAX()`
+      * :c:macro:`DPACK_ARRAY_INT16_SIZE_MIN()`
+      * :c:macro:`DPACK_ARRAY_INT32_SIZE_MAX()`
+      * :c:macro:`DPACK_ARRAY_INT32_SIZE_MIN()`
+      * :c:macro:`DPACK_ARRAY_INT64_SIZE_MAX()`
+      * :c:macro:`DPACK_ARRAY_INT64_SIZE_MIN()`
+
+   * unsigned integer array:
+
+      * :c:macro:`DPACK_ARRAY_UINT8_SIZE_MAX()`
+      * :c:macro:`DPACK_ARRAY_UINT8_SIZE_MIN()`
+      * :c:macro:`DPACK_ARRAY_UINT16_SIZE_MAX()`
+      * :c:macro:`DPACK_ARRAY_UINT16_SIZE_MIN()`
+      * :c:macro:`DPACK_ARRAY_UINT32_SIZE_MAX()`
+      * :c:macro:`DPACK_ARRAY_UINT32_SIZE_MIN()`
+      * :c:macro:`DPACK_ARRAY_UINT64_SIZE_MAX()`
+      * :c:macro:`DPACK_ARRAY_UINT64_SIZE_MIN()`
+
+   * floating point number array:
+
+      * :c:macro:`DPACK_ARRAY_DOUBLE_SIZE()`
+      * :c:macro:`DPACK_ARRAY_FLOAT_SIZE()`
+
+   * string array:
+
+      * :c:macro:`DPACK_ARRAY_STR_SIZE()`
+      * :c:macro:`DPACK_ARRAY_STR_SIZE_MAX()`
+      * :c:macro:`DPACK_ARRAY_STR_SIZE_MIN()`
+
+   * bin array:
+
+      * :c:macro:`DPACK_ARRAY_BIN_SIZE()`
+      * :c:macro:`DPACK_ARRAY_BIN_SIZE_MAX()`
+      * :c:macro:`DPACK_ARRAY_BIN_SIZE_MIN()`
 
 .. index:: map, structured aggregate, structured collection
 
@@ -512,6 +577,151 @@ DPACK_ABORT
 ***********
 
 .. doxygendefine:: DPACK_ABORT
+
+DPACK_ARRAY_BIN_SIZE
+********************
+
+.. doxygendefine:: DPACK_ARRAY_BIN_SIZE
+
+DPACK_ARRAY_BIN_SIZE_MAX
+************************
+
+.. doxygendefine:: DPACK_ARRAY_BIN_SIZE_MAX
+
+DPACK_ARRAY_BIN_SIZE_MIN
+************************
+
+.. doxygendefine:: DPACK_ARRAY_BIN_SIZE_MIN
+
+DPACK_ARRAY_BOOL_SIZE
+*********************
+
+.. doxygendefine:: DPACK_ARRAY_BOOL_SIZE
+
+DPACK_ARRAY_DOUBLE_SIZE
+***********************
+
+.. doxygendefine:: DPACK_ARRAY_DOUBLE_SIZE
+
+DPACK_ARRAY_ELMNR_MAX
+*********************
+
+.. doxygendefine:: DPACK_ARRAY_ELMNR_MAX
+
+DPACK_ARRAY_FIXED_SIZE
+**********************
+
+.. doxygendefine:: DPACK_ARRAY_FIXED_SIZE
+
+DPACK_ARRAY_FLOAT_SIZE
+**********************
+
+.. doxygendefine:: DPACK_ARRAY_FLOAT_SIZE
+
+DPACK_ARRAY_HEAD_SIZE
+*********************
+
+.. doxygendefine:: DPACK_ARRAY_HEAD_SIZE
+
+DPACK_ARRAY_INT8_SIZE_MAX
+*************************
+
+.. doxygendefine:: DPACK_ARRAY_INT8_SIZE_MAX
+
+DPACK_ARRAY_INT8_SIZE_MIN
+*************************
+
+.. doxygendefine:: DPACK_ARRAY_INT8_SIZE_MIN
+
+DPACK_ARRAY_INT16_SIZE_MAX
+*************************
+
+.. doxygendefine:: DPACK_ARRAY_INT16_SIZE_MAX
+
+DPACK_ARRAY_INT16_SIZE_MIN
+*************************
+
+.. doxygendefine:: DPACK_ARRAY_INT16_SIZE_MIN
+
+DPACK_ARRAY_INT32_SIZE_MAX
+*************************
+
+.. doxygendefine:: DPACK_ARRAY_INT32_SIZE_MAX
+
+DPACK_ARRAY_INT32_SIZE_MIN
+*************************
+
+.. doxygendefine:: DPACK_ARRAY_INT32_SIZE_MIN
+
+DPACK_ARRAY_INT64_SIZE_MAX
+*************************
+
+.. doxygendefine:: DPACK_ARRAY_INT64_SIZE_MAX
+
+DPACK_ARRAY_INT64_SIZE_MIN
+*************************
+
+.. doxygendefine:: DPACK_ARRAY_INT64_SIZE_MIN
+
+DPACK_ARRAY_MIXED_SIZE
+**********************
+
+.. doxygendefine:: DPACK_ARRAY_MIXED_SIZE
+
+DPACK_ARRAY_STR_SIZE
+********************
+
+.. doxygendefine:: DPACK_ARRAY_STR_SIZE
+
+DPACK_ARRAY_STR_SIZE_MAX
+************************
+
+.. doxygendefine:: DPACK_ARRAY_STR_SIZE_MAX
+
+DPACK_ARRAY_STR_SIZE_MIN
+************************
+
+.. doxygendefine:: DPACK_ARRAY_STR_SIZE_MIN
+
+DPACK_ARRAY_UINT8_SIZE_MAX
+**************************
+
+.. doxygendefine:: DPACK_ARRAY_UINT8_SIZE_MAX
+
+DPACK_ARRAY_UINT8_SIZE_MIN
+**************************
+
+.. doxygendefine:: DPACK_ARRAY_UINT8_SIZE_MIN
+
+DPACK_ARRAY_UINT16_SIZE_MAX
+**************************
+
+.. doxygendefine:: DPACK_ARRAY_UINT16_SIZE_MAX
+
+DPACK_ARRAY_UINT16_SIZE_MIN
+**************************
+
+.. doxygendefine:: DPACK_ARRAY_UINT16_SIZE_MIN
+
+DPACK_ARRAY_UINT32_SIZE_MAX
+**************************
+
+.. doxygendefine:: DPACK_ARRAY_UINT32_SIZE_MAX
+
+DPACK_ARRAY_UINT32_SIZE_MIN
+**************************
+
+.. doxygendefine:: DPACK_ARRAY_UINT32_SIZE_MIN
+
+DPACK_ARRAY_UINT64_SIZE_MAX
+**************************
+
+.. doxygendefine:: DPACK_ARRAY_UINT64_SIZE_MAX
+
+DPACK_ARRAY_UINT64_SIZE_MIN
+**************************
+
+.. doxygendefine:: DPACK_ARRAY_UINT64_SIZE_MIN
 
 DPACK_BIN_SIZE
 **************
@@ -678,6 +888,16 @@ dpack_encoder
 
 Functions
 ---------
+
+dpack_array_fixed_size
+**********************
+
+.. doxygenfunction:: dpack_array_fixed_size
+   
+dpack_array_mixed_size
+**********************
+
+.. doxygenfunction:: dpack_array_mixed_size
 
 dpack_bin_size
 **************

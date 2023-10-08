@@ -10,30 +10,36 @@
 #include "common.h"
 
 size_t
-dpack_array_size(size_t elm_size, unsigned int elm_nr)
+dpack_array_mixed_size(unsigned int elm_nr, size_t data_size)
 {
-	dpack_assert_api(elm_size);
-	dpack_assert_api(elm_size <= DPACK_ARRAY_ELMSIZE_MAX);
 	dpack_assert_api(elm_nr);
 	dpack_assert_api(elm_nr <= DPACK_ARRAY_ELMNR_MAX);
-	dpack_assert_api(elm_size <= (DPACK_ARRAY_SIZE_MAX / elm_nr));
+	dpack_assert_api(data_size);
+	dpack_assert_api(data_size <= _DPACK_ARRAY_DATA_SIZE_MAX);
+
+	size_t head;
 
 	switch (elm_nr) {
-	case 1 ... DPACK_FIXARRAY_ELMNR_MAX:
-		return DPACK_FIXARRAY_SIZE(elm_size, elm_nr);
-#if DPACK_ARRAY_ELMNR_MAX > DPACK_FIXARRAY_ELMNR_MAX
-	case (DPACK_FIXARRAY_ELMNR_MAX + 1) ... DPACK_ARRAY16_ELMNR_MAX:
-		return DPACK_ARRAY16_SIZE(elm_size, elm_nr);
+	case 1 ... _DPACK_FIXARRAY_ELMNR_MAX:
+		head = MPACK_TAG_SIZE_FIXARRAY;
+		break;
+
+#if DPACK_ARRAY_ELMNR_MAX > _DPACK_FIXARRAY_ELMNR_MAX
+	case (_DPACK_FIXARRAY_ELMNR_MAX + 1) ... _DPACK_ARRAY16_ELMNR_MAX:
+		head = MPACK_TAG_SIZE_ARRAY16;
+		break;
 #endif
-#if DPACK_ARRAY_ELMNR_MAX > DPACK_ARRAY16_ELMNR_MAX
-	case (DPACK_ARRAY16_ELMNR_MAX + 1) ... DPACK_ARRAY32_ELMNR_MAX:
-		return DPACK_ARRAY32_SIZE(elm_size, elm_nr);
+
+#if DPACK_ARRAY_ELMNR_MAX > _DPACK_ARRAY16_ELMNR_MAX
+	case (_DPACK_ARRAY16_ELMNR_MAX + 1) ... _DPACK_ARRAY32_ELMNR_MAX:
+		head = MPACK_TAG_SIZE_ARRAY32;
+		break;
 #endif
 	default:
 		dpack_assert_api(0);
 	}
 
-	unreachable();
+	return head + data_size;
 }
 
 /******************************************************************************
