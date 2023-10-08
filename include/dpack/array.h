@@ -121,7 +121,7 @@
 
 /**
  * Size of a serialized array header.
- * 
+ *
  * @param[in] _elm_nr number of array elements
  *
  * Given the number of elements an msgpack array may contain, compute the size
@@ -731,6 +731,8 @@
  * @param[in] elm_nr    number of array elements
  * @param[in] data_size size of encoded array data
  *
+ * @return size of array
+ *
  * Compute the size of an array encoded according to the
  * @rstsubst{MessagePack array format} that holds @p elm_nr elements and where
  * the cumulated size of all encoded elements is given by @p data_size.
@@ -752,6 +754,8 @@ dpack_array_mixed_size(unsigned int elm_nr, size_t data_size)
  *
  * @param[in] elm_nr   number of array elements
  * @param[in] elm_size size of a single encoded array element
+ *
+ * @return size of array
  *
  * Compute the size of an array encoded according to the
  * @rstsubst{MessagePack array format} and holding @p elm_nr elements of @p
@@ -780,6 +784,11 @@ dpack_array_fixed_size(unsigned int elm_nr, size_t elm_size)
  *
  * @param[in] encoder encoder
  * @param[in] nr      number of array elements
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
  *
  * Start encoding an array containing @p nr elements. Call to this function must
  * be followed by @p nr elements. Array encoding must be completed by a call to
