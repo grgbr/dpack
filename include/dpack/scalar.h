@@ -3034,7 +3034,7 @@ dpack_decode_double_range(struct dpack_decoder * decoder,
 #define DPACK_NIL_SIZE 1
 
 /**
- * Encode a nil according to the MessagePack format
+ * Encode a nil according to the MessagePack format.
  *
  * @param[in] encoder encoder
  *
@@ -3062,5 +3062,42 @@ dpack_encode_nil(struct dpack_encoder  * encoder) __dpack_nonull(1)
                                                   __leaf
                                                   __warn_result
                                                   __dpack_export;
+
+/**
+ * Decode a nil encoded according to the MessagePack format.
+ *
+ * @param[in]  decoder decoder
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -ENOMSG   Invalid MessagePack stream data type
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack nil format} from buffer assigned to @p decoder at
+ * initialization time.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ * - dpack_encode_nil()
+ */
+extern int
+dpack_decode_nil(struct dpack_decoder * decoder) __dpack_nonull(1)
+                                                 __dpack_nothrow
+                                                 __leaf
+                                                 __warn_result
+                                                 __dpack_export;
 
 #endif /* _DPACK_SCALAR_H */

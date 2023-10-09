@@ -317,6 +317,21 @@ CUTE_TEST(dpackut_array_encode_end_partial)
 	dpack_encoder_fini(&enc, DPACK_ABORT);
 }
 
+CUTE_TEST(dpackut_array_encode_xcess)
+{
+	struct dpack_encoder enc;
+	char                 buff[DPACK_ARRAY_INT8_SIZE_MAX(2)] = { 0, };
+	int                  ret __unused;
+
+	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
+
+	cute_check_sint(dpack_array_begin_encode(&enc, 1), equal, 0);
+	cute_check_sint(dpack_encode_int8(&enc, INT8_MIN), equal, 0);
+	cute_expect_assertion(ret = dpack_encode_int8(&enc, 0));
+
+	dpack_encoder_fini(&enc, DPACK_ABORT);
+}
+
 #else /* !defined(CONFIG_DPACK_DEBUG) */
 
 CUTE_TEST(dpackut_array_encode_begin_uninit_enc)
@@ -335,6 +350,11 @@ CUTE_TEST(dpackut_array_encode_end_empty)
 }
 
 CUTE_TEST(dpackut_array_encode_end_partial)
+{
+	cute_skip("debug build disabled");
+}
+
+CUTE_TEST(dpackut_array_encode_xcess)
 {
 	cute_skip("debug build disabled");
 }
@@ -931,6 +951,894 @@ CUTE_TEST(dpackut_array_encode_nest)
 	               DPACKUT_ARRAY_NEST_PACK_SIZE);
 }
 
+#if defined(CONFIG_DPACK_ASSERT_API)
+
+static int
+dpackut_array_xtract_data(struct dpack_decoder * decoder __unused,
+                          unsigned int           id __unused,
+                          void * __restrict      data __unused)
+{
+	return 0;
+}
+
+CUTE_TEST(dpackut_array_decode_null_dec)
+{
+	struct dpack_decoder dec;
+	char                 buff = buff;
+	char                 data = data;
+	int                  ret __unused;
+
+	dpack_decoder_init_buffer(&dec, &buff, 1);
+	cute_expect_assertion(
+		ret = dpack_array_decode(NULL,
+		                         dpackut_array_xtract_data,
+		                         &data));
+	dpack_decoder_fini(&dec);
+}
+
+CUTE_TEST(dpackut_array_decode_null_func)
+{
+	struct dpack_decoder dec;
+	char                 buff = buff;
+	char                 data = data;
+	int                  ret __unused;
+
+	dpack_decoder_init_buffer(&dec, &buff, 1);
+	cute_expect_assertion(ret = dpack_array_decode(&dec, NULL, &data));
+	dpack_decoder_fini(&dec);
+}
+
+CUTE_TEST(dpackut_array_decode_null_data)
+{
+	struct dpack_decoder dec;
+
+	cute_expect_assertion(dpack_decoder_init_buffer(&dec, NULL, 1));
+}
+
+CUTE_TEST(dpackut_array_decode_zero_data)
+{
+	struct dpack_decoder dec;
+	char                 buff = buff;
+
+	cute_expect_assertion(dpack_decoder_init_buffer(&dec, &buff, 0));
+}
+
+#else  /* !defined(CONFIG_DPACK_ASSERT_API) */
+
+CUTE_TEST(dpackut_array_decode_null_dec)
+{
+	cute_skip("assertion unsupported");
+}
+
+CUTE_TEST(dpackut_array_decode_null_func)
+{
+	cute_skip("assertion unsupported");
+}
+
+CUTE_TEST(dpackut_array_decode_null_data)
+{
+	cute_skip("assertion unsupported");
+}
+
+CUTE_TEST(dpackut_array_decode_zero_data)
+{
+	cute_skip("assertion unsupported");
+}
+
+#endif /* defined(CONFIG_DPACK_ASSERT_API) */
+
+#if defined(CONFIG_DPACK_DEBUG)
+
+CUTE_TEST(dpackut_array_decode_uninit_dec)
+{
+	struct dpack_decoder dec = { 0, };
+	char                 data = data;
+	int                  ret __unused;
+
+	cute_expect_assertion(
+		ret = dpack_array_decode(&dec,
+		                         dpackut_array_xtract_data,
+		                         &data));
+}
+
+#else /* !defined(CONFIG_DPACK_DEBUG) */
+
+CUTE_TEST(dpackut_array_decode_uninit_dec)
+{
+	cute_skip("debug build disabled");
+}
+
+#endif /* defined(CONFIG_DPACK_DEBUG) */
+
+static int
+dpackut_array_xtract_some(struct dpack_decoder * decoder,
+                          unsigned int           id,
+                          void * __restrict      data)
+{
+	bool * values = (bool *)data;
+
+	cute_mock_uint_parm(id);
+	cute_mock_ptr_parm(data);
+
+	return dpack_decode_bool(decoder, &values[id]);
+}
+
+CUTE_TEST(dpackut_array_decode_empty)
+{
+	struct dpack_decoder dec;
+	const char           buff[] = "";
+
+	dpack_decoder_init_buffer(&dec, buff, 1);
+	cute_check_sint(dpack_array_decode(&dec,
+	                                   dpackut_array_xtract_some,
+	                                   NULL),
+	                equal,
+	                -ENOMSG);
+	dpack_decoder_fini(&dec);
+}
+
+CUTE_TEST(dpackut_array_decode_nodata)
+{
+	struct dpack_decoder dec;
+	const char           buff[] = "\x90";
+
+	dpack_decoder_init_buffer(&dec, buff, 1);
+	cute_check_sint(dpack_array_decode(&dec,
+	                                   dpackut_array_xtract_some,
+	                                   NULL),
+	                equal,
+	                -ENOMSG);
+	dpack_decoder_fini(&dec);
+}
+
+CUTE_TEST(dpackut_array_decode_starve)
+{
+	struct dpack_decoder dec;
+	const char           buff[] = "\x91";
+	bool                 value;
+
+	dpack_decoder_init_buffer(&dec, buff, 1);
+
+	cute_expect_uint_parm(dpackut_array_xtract_some, id, equal, 0);
+	cute_expect_ptr_parm(dpackut_array_xtract_some, data, equal, &value);
+
+	cute_check_sint(dpack_array_decode(&dec,
+	                                   dpackut_array_xtract_some,
+	                                   &value),
+	                equal,
+	                -EPROTO);
+	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+
+	dpack_decoder_fini(&dec);
+}
+
+CUTE_TEST(dpackut_array_decode_short)
+{
+	struct dpack_decoder dec;
+	const char           buff[] = "\x92\xc3\xc2";
+	bool                 value = false;
+
+	dpack_decoder_init_buffer(&dec, buff, 2);
+
+	cute_expect_uint_parm(dpackut_array_xtract_some, id, equal, 0);
+	cute_expect_ptr_parm(dpackut_array_xtract_some, data, equal, &value);
+
+	cute_expect_uint_parm(dpackut_array_xtract_some, id, equal, 1);
+	cute_expect_ptr_parm(dpackut_array_xtract_some, data, equal, &value);
+
+	cute_check_sint(dpack_array_decode(&dec,
+	                                   dpackut_array_xtract_some,
+	                                   &value),
+	                equal,
+	                -EPROTO);
+	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+
+	cute_check_bool(value, is, true);
+
+	dpack_decoder_fini(&dec);
+}
+
+static int
+dpackut_array_xtract_bool(struct dpack_decoder * decoder,
+                          unsigned int           id,
+                          void * __restrict      data)
+{
+	bool * values = (bool *)data;
+
+	cute_mock_uint_parm(id);
+	cute_mock_ptr_parm(data);
+
+	cute_check_sint(dpack_decode_bool(decoder, &values[id]), equal, 0);
+
+	return 0;
+}
+
+CUTE_TEST(dpackut_array_decode_bool)
+{
+	struct dpack_decoder dec = { 0, };
+	const char           buff[] = DPACKUT_ARRAY_BOOL_PACK_DATA;
+	bool                 values[] = { true, false };
+	const bool           xpct[] = { false, true };
+	unsigned int         v;
+
+	dpack_decoder_init_buffer(&dec, buff, sizeof(buff) - 1);
+
+	cute_expect_uint_parm(dpackut_array_xtract_bool, id, equal, 0);
+	cute_expect_ptr_parm(dpackut_array_xtract_bool, data, equal, values);
+
+	cute_expect_uint_parm(dpackut_array_xtract_bool, id, equal, 1);
+	cute_expect_ptr_parm(dpackut_array_xtract_bool, data, equal, values);
+
+	cute_check_sint(dpack_array_decode(&dec,
+	                                   dpackut_array_xtract_bool,
+	                                   values),
+	                equal,
+	                0);
+	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+
+	for (v = 0; v < array_nr(xpct); v++)
+		cute_check_bool(values[v], is, xpct[v]);
+
+	dpack_decoder_fini(&dec);
+}
+
+static int
+dpackut_array_xtract_int8(struct dpack_decoder * decoder,
+                          unsigned int           id,
+                          void * __restrict      data)
+{
+	int8_t * values = (int8_t *)data;
+
+	cute_mock_uint_parm(id);
+	cute_mock_ptr_parm(data);
+
+	cute_check_sint(dpack_decode_int8(decoder, &values[id]), equal, 0);
+
+	return 0;
+}
+
+CUTE_TEST(dpackut_array_decode_int8)
+{
+	struct dpack_decoder dec = { 0, };
+	const char           buff[] = DPACKUT_ARRAY_INT8_PACK_DATA;
+	int8_t               values[] = { 1, 1, 1 };
+	const int8_t         xpct[] = { INT8_MIN, 0, INT8_MAX };
+	unsigned int         v;
+
+	dpack_decoder_init_buffer(&dec, buff, sizeof(buff) - 1);
+
+	cute_expect_uint_parm(dpackut_array_xtract_int8, id, equal, 0);
+	cute_expect_ptr_parm(dpackut_array_xtract_int8, data, equal, values);
+
+	cute_expect_uint_parm(dpackut_array_xtract_int8, id, equal, 1);
+	cute_expect_ptr_parm(dpackut_array_xtract_int8, data, equal, values);
+
+	cute_expect_uint_parm(dpackut_array_xtract_int8, id, equal, 2);
+	cute_expect_ptr_parm(dpackut_array_xtract_int8, data, equal, values);
+
+	cute_check_sint(dpack_array_decode(&dec,
+	                                   dpackut_array_xtract_int8,
+	                                   values),
+	                equal,
+	                0);
+	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+
+	for (v = 0; v < array_nr(xpct); v++)
+		cute_check_sint(values[v], equal, xpct[v]);
+
+	dpack_decoder_fini(&dec);
+}
+
+static int
+dpackut_array_xtract_uint8(struct dpack_decoder * decoder,
+                           unsigned int           id,
+                           void * __restrict      data)
+{
+	uint8_t * values = (uint8_t *)data;
+
+	cute_mock_uint_parm(id);
+	cute_mock_ptr_parm(data);
+
+	cute_check_sint(dpack_decode_uint8(decoder, &values[id]), equal, 0);
+
+	return 0;
+}
+
+CUTE_TEST(dpackut_array_decode_uint8)
+{
+	struct dpack_decoder dec = { 0, };
+	const char           buff[] = DPACKUT_ARRAY_UINT8_PACK_DATA;
+	uint8_t              values[] = { 1, 1 };
+	const uint8_t        xpct[] = { 0, UINT8_MAX };
+	unsigned int         v;
+
+	dpack_decoder_init_buffer(&dec, buff, sizeof(buff) - 1);
+
+	cute_expect_uint_parm(dpackut_array_xtract_uint8, id, equal, 0);
+	cute_expect_ptr_parm(dpackut_array_xtract_uint8, data, equal, values);
+
+	cute_expect_uint_parm(dpackut_array_xtract_uint8, id, equal, 1);
+	cute_expect_ptr_parm(dpackut_array_xtract_uint8, data, equal, values);
+
+	cute_check_sint(dpack_array_decode(&dec,
+	                                   dpackut_array_xtract_uint8,
+	                                   values),
+	                equal,
+	                0);
+	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+
+	for (v = 0; v < array_nr(xpct); v++)
+		cute_check_uint(values[v], equal, xpct[v]);
+
+	dpack_decoder_fini(&dec);
+}
+
+static int
+dpackut_array_xtract_int16(struct dpack_decoder * decoder,
+                           unsigned int           id,
+                           void * __restrict      data)
+{
+	int16_t * values = (int16_t *)data;
+
+	cute_mock_uint_parm(id);
+	cute_mock_ptr_parm(data);
+
+	cute_check_sint(dpack_decode_int16(decoder, &values[id]), equal, 0);
+
+	return 0;
+}
+
+CUTE_TEST(dpackut_array_decode_int16)
+{
+	struct dpack_decoder dec = { 0, };
+	const char           buff[] = DPACKUT_ARRAY_INT16_PACK_DATA;
+	int16_t              values[] = { 1, 1, 1 };
+	const int16_t        xpct[] = { INT16_MIN, 0, INT16_MAX };
+	unsigned int         v;
+
+	dpack_decoder_init_buffer(&dec, buff, sizeof(buff) - 1);
+
+	cute_expect_uint_parm(dpackut_array_xtract_int16, id, equal, 0);
+	cute_expect_ptr_parm(dpackut_array_xtract_int16, data, equal, values);
+
+	cute_expect_uint_parm(dpackut_array_xtract_int16, id, equal, 1);
+	cute_expect_ptr_parm(dpackut_array_xtract_int16, data, equal, values);
+
+	cute_expect_uint_parm(dpackut_array_xtract_int16, id, equal, 2);
+	cute_expect_ptr_parm(dpackut_array_xtract_int16, data, equal, values);
+
+	cute_check_sint(dpack_array_decode(&dec,
+	                                   dpackut_array_xtract_int16,
+	                                   values),
+	                equal,
+	                0);
+	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+
+	for (v = 0; v < array_nr(xpct); v++)
+		cute_check_sint(values[v], equal, xpct[v]);
+
+	dpack_decoder_fini(&dec);
+}
+
+static int
+dpackut_array_xtract_uint16(struct dpack_decoder * decoder,
+                            unsigned int           id,
+                            void * __restrict      data)
+{
+	uint16_t * values = (uint16_t *)data;
+
+	cute_mock_uint_parm(id);
+	cute_mock_ptr_parm(data);
+
+	cute_check_sint(dpack_decode_uint16(decoder, &values[id]), equal, 0);
+
+	return 0;
+}
+
+CUTE_TEST(dpackut_array_decode_uint16)
+{
+	struct dpack_decoder dec = { 0, };
+	const char           buff[] = DPACKUT_ARRAY_UINT16_PACK_DATA;
+	uint16_t             values[] = { 1, 1 };
+	const uint16_t       xpct[] = { 0, UINT16_MAX };
+	unsigned int         v;
+
+	dpack_decoder_init_buffer(&dec, buff, sizeof(buff) - 1);
+
+	cute_expect_uint_parm(dpackut_array_xtract_uint16, id, equal, 0);
+	cute_expect_ptr_parm(dpackut_array_xtract_uint16, data, equal, values);
+
+	cute_expect_uint_parm(dpackut_array_xtract_uint16, id, equal, 1);
+	cute_expect_ptr_parm(dpackut_array_xtract_uint16, data, equal, values);
+
+	cute_check_sint(dpack_array_decode(&dec,
+	                                   dpackut_array_xtract_uint16,
+	                                   values),
+	                equal,
+	                0);
+	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+
+	for (v = 0; v < array_nr(xpct); v++)
+		cute_check_uint(values[v], equal, xpct[v]);
+
+	dpack_decoder_fini(&dec);
+}
+
+static int
+dpackut_array_xtract_int32(struct dpack_decoder * decoder,
+                           unsigned int           id,
+                           void * __restrict      data)
+{
+	int32_t * values = (int32_t *)data;
+
+	cute_mock_uint_parm(id);
+	cute_mock_ptr_parm(data);
+
+	cute_check_sint(dpack_decode_int32(decoder, &values[id]), equal, 0);
+
+	return 0;
+}
+
+CUTE_TEST(dpackut_array_decode_int32)
+{
+	struct dpack_decoder dec = { 0, };
+	const char           buff[] = DPACKUT_ARRAY_INT32_PACK_DATA;
+	int32_t              values[] = { 1, 1, 1 };
+	const int32_t        xpct[] = { INT32_MIN, 0, INT32_MAX };
+	unsigned int         v;
+
+	dpack_decoder_init_buffer(&dec, buff, sizeof(buff) - 1);
+
+	cute_expect_uint_parm(dpackut_array_xtract_int32, id, equal, 0);
+	cute_expect_ptr_parm(dpackut_array_xtract_int32, data, equal, values);
+
+	cute_expect_uint_parm(dpackut_array_xtract_int32, id, equal, 1);
+	cute_expect_ptr_parm(dpackut_array_xtract_int32, data, equal, values);
+
+	cute_expect_uint_parm(dpackut_array_xtract_int32, id, equal, 2);
+	cute_expect_ptr_parm(dpackut_array_xtract_int32, data, equal, values);
+
+	cute_check_sint(dpack_array_decode(&dec,
+	                                   dpackut_array_xtract_int32,
+	                                   values),
+	                equal,
+	                0);
+	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+
+	for (v = 0; v < array_nr(xpct); v++)
+		cute_check_sint(values[v], equal, xpct[v]);
+
+	dpack_decoder_fini(&dec);
+}
+
+static int
+dpackut_array_xtract_uint32(struct dpack_decoder * decoder,
+                            unsigned int           id,
+                            void * __restrict      data)
+{
+	uint32_t * values = (uint32_t *)data;
+
+	cute_mock_uint_parm(id);
+	cute_mock_ptr_parm(data);
+
+	cute_check_sint(dpack_decode_uint32(decoder, &values[id]), equal, 0);
+
+	return 0;
+}
+
+CUTE_TEST(dpackut_array_decode_uint32)
+{
+	struct dpack_decoder dec = { 0, };
+	const char           buff[] = DPACKUT_ARRAY_UINT32_PACK_DATA;
+	uint32_t             values[] = { 1, 1 };
+	const uint32_t       xpct[] = { 0, UINT32_MAX };
+	unsigned int         v;
+
+	dpack_decoder_init_buffer(&dec, buff, sizeof(buff) - 1);
+
+	cute_expect_uint_parm(dpackut_array_xtract_uint32, id, equal, 0);
+	cute_expect_ptr_parm(dpackut_array_xtract_uint32, data, equal, values);
+
+	cute_expect_uint_parm(dpackut_array_xtract_uint32, id, equal, 1);
+	cute_expect_ptr_parm(dpackut_array_xtract_uint32, data, equal, values);
+
+	cute_check_sint(dpack_array_decode(&dec,
+	                                   dpackut_array_xtract_uint32,
+	                                   values),
+	                equal,
+	                0);
+	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+
+	for (v = 0; v < array_nr(xpct); v++)
+		cute_check_uint(values[v], equal, xpct[v]);
+
+	dpack_decoder_fini(&dec);
+}
+
+static int
+dpackut_array_xtract_int64(struct dpack_decoder * decoder,
+                           unsigned int           id,
+                           void * __restrict      data)
+{
+	int64_t * values = (int64_t *)data;
+
+	cute_mock_uint_parm(id);
+	cute_mock_ptr_parm(data);
+
+	cute_check_sint(dpack_decode_int64(decoder, &values[id]), equal, 0);
+
+	return 0;
+}
+
+CUTE_TEST(dpackut_array_decode_int64)
+{
+	struct dpack_decoder dec = { 0, };
+	const char           buff[] = DPACKUT_ARRAY_INT64_PACK_DATA;
+	int64_t              values[] = { 1, 1, 1 };
+	const int64_t        xpct[] = { INT64_MIN, 0, INT64_MAX };
+	unsigned int         v;
+
+	dpack_decoder_init_buffer(&dec, buff, sizeof(buff) - 1);
+
+	cute_expect_uint_parm(dpackut_array_xtract_int64, id, equal, 0);
+	cute_expect_ptr_parm(dpackut_array_xtract_int64, data, equal, values);
+
+	cute_expect_uint_parm(dpackut_array_xtract_int64, id, equal, 1);
+	cute_expect_ptr_parm(dpackut_array_xtract_int64, data, equal, values);
+
+	cute_expect_uint_parm(dpackut_array_xtract_int64, id, equal, 2);
+	cute_expect_ptr_parm(dpackut_array_xtract_int64, data, equal, values);
+
+	cute_check_sint(dpack_array_decode(&dec,
+	                                   dpackut_array_xtract_int64,
+	                                   values),
+	                equal,
+	                0);
+	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+
+	for (v = 0; v < array_nr(xpct); v++)
+		cute_check_sint(values[v], equal, xpct[v]);
+
+	dpack_decoder_fini(&dec);
+}
+
+static int
+dpackut_array_xtract_uint64(struct dpack_decoder * decoder,
+                            unsigned int           id,
+                            void * __restrict      data)
+{
+	uint64_t * values = (uint64_t *)data;
+
+	cute_mock_uint_parm(id);
+	cute_mock_ptr_parm(data);
+
+	cute_check_sint(dpack_decode_uint64(decoder, &values[id]), equal, 0);
+
+	return 0;
+}
+
+CUTE_TEST(dpackut_array_decode_uint64)
+{
+	struct dpack_decoder dec = { 0, };
+	const char           buff[] = DPACKUT_ARRAY_UINT64_PACK_DATA;
+	uint64_t             values[] = { 1, 1 };
+	const uint64_t       xpct[] = { 0, UINT64_MAX };
+	unsigned int         v;
+
+	dpack_decoder_init_buffer(&dec, buff, sizeof(buff) - 1);
+
+	cute_expect_uint_parm(dpackut_array_xtract_uint64, id, equal, 0);
+	cute_expect_ptr_parm(dpackut_array_xtract_uint64, data, equal, values);
+
+	cute_expect_uint_parm(dpackut_array_xtract_uint64, id, equal, 1);
+	cute_expect_ptr_parm(dpackut_array_xtract_uint64, data, equal, values);
+
+	cute_check_sint(dpack_array_decode(&dec,
+	                                   dpackut_array_xtract_uint64,
+	                                   values),
+	                equal,
+	                0);
+	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+
+	for (v = 0; v < array_nr(xpct); v++)
+		cute_check_uint(values[v], equal, xpct[v]);
+
+	dpack_decoder_fini(&dec);
+}
+
+static int
+dpackut_array_xtract_float(struct dpack_decoder * decoder,
+                           unsigned int           id,
+                           void * __restrict      data)
+{
+	float * values = (float *)data;
+
+	cute_mock_uint_parm(id);
+	cute_mock_ptr_parm(data);
+
+	cute_check_sint(dpack_decode_float(decoder, &values[id]), equal, 0);
+
+	return 0;
+}
+
+CUTE_TEST(dpackut_array_decode_float)
+{
+	struct dpack_decoder dec = { 0, };
+	const char           buff[] = DPACKUT_ARRAY_FLOAT_PACK_DATA;
+	float                values[] = { 1, 1 };
+	const float          xpct[] = { -1.005f, 10.0f };
+	unsigned int         v;
+
+	dpack_decoder_init_buffer(&dec, buff, sizeof(buff) - 1);
+
+	cute_expect_uint_parm(dpackut_array_xtract_float, id, equal, 0);
+	cute_expect_ptr_parm(dpackut_array_xtract_float, data, equal, values);
+
+	cute_expect_uint_parm(dpackut_array_xtract_float, id, equal, 1);
+	cute_expect_ptr_parm(dpackut_array_xtract_float, data, equal, values);
+
+	cute_check_sint(dpack_array_decode(&dec,
+	                                   dpackut_array_xtract_float,
+	                                   values),
+	                equal,
+	                0);
+	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+
+	for (v = 0; v < array_nr(xpct); v++)
+		cute_check_flt(values[v], equal, xpct[v]);
+
+	dpack_decoder_fini(&dec);
+}
+
+static int
+dpackut_array_xtract_double(struct dpack_decoder * decoder,
+                            unsigned int           id,
+                            void * __restrict      data)
+{
+	double * values = (double *)data;
+
+	cute_mock_uint_parm(id);
+	cute_mock_ptr_parm(data);
+
+	cute_check_sint(dpack_decode_double(decoder, &values[id]), equal, 0);
+
+	return 0;
+}
+
+CUTE_TEST(dpackut_array_decode_double)
+{
+	struct dpack_decoder dec = { 0, };
+	const char           buff[] = DPACKUT_ARRAY_DOUBLE_PACK_DATA;
+	double               values[] = { 1, 1 };
+	const double         xpct[] = { -1.005, INFINITY };
+	unsigned int         v;
+
+	dpack_decoder_init_buffer(&dec, buff, sizeof(buff) - 1);
+
+	cute_expect_uint_parm(dpackut_array_xtract_double, id, equal, 0);
+	cute_expect_ptr_parm(dpackut_array_xtract_double, data, equal, values);
+
+	cute_expect_uint_parm(dpackut_array_xtract_double, id, equal, 1);
+	cute_expect_ptr_parm(dpackut_array_xtract_double, data, equal, values);
+
+	cute_check_sint(dpack_array_decode(&dec,
+	                                   dpackut_array_xtract_double,
+	                                   values),
+	                equal,
+	                0);
+	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+
+	for (v = 0; v < array_nr(xpct); v++)
+		cute_check_flt(values[v], equal, xpct[v]);
+
+	dpack_decoder_fini(&dec);
+}
+
+static int
+dpackut_array_xtract_str(struct dpack_decoder * decoder,
+                         unsigned int           id,
+                         void * __restrict      data)
+{
+	char ** values = (char **)data;
+
+	cute_mock_uint_parm(id);
+	cute_mock_ptr_parm(data);
+
+	cute_check_sint(dpack_decode_strdup(decoder, &values[id]), greater, 0);
+
+	return 0;
+}
+
+CUTE_TEST(dpackut_array_decode_str)
+{
+	struct dpack_decoder dec = { 0, };
+	const char           buff[] = DPACKUT_ARRAY_STR_PACK_DATA;
+	char *               values[] = { NULL, NULL, NULL };
+	const char *         xpct[] = { "a", "list", "of strings" };
+	unsigned int         v;
+
+	dpack_decoder_init_buffer(&dec, buff, sizeof(buff) - 1);
+
+	cute_expect_uint_parm(dpackut_array_xtract_str, id, equal, 0);
+	cute_expect_ptr_parm(dpackut_array_xtract_str, data, equal, values);
+
+	cute_expect_uint_parm(dpackut_array_xtract_str, id, equal, 1);
+	cute_expect_ptr_parm(dpackut_array_xtract_str, data, equal, values);
+
+	cute_expect_uint_parm(dpackut_array_xtract_str, id, equal, 2);
+	cute_expect_ptr_parm(dpackut_array_xtract_str, data, equal, values);
+
+	cute_check_sint(dpack_array_decode(&dec,
+	                                   dpackut_array_xtract_str,
+	                                   values),
+	                equal,
+	                0);
+	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+
+	for (v = 0; v < array_nr(xpct); v++) {
+		cute_check_str(values[v], equal, xpct[v]);
+		free(values[v]);
+	}
+
+	dpack_decoder_fini(&dec);
+}
+
+static int
+dpackut_array_xtract_bin(struct dpack_decoder * decoder,
+                         unsigned int           id,
+                         void * __restrict      data)
+{
+	char ** values = (char **)data;
+
+	cute_mock_uint_parm(id);
+	cute_mock_ptr_parm(data);
+
+	cute_check_sint(dpack_decode_bindup(decoder, &values[id]), greater, 0);
+
+	return 0;
+}
+
+CUTE_TEST(dpackut_array_decode_bin)
+{
+	struct dpack_decoder dec = { 0, };
+	const char           buff[] = DPACKUT_ARRAY_BIN_PACK_DATA;
+	char *               values[] = { NULL, NULL, NULL };
+	const char *         xpct[] = { "\x00\x01\x03", "\xff\xfe\xfd" };
+	unsigned int         v;
+
+	dpack_decoder_init_buffer(&dec, buff, sizeof(buff) - 1);
+
+	cute_expect_uint_parm(dpackut_array_xtract_bin, id, equal, 0);
+	cute_expect_ptr_parm(dpackut_array_xtract_bin, data, equal, values);
+
+	cute_expect_uint_parm(dpackut_array_xtract_bin, id, equal, 1);
+	cute_expect_ptr_parm(dpackut_array_xtract_bin, data, equal, values);
+
+	cute_check_sint(dpack_array_decode(&dec,
+	                                   dpackut_array_xtract_bin,
+	                                   values),
+	                equal,
+	                0);
+	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+
+	for (v = 0; v < array_nr(xpct); v++) {
+		cute_check_mem(values[v], equal, xpct[v], 3);
+		free(values[v]);
+	}
+
+	dpack_decoder_fini(&dec);
+}
+
+struct dpackut_array_decode_multi_data {
+	bool     abool;
+	double   adbl;
+	char *   astr;
+	int16_t  ashrt;
+	char *   abin;
+	uint32_t aword;
+	void *   aptr;
+};
+
+static int
+dpackut_array_xtract_multi(struct dpack_decoder * decoder,
+                           unsigned int           id,
+                           void * __restrict      data)
+{
+	struct dpackut_array_decode_multi_data * values =
+		(struct dpackut_array_decode_multi_data *)data;
+
+	cute_mock_uint_parm(id);
+	cute_mock_ptr_parm(data);
+
+	switch (id) {
+	case 0:
+		cute_check_sint(dpack_decode_bool(decoder, &values->abool),
+		                equal,
+		                0);
+		break;
+	case 1:
+		cute_check_sint(dpack_decode_double(decoder, &values->adbl),
+		                equal,
+		                0);
+		break;
+	case 2:
+		cute_check_sint(dpack_decode_strdup(decoder, &values->astr),
+		                equal,
+		                4);
+		break;
+	case 3:
+		cute_check_sint(dpack_decode_int16(decoder, &values->ashrt),
+		                equal,
+		                0);
+		break;
+	case 4:
+		cute_check_sint(dpack_decode_bindup(decoder, &values->abin),
+		                equal,
+		                3);
+		break;
+	case 5:
+		cute_check_sint(dpack_decode_uint32(decoder, &values->aword),
+		                equal,
+		                0);
+		break;
+	case 6:
+		cute_check_sint(dpack_decode_nil(decoder), equal, 0);
+		values->aptr = NULL;
+		break;
+	default:
+		cute_fail("invalid array index");
+	}
+
+	return 0;
+}
+
+CUTE_TEST(dpackut_array_decode_multi)
+{
+	struct dpack_decoder                   dec = { 0, };
+	const char                             buff[] = \
+		DPACKUT_ARRAY_MULTI_PACK_DATA;
+	const char                             blob[]  = "\x00\x01\x03";
+	unsigned int                           v;
+	struct dpackut_array_decode_multi_data values = {
+		.abool = false,
+		.adbl  = 0,
+		.astr  = "",
+		.ashrt = 0,
+		.abin  = NULL,
+		.aword = 0,
+		.aptr  = (void *)0xdeadbeef
+	};
+
+	dpack_decoder_init_buffer(&dec, buff, sizeof(buff) - 1);
+
+	for (v = 0; v < 7; v++) {
+		cute_expect_uint_parm(dpackut_array_xtract_multi, id, equal, v);
+		cute_expect_ptr_parm(dpackut_array_xtract_multi,
+		                     data,
+		                     equal,
+		                     &values);
+	}
+
+	cute_check_sint(dpack_array_decode(&dec,
+	                                   dpackut_array_xtract_multi,
+	                                   &values),
+	                equal,
+	                0);
+	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+
+	cute_check_bool(values.abool, is, true);
+	cute_check_flt(values.adbl, equal, 1.005);
+	cute_check_str(values.astr, equal, "test");
+	free(values.astr);
+	cute_check_sint(values.ashrt, equal, INT16_MIN);
+	cute_check_mem(values.abin, equal, blob, sizeof(blob) - 1);
+	free(values.abin);
+	cute_check_uint(values.aword, equal, UINT32_MAX);
+	cute_check_ptr(values.aptr, equal, NULL);
+
+	dpack_decoder_fini(&dec);
+}
+
 CUTE_GROUP(dpackut_array_group) = {
 	CUTE_REF(dpackut_fixarray_sizes),
 	CUTE_REF(dpackut_array16_sizes),
@@ -947,6 +1855,7 @@ CUTE_GROUP(dpackut_array_group) = {
 	CUTE_REF(dpackut_array_encode_end_partial),
 	CUTE_REF(dpackut_array_encode_begin_msgsize),
 	CUTE_REF(dpackut_array_encode_goon_msgsize),
+	CUTE_REF(dpackut_array_encode_xcess),
 
 	CUTE_REF(dpackut_array_encode_bool),
 	CUTE_REF(dpackut_array_encode_int8),
@@ -963,6 +1872,31 @@ CUTE_GROUP(dpackut_array_group) = {
 	CUTE_REF(dpackut_array_encode_bin),
 	CUTE_REF(dpackut_array_encode_multi),
 	CUTE_REF(dpackut_array_encode_nest),
+
+	CUTE_REF(dpackut_array_decode_null_dec),
+	CUTE_REF(dpackut_array_decode_null_func),
+	CUTE_REF(dpackut_array_decode_null_data),
+	CUTE_REF(dpackut_array_decode_zero_data),
+	CUTE_REF(dpackut_array_decode_uninit_dec),
+	CUTE_REF(dpackut_array_decode_empty),
+	CUTE_REF(dpackut_array_decode_nodata),
+	CUTE_REF(dpackut_array_decode_starve),
+	CUTE_REF(dpackut_array_decode_short),
+
+	CUTE_REF(dpackut_array_decode_bool),
+	CUTE_REF(dpackut_array_decode_int8),
+	CUTE_REF(dpackut_array_decode_uint8),
+	CUTE_REF(dpackut_array_decode_int16),
+	CUTE_REF(dpackut_array_decode_uint16),
+	CUTE_REF(dpackut_array_decode_int32),
+	CUTE_REF(dpackut_array_decode_uint32),
+	CUTE_REF(dpackut_array_decode_int64),
+	CUTE_REF(dpackut_array_decode_uint64),
+	CUTE_REF(dpackut_array_decode_float),
+	CUTE_REF(dpackut_array_decode_double),
+	CUTE_REF(dpackut_array_decode_str),
+	CUTE_REF(dpackut_array_decode_bin),
+	CUTE_REF(dpackut_array_decode_multi)
 };
 
 CUTE_SUITE_EXTERN(dpackut_array_suite,

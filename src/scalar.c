@@ -835,3 +835,13 @@ dpack_encode_nil(struct dpack_encoder * encoder)
 
 	return dpack_encoder_error_state(&encoder->mpack);
 }
+
+int
+dpack_decode_nil(struct dpack_decoder * decoder)
+{
+	dpack_assert_api_decoder(decoder);
+
+	struct mpack_tag_t tag;
+
+	return dpack_decode_tag(&decoder->mpack, mpack_type_nil, &tag);
+}

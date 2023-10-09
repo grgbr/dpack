@@ -856,9 +856,9 @@ dpack_array_decode_equ(struct dpack_decoder * decoder,
 
 extern int
 dpack_array_decode_min(struct dpack_decoder * decoder,
-                     unsigned int           min_nr,
-                     dpack_decode_item_fn * decode,
-                     void                 * data) __dpack_export;
+                       unsigned int           min_nr,
+                       dpack_decode_item_fn * decode,
+                       void                 * data) __dpack_export;
 
 extern int
 dpack_array_decode_max(struct dpack_decoder * decoder,
