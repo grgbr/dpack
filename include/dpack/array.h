@@ -857,8 +857,8 @@ dpack_array_fixed_size(unsigned int elm_nr, size_t elm_size)
 /**
  * Start encoding an array.
  *
- * @param[in] encoder encoder
- * @param[in] nr      number of array elements
+ * @param[inout] encoder encoder
+ * @param[in]    nr      number of array elements
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -891,7 +891,7 @@ dpack_array_begin_encode(struct dpack_encoder * encoder,
 /**
  * Complete encoding of an array.
  *
- * @param[in] encoder encoder
+ * @param[inout] encoder encoder
  *
  * Complete encoding of an array started using dpack_array_begin_encode().
  *
@@ -918,34 +918,92 @@ dpack_array_end_encode(struct dpack_encoder * encoder)
  * Array decoding
  ******************************************************************************/
 
+/**
+ * Decode an array encoded according to the MessagePack format
+ *
+ * @param[inout] decoder decoder
+ * @param[in]    decode  array element decoding callback
+ * @param[inout] data    arbitrary location to client data
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -ENOMSG   Invalid MessagePack stream data type or range
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ * @retval < 0       @p decode() return value
+ *
+ * Decode / unpack / deserialize an array encoded according to the
+ * @rstsubst{MessagePack array format} from buffer assigned to @p decoder at
+ * initialization time.
+ *
+ * For each array item, dpack_array_decode() calls the @p decode() callback
+ * function as described in #dpack_decode_item_fn. More specifically, the
+ * @p decode() callback shall be given :
+ * - @p decoder as the @p decode() @p decoder argument,
+ * - the index, starting from zero, of the next item within the array being
+ *   decoded as the @p decode() @p id argument,
+ * - @p data as the @p decode() @p data argument.
+ *
+ * The optional @p data argument is meant for applicative purpose only. It
+ * should point to an arbitrary location owned by the caller of
+ * dpack_array_decode() and shall be passed as-is to @p decode().
+ *
+ * Finally, @p decode() should **return** ``0`` when successfully decoding an
+ * item. A *negative error* code instructs dpack_array_decode() to
+ * interrupt the current array decoding process and to use it as return value.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
 extern int
 dpack_array_decode(struct dpack_decoder * decoder,
                    dpack_decode_item_fn * decode,
-                   void                 * data) __dpack_export;
+                   void                 * data) __dpack_nonull(1, 2)
+                                                __warn_result
+                                                __dpack_export;
 
 extern int
 dpack_array_decode_equ(struct dpack_decoder * decoder,
                        unsigned int           nr,
                        dpack_decode_item_fn * decode,
-                       void                 * data) __dpack_export;
+                       void                 * data) __dpack_nonull(1, 3)
+                                                    __warn_result
+                                                    __dpack_export;
 
 extern int
 dpack_array_decode_min(struct dpack_decoder * decoder,
                        unsigned int           min_nr,
                        dpack_decode_item_fn * decode,
-                       void                 * data) __dpack_export;
+                       void                 * data) __dpack_nonull(1, 3)
+                                                    __warn_result
+                                                    __dpack_export;
 
 extern int
 dpack_array_decode_max(struct dpack_decoder * decoder,
                        unsigned int           max_nr,
                        dpack_decode_item_fn * decode,
-                       void                 * data) __dpack_export;
+                       void                 * data) __dpack_nonull(1, 3)
+                                                    __warn_result
+                                                    __dpack_export;
 
 extern int
 dpack_array_decode_range(struct dpack_decoder * decoder,
                          unsigned int           min_nr,
                          unsigned int           max_nr,
                          dpack_decode_item_fn * decode,
-                         void                 * data) __dpack_export;
+                         void                 * data) __dpack_nonull(1, 4)
+                                                      __warn_result
+                                                      __dpack_export;
 
 #endif /* _DPACK_ARRAY_H */

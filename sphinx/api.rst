@@ -435,6 +435,15 @@ Available operations are:
       * :c:func:`dpack_array_begin_encode`
       * :c:func:`dpack_array_end_encode`
 
+   * array decoding:
+
+      * :c:type:`dpack_decode_item_fn`
+      * :c:func:`dpack_array_decode`
+      * :c:func:`dpack_array_decode_equ`
+      * :c:func:`dpack_array_decode_min`
+      * :c:func:`dpack_array_decode_max`
+      * :c:func:`dpack_array_decode_range`
+
    * boolean array:
 
       * :c:macro:`DPACK_ARRAY_BOOL_SIZE()`
@@ -642,32 +651,32 @@ DPACK_ARRAY_INT8_SIZE_MIN
 .. doxygendefine:: DPACK_ARRAY_INT8_SIZE_MIN
 
 DPACK_ARRAY_INT16_SIZE_MAX
-*************************
+**************************
 
 .. doxygendefine:: DPACK_ARRAY_INT16_SIZE_MAX
 
 DPACK_ARRAY_INT16_SIZE_MIN
-*************************
+**************************
 
 .. doxygendefine:: DPACK_ARRAY_INT16_SIZE_MIN
 
 DPACK_ARRAY_INT32_SIZE_MAX
-*************************
+**************************
 
 .. doxygendefine:: DPACK_ARRAY_INT32_SIZE_MAX
 
 DPACK_ARRAY_INT32_SIZE_MIN
-*************************
+**************************
 
 .. doxygendefine:: DPACK_ARRAY_INT32_SIZE_MIN
 
 DPACK_ARRAY_INT64_SIZE_MAX
-*************************
+**************************
 
 .. doxygendefine:: DPACK_ARRAY_INT64_SIZE_MAX
 
 DPACK_ARRAY_INT64_SIZE_MIN
-*************************
+**************************
 
 .. doxygendefine:: DPACK_ARRAY_INT64_SIZE_MIN
 
@@ -707,32 +716,32 @@ DPACK_ARRAY_UINT8_SIZE_MIN
 .. doxygendefine:: DPACK_ARRAY_UINT8_SIZE_MIN
 
 DPACK_ARRAY_UINT16_SIZE_MAX
-**************************
+***************************
 
 .. doxygendefine:: DPACK_ARRAY_UINT16_SIZE_MAX
 
 DPACK_ARRAY_UINT16_SIZE_MIN
-**************************
+***************************
 
 .. doxygendefine:: DPACK_ARRAY_UINT16_SIZE_MIN
 
 DPACK_ARRAY_UINT32_SIZE_MAX
-**************************
+***************************
 
 .. doxygendefine:: DPACK_ARRAY_UINT32_SIZE_MAX
 
 DPACK_ARRAY_UINT32_SIZE_MIN
-**************************
+***************************
 
 .. doxygendefine:: DPACK_ARRAY_UINT32_SIZE_MIN
 
 DPACK_ARRAY_UINT64_SIZE_MAX
-**************************
+***************************
 
 .. doxygendefine:: DPACK_ARRAY_UINT64_SIZE_MAX
 
 DPACK_ARRAY_UINT64_SIZE_MIN
-**************************
+***************************
 
 .. doxygendefine:: DPACK_ARRAY_UINT64_SIZE_MIN
 
@@ -745,7 +754,7 @@ DPACK_BINSZ_MAX
 ***************
 
 .. doxygendefine:: DPACK_BINSZ_MAX
-   
+
 DPACK_BOOL_SIZE
 ***************
 
@@ -904,6 +913,14 @@ dpack_encoder
 
 .. doxygenstruct:: dpack_encoder
 
+Typedefs
+--------
+
+dpack_decode_item_fn
+********************
+
+.. doxygentypedef:: dpack_decode_item_fn
+
 Functions
 ---------
 
@@ -916,6 +933,41 @@ dpack_array_mixed_size
 **********************
 
 .. doxygenfunction:: dpack_array_mixed_size
+
+dpack_array_begin_encode
+************************
+
+.. doxygenfunction:: dpack_array_begin_encode
+
+dpack_array_decode
+******************
+
+.. doxygenfunction:: dpack_array_decode
+
+dpack_array_decode_equ
+**********************
+
+.. doxygenfunction:: dpack_array_decode_equ
+
+dpack_array_decode_min
+**********************
+
+.. doxygenfunction:: dpack_array_decode_min
+
+dpack_array_decode_max
+**********************
+
+.. doxygenfunction:: dpack_array_decode_max
+
+dpack_array_decode_range
+************************
+
+.. doxygenfunction:: dpack_array_decode_range
+
+dpack_array_end_encode
+**********************
+
+.. doxygenfunction:: dpack_array_end_encode
 
 dpack_bin_size
 **************

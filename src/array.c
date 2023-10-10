@@ -100,8 +100,9 @@ dpack_array_end_encode(struct dpack_encoder * encoder)
  * Array decoding
  ******************************************************************************/
 
-static int
-dpack_array_xtract_nr(struct mpack_reader_t * reader, unsigned int * nr)
+static int __dpack_nonull(1, 2) __dpack_nothrow __warn_result
+dpack_array_xtract_nr(struct mpack_reader_t *   reader,
+                      unsigned int * __restrict nr)
 {
 	dpack_assert_intern(reader);
 	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
@@ -119,11 +120,11 @@ dpack_array_xtract_nr(struct mpack_reader_t * reader, unsigned int * nr)
 	return 0;
 }
 
-static int
-dpack_array_xtract_range(struct dpack_decoder * decoder,
-                         unsigned int           min_nr,
-                         unsigned int           max_nr,
-                         unsigned int         * nr)
+static int __dpack_nonull(1, 4) __dpack_nothrow __warn_result
+dpack_array_xtract_range(struct dpack_decoder *    decoder,
+                         unsigned int              min_nr,
+                         unsigned int              max_nr,
+                         unsigned int * __restrict nr)
 {
 	dpack_assert_intern(decoder);
 	dpack_assert_intern(min_nr);
@@ -145,7 +146,7 @@ dpack_array_xtract_range(struct dpack_decoder * decoder,
 	return 0;
 }
 
-static int
+static int __dpack_nonull(1) __dpack_nothrow __warn_result
 dpack_array_xtract_equ(struct dpack_decoder * decoder, unsigned int nr)
 {
 	dpack_assert_intern(decoder);
@@ -167,7 +168,7 @@ dpack_array_xtract_equ(struct dpack_decoder * decoder, unsigned int nr)
 	return 0;
 }
 
-static int
+static int __dpack_nonull(1, 2) __warn_result
 dpack_array_decode_elems(struct dpack_decoder * decoder,
                          dpack_decode_item_fn * decode,
                          void                 * data,
