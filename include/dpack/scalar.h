@@ -35,6 +35,14 @@ struct dpack_decoder;
  */
 #define DPACK_STDINT_SIZE_MIN MPACK_TAG_SIZE_FIXUINT
 
+/**
+ * Maximum size of a serialized integer.
+ *
+ * Maximum size in bytes of an integer serialized according to the
+ * @rstsubst{MessagePack int format}.
+ */
+#define DPACK_STDINT_SIZE_MAX MPACK_TAG_SIZE_U64
+
 /******************************************************************************
  * Boolean
  ******************************************************************************/

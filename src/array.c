@@ -37,6 +37,7 @@ dpack_array_mixed_size(unsigned int elm_nr, size_t data_size)
 #endif
 	default:
 		dpack_assert_api(0);
+		unreachable();
 	}
 
 	return head + data_size;

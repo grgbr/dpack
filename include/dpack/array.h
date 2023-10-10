@@ -20,18 +20,73 @@
 #define _DPACK_ARRAY_H
 
 #include <dpack/codec.h>
-#include <dpack/scalar.h>
-#include <dpack/string.h>
-#include <dpack/bin.h>
 
 /**
  * Maximum number of elements of a dpack array
  */
-#define DPACK_ARRAY_ELMNR_MAX     (1024U)
+#define DPACK_ARRAY_ELMNR_MAX  (1024U)
 
-/* Maximum size of a dpack array */
-#define DPACK_ARRAY_SIZE_MAX      (64U * STROLL_CONST_MAX(DPACK_STRLEN_MAX, \
-                                                          DPACK_BINSZ_MAX))
+/**
+ * Maximum size of a dpack array element
+ */
+#define DPACK_ARRAY_ELMSZ_MAX  (0U)
+
+#if defined(CONFIG_DPACK_SCALAR)
+
+#include <dpack/scalar.h>
+
+#if DPACK_STDINT_SIZE_MAX > DPACK_ARRAY_ELMSZ_MAX
+#undef DPACK_ARRAY_ELMSZ_MAX
+#define DPACK_ARRAY_ELMSZ_MAX DPACK_STDINT_SIZE_MAX 
+#endif /* DPACK_STDINT_SIZE_MAX > DPACK_ARRAY_ELMSZ_MAX */
+
+#if defined(CONFIG_DPACK_FLOAT)
+
+#if DPACK_FLOAT_SIZE > DPACK_ARRAY_ELMSZ_MAX
+#undef DPACK_ARRAY_ELMSZ_MAX
+#define DPACK_ARRAY_ELMSZ_MAX DPACK_FLOAT_SIZE
+#endif /* DPACK_FLOAT_SIZE > DPACK_ARRAY_ELMSZ_MAX */
+
+#endif /* defined(CONFIG_DPACK_FLOAT) */
+
+#if defined(CONFIG_DPACK_DOUBLE)
+
+#if DPACK_DOUBLE_SIZE > DPACK_ARRAY_ELMSZ_MAX
+#undef DPACK_ARRAY_ELMSZ_MAX
+#define DPACK_ARRAY_ELMSZ_MAX DPACK_DOUBLE_SIZE
+#endif /* DPACK_DOUBLE_SIZE > DPACK_ARRAY_ELMSZ_MAX */
+
+#endif /* defined(CONFIG_DPACK_DOUBLE) */
+
+#endif /* defined(CONFIG_DPACK_SCALAR) */
+
+#if defined(CONFIG_DPACK_STRING)
+
+#include <dpack/string.h>
+
+#if DPACK_STRLEN_MAX > DPACK_ARRAY_ELMSZ_MAX
+#undef DPACK_ARRAY_ELMSZ_MAX
+#define DPACK_ARRAY_ELMSZ_MAX DPACK_STRLEN_MAX
+#endif /* DPACK_STRLEN_MAX > DPACK_ARRAY_ELMSZ_MAX */
+
+#endif /* defined(CONFIG_DPACK_STRING) */
+
+#if defined(CONFIG_DPACK_BIN)
+
+#include <dpack/bin.h>
+
+#if DPACK_BINSZ_MAX > DPACK_ARRAY_ELMSZ_MAX
+#undef DPACK_ARRAY_ELMSZ_MAX
+#define DPACK_ARRAY_ELMSZ_MAX DPACK_BINSZ_MAX
+#endif /* DPACK_BINSZ_MAX > DPACK_ARRAY_ELMSZ_MAX */
+
+#endif /* defined(CONFIG_DPACK_BIN) */
+
+/**
+ * Maximum size of a dpack array
+ */
+#define DPACK_ARRAY_SIZE_MAX \
+	(MPACK_TAG_SIZE_FIXARRAY + (64U * DPACK_ARRAY_ELMSZ_MAX))
 
 /* Maximum number of elements an msgpack fixarray may encode */
 #define _DPACK_FIXARRAY_ELMNR_MAX (15U)
@@ -201,6 +256,8 @@
  */
 #define DPACK_ARRAY_FIXED_SIZE(_elm_nr, _elm_size) \
 	DPACK_ARRAY_MIXED_SIZE(_elm_nr, (_elm_nr) * (_elm_size))
+
+#if defined(CONFIG_DPACK_SCALAR)
 
 /**
  * Size of a serialized array of boolean elements
@@ -557,6 +614,8 @@
 #define DPACK_ARRAY_UINT64_SIZE_MAX(_elm_nr) \
 	DPACK_ARRAY_FIXED_SIZE(_elm_nr, DPACK_UINT64_SIZE_MAX)
 
+#if defined(CONFIG_DPACK_FLOAT)
+
 /**
  * Size of a serialized array of single precision floating point number elements
  *
@@ -577,6 +636,10 @@
 #define DPACK_ARRAY_FLOAT_SIZE(_elm_nr) \
 	DPACK_ARRAY_FIXED_SIZE(_elm_nr, DPACK_FLOAT_SIZE)
 
+#endif /* defined(CONFIG_DPACK_FLOAT) */
+
+#if defined(CONFIG_DPACK_DOUBLE)
+
 /**
  * Size of a serialized array of double precision floating point number elements
  *
@@ -596,6 +659,12 @@
  */
 #define DPACK_ARRAY_DOUBLE_SIZE(_elm_nr) \
 	DPACK_ARRAY_FIXED_SIZE(_elm_nr, DPACK_DOUBLE_SIZE)
+
+#endif /* defined(CONFIG_DPACK_DOUBLE) */
+
+#endif /* defined(CONFIG_DPACK_SCALAR) */
+
+#if defined(CONFIG_DPACK_STRING)
 
 /**
  * Size of a serialized array of string elements
@@ -661,6 +730,10 @@
 #define DPACK_ARRAY_STR_SIZE_MAX(_elm_nr) \
         DPACK_ARRAY_STR_SIZE(_elm_nr, DPACK_STRLEN_MAX)
 
+#endif /* defined(CONFIG_DPACK_STRING) */
+
+#if defined(CONFIG_DPACK_BIN)
+
 /**
  * Size of a serialized array of bin elements
  *
@@ -724,6 +797,8 @@
  */
 #define DPACK_ARRAY_BIN_SIZE_MAX(_elm_nr) \
         DPACK_ARRAY_BIN_SIZE(_elm_nr, DPACK_BINSZ_MAX)
+
+#endif /* defined(CONFIG_DPACK_BIN) */
 
 /**
  * Size of a serialized array.

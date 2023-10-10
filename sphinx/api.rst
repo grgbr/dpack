@@ -256,6 +256,7 @@ Available operations are:
       * :c:func:`dpack_decode_int_range`
 
    * :c:macro:`DPACK_STDINT_SIZE_MIN`
+   * :c:macro:`DPACK_STDINT_SIZE_MAX`
 
 You *MUST* include :file:`dpack/scalar.h` header to use this interface.
 
@@ -421,9 +422,11 @@ Available operations are:
    * array utilities:
 
       * :c:macro:`DPACK_ARRAY_ELMNR_MAX`
+      * :c:macro:`DPACK_ARRAY_ELMSZ_MAX`
       * :c:macro:`DPACK_ARRAY_FIXED_SIZE()`
       * :c:macro:`DPACK_ARRAY_HEAD_SIZE()`
       * :c:macro:`DPACK_ARRAY_MIXED_SIZE()`
+      * :c:macro:`DPACK_ARRAY_SIZE_MAX`
       * :c:func:`dpack_array_fixed_size()`
       * :c:func:`dpack_array_mixed_size()`
 
@@ -608,6 +611,11 @@ DPACK_ARRAY_ELMNR_MAX
 
 .. doxygendefine:: DPACK_ARRAY_ELMNR_MAX
 
+DPACK_ARRAY_ELMSZ_MAX
+*********************
+
+.. doxygendefine:: DPACK_ARRAY_ELMSZ_MAX
+
 DPACK_ARRAY_FIXED_SIZE
 **********************
 
@@ -667,6 +675,11 @@ DPACK_ARRAY_MIXED_SIZE
 **********************
 
 .. doxygendefine:: DPACK_ARRAY_MIXED_SIZE
+
+DPACK_ARRAY_SIZE_MAX
+********************
+
+.. doxygendefine:: DPACK_ARRAY_SIZE_MAX
 
 DPACK_ARRAY_STR_SIZE
 ********************
@@ -807,6 +820,11 @@ DPACK_NIL_SIZE
 **************
 
 .. doxygendefine:: DPACK_NIL_SIZE
+
+DPACK_STDINT_SIZE_MAX
+*********************
+
+.. doxygendefine:: DPACK_STDINT_SIZE_MAX
 
 DPACK_STDINT_SIZE_MIN
 *********************
