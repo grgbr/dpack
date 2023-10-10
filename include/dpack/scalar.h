@@ -58,8 +58,8 @@ struct dpack_decoder;
 /**
  * Encode a boolean according to the MessagePack format
  *
- * @param[in] encoder encoder
- * @param[in] value   boolean value to encode
+ * @param[inout] encoder encoder
+ * @param[in]    value   boolean value to encode
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -87,8 +87,8 @@ dpack_encode_bool(struct dpack_encoder * encoder, bool value)
 /**
  * Decode a boolean encoded according to the MessagePack format
  *
- * @param[in]  decoder decoder
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -145,8 +145,8 @@ dpack_decode_bool(struct dpack_decoder * decoder,
 /**
  * Encode an 8-bits unsigned integer according to the MessagePack format
  *
- * @param[in] encoder encoder
- * @param[in] value   8-bits unsigned integer value to encode
+ * @param[inout] encoder encoder
+ * @param[in]    value   8-bits unsigned integer value to encode
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -176,8 +176,8 @@ dpack_encode_uint8(struct dpack_encoder * encoder,
 /**
  * Decode an 8-bits unsigned integer encoded according to the MessagePack format
  *
- * @param[in]  decoder decoder
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -217,9 +217,9 @@ dpack_decode_uint8(struct dpack_decoder * decoder,
  * Decode an 8-bits unsigned integer encoded according to the MessagePack format
  * with requested minimum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -266,9 +266,9 @@ dpack_decode_uint8_min(struct dpack_decoder * decoder,
  * Decode an 8-bits unsigned integer encoded according to the MessagePack format
  * with requested maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -315,10 +315,10 @@ dpack_decode_uint8_max(struct dpack_decoder * decoder,
  * Decode an 8-bits unsigned integer encoded according to the MessagePack format
  * with requested minimum and maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -384,8 +384,8 @@ dpack_decode_uint8_range(struct dpack_decoder * decoder,
 /**
  * Encode an 8-bits signed integer according to the MessagePack format
  *
- * @param[in] encoder encoder
- * @param[in] value   8-bits signed integer value to encode
+ * @param[inout] encoder encoder
+ * @param[in]    value   8-bits signed integer value to encode
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -415,8 +415,8 @@ dpack_encode_int8(struct dpack_encoder * encoder,
 /**
  * Decode an 8-bits signed integer encoded according to the MessagePack format
  *
- * @param[in]  decoder decoder
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -456,9 +456,9 @@ dpack_decode_int8(struct dpack_decoder * decoder,
  * Decode an 8-bits signed integer encoded according to the MessagePack format
  * with requested minimum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -505,9 +505,9 @@ dpack_decode_int8_min(struct dpack_decoder * decoder,
  * Decode an 8-bits signed integer encoded according to the MessagePack format
  * with requested maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -554,10 +554,10 @@ dpack_decode_int8_max(struct dpack_decoder * decoder,
  * Decode an 8-bits signed integer encoded according to the MessagePack format
  * with requested minimum and maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -628,8 +628,8 @@ dpack_decode_int8_range(struct dpack_decoder * decoder,
 /**
  * Encode a 16-bits unsigned integer according to the MessagePack format
  *
- * @param[in] encoder encoder
- * @param[in] value   16-bits unsigned integer value to encode
+ * @param[inout] encoder encoder
+ * @param[in]    value   16-bits unsigned integer value to encode
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -660,8 +660,8 @@ dpack_encode_uint16(struct dpack_encoder * encoder,
  * Decode a 16-bits unsigned integer encoded according to the MessagePack
  * format
  *
- * @param[in]  decoder decoder
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -701,9 +701,9 @@ dpack_decode_uint16(struct dpack_decoder * decoder,
  * Decode an 16-bits unsigned integer encoded according to the MessagePack
  * format with requested minimum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -750,9 +750,9 @@ dpack_decode_uint16_min(struct dpack_decoder * decoder,
  * Decode an 16-bits unsigned integer encoded according to the MessagePack
  * format with requested maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -799,10 +799,10 @@ dpack_decode_uint16_max(struct dpack_decoder * decoder,
  * Decode an 16-bits unsigned integer encoded according to the MessagePack
  * format with requested minimum and maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -868,8 +868,8 @@ dpack_decode_uint16_range(struct dpack_decoder * decoder,
 /**
  * Encode a 16-bits signed integer according to the MessagePack format
  *
- * @param[in] encoder encoder
- * @param[in] value   16-bits signed integer value to encode
+ * @param[inout] encoder encoder
+ * @param[in]    value   16-bits signed integer value to encode
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -899,8 +899,8 @@ dpack_encode_int16(struct dpack_encoder * encoder,
 /**
  * Decode an 16-bits signed integer encoded according to the MessagePack format
  *
- * @param[in]  decoder decoder
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -940,9 +940,9 @@ dpack_decode_int16(struct dpack_decoder * decoder,
  * Decode an 16-bits signed integer encoded according to the MessagePack format
  * with requested minimum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -989,9 +989,9 @@ dpack_decode_int16_min(struct dpack_decoder * decoder,
  * Decode an 16-bits signed integer encoded according to the MessagePack format
  * with requested maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -1038,10 +1038,10 @@ dpack_decode_int16_max(struct dpack_decoder * decoder,
  * Decode an 16-bits signed integer encoded according to the MessagePack format
  * with requested minimum and maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -1112,8 +1112,8 @@ dpack_decode_int16_range(struct dpack_decoder * decoder,
 /**
  * Encode a 32-bits unsigned integer according to the MessagePack format
  *
- * @param[in] encoder encoder
- * @param[in] value   32-bits unsigned integer value to encode
+ * @param[inout] encoder encoder
+ * @param[in]    value   32-bits unsigned integer value to encode
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -1144,8 +1144,8 @@ dpack_encode_uint32(struct dpack_encoder * encoder,
  * Decode a 32-bits unsigned integer encoded according to the MessagePack
  * format
  *
- * @param[in]  decoder decoder
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -1184,9 +1184,9 @@ dpack_decode_uint32(struct dpack_decoder * decoder,
  * Decode an 32-bits unsigned integer encoded according to the MessagePack
  * format with requested minimum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -1233,9 +1233,9 @@ dpack_decode_uint32_min(struct dpack_decoder * decoder,
  * Decode an 32-bits unsigned integer encoded according to the MessagePack
  * format with requested maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -1282,10 +1282,10 @@ dpack_decode_uint32_max(struct dpack_decoder * decoder,
  * Decode an 32-bits unsigned integer encoded according to the MessagePack
  * format with requested minimum and maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -1351,8 +1351,8 @@ dpack_decode_uint32_range(struct dpack_decoder * decoder,
 /**
  * Encode an unsigned integer according to the MessagePack format
  *
- * @param[in] encoder encoder
- * @param[in] value   unsigned integer value to encode
+ * @param[inout] encoder encoder
+ * @param[in]    value   unsigned integer value to encode
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -1383,8 +1383,8 @@ dpack_encode_uint(struct dpack_encoder * encoder, unsigned int value)
 /**
  * Decode an unsigned integer encoded according to the MessagePack format
  *
- * @param[in]  decoder decoder
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -1423,9 +1423,9 @@ dpack_decode_uint(struct dpack_decoder *    decoder,
  * Decode an unsigned integer encoded according to the MessagePack format with
  * requested minimum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -1471,9 +1471,9 @@ dpack_decode_uint_min(struct dpack_decoder *    decoder,
  * Decode an unsigned integer encoded according to the MessagePack format with
  * requested maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -1519,10 +1519,10 @@ dpack_decode_uint_max(struct dpack_decoder *    decoder,
  * Decode an unsigned integer encoded according to the MessagePack format with
  * requested minimum and maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -1587,8 +1587,8 @@ dpack_decode_uint_range(struct dpack_decoder *    decoder,
 /**
  * Encode a 32-bits signed integer according to the MessagePack format
  *
- * @param[in] encoder encoder
- * @param[in] value   32-bits signed integer value to encode
+ * @param[inout] encoder encoder
+ * @param[in]    value   32-bits signed integer value to encode
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -1618,8 +1618,8 @@ dpack_encode_int32(struct dpack_encoder * encoder,
 /**
  * Decode an 32-bits signed integer encoded according to the MessagePack format
  *
- * @param[in]  decoder decoder
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -1659,9 +1659,9 @@ dpack_decode_int32(struct dpack_decoder * decoder,
  * Decode an 32-bits signed integer encoded according to the MessagePack format
  * with requested minimum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -1708,9 +1708,9 @@ dpack_decode_int32_min(struct dpack_decoder * decoder,
  * Decode an 32-bits signed integer encoded according to the MessagePack format
  * with requested maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -1757,10 +1757,10 @@ dpack_decode_int32_max(struct dpack_decoder * decoder,
  * Decode an 32-bits signed integer encoded according to the MessagePack format
  * with requested minimum and maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -1827,8 +1827,8 @@ dpack_decode_int32_range(struct dpack_decoder * decoder,
 /**
  * Encode a signed integer according to the MessagePack format
  *
- * @param[in] encoder encoder
- * @param[in] value   signed integer value to encode
+ * @param[inout] encoder encoder
+ * @param[in]    value   signed integer value to encode
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -1859,8 +1859,8 @@ dpack_encode_int(struct dpack_encoder * encoder, int value)
 /**
  * Decode an signed integer encoded according to the MessagePack format
  *
- * @param[in]  decoder decoder
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -1898,9 +1898,9 @@ dpack_decode_int(struct dpack_decoder * decoder, int * __restrict value)
  * Decode an signed integer encoded according to the MessagePack format with
  * requested minimum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -1946,9 +1946,9 @@ dpack_decode_int_min(struct dpack_decoder * decoder,
  * Decode an signed integer encoded according to the MessagePack format with
  * requested maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -1994,10 +1994,10 @@ dpack_decode_int_max(struct dpack_decoder * decoder,
  * Decode an signed integer encoded according to the MessagePack format with
  * requested minimum and maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -2067,8 +2067,8 @@ dpack_decode_int_range(struct dpack_decoder * decoder,
 /**
  * Encode a 64-bits unsigned integer according to the MessagePack format
  *
- * @param[in] encoder encoder
- * @param[in] value   64-bits unsigned integer value to encode
+ * @param[inout] encoder encoder
+ * @param[in]    value   64-bits unsigned integer value to encode
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -2098,8 +2098,8 @@ dpack_encode_uint64(struct dpack_encoder * encoder,
 /**
  * Decode a 64-bits unsigned integer encoded according to the MessagePack format
  *
- * @param[in]  decoder decoder
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -2139,9 +2139,9 @@ dpack_decode_uint64(struct dpack_decoder * decoder,
  * Decode an 64-bits unsigned integer encoded according to the MessagePack
  * format with requested minimum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -2188,9 +2188,9 @@ dpack_decode_uint64_min(struct dpack_decoder * decoder,
  * Decode an 64-bits unsigned integer encoded according to the MessagePack
  * format with requested maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -2237,10 +2237,10 @@ dpack_decode_uint64_max(struct dpack_decoder * decoder,
  * Decode an 64-bits unsigned integer encoded according to the MessagePack
  * format with requested minimum and maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -2306,8 +2306,8 @@ dpack_decode_uint64_range(struct dpack_decoder * decoder,
 /**
  * Encode a 64-bits signed integer according to the MessagePack format
  *
- * @param[in] encoder encoder
- * @param[in] value   64-bits signed integer value to encode
+ * @param[inout] encoder encoder
+ * @param[in]    value   64-bits signed integer value to encode
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -2337,8 +2337,8 @@ dpack_encode_int64(struct dpack_encoder * encoder,
 /**
  * Decode an 64-bits signed integer encoded according to the MessagePack format
  *
- * @param[in]  decoder decoder
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -2378,9 +2378,9 @@ dpack_decode_int64(struct dpack_decoder * decoder,
  * Decode an 64-bits signed integer encoded according to the MessagePack format
  * with requested minimum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -2427,9 +2427,9 @@ dpack_decode_int64_min(struct dpack_decoder * decoder,
  * Decode an 64-bits signed integer encoded according to the MessagePack format
  * with requested maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -2476,10 +2476,10 @@ dpack_decode_int64_max(struct dpack_decoder * decoder,
  * Decode an 64-bits signed integer encoded according to the MessagePack format
  * with requested minimum and maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -2545,8 +2545,8 @@ dpack_decode_int64_range(struct dpack_decoder * decoder,
  * Encode a single precision floating point number according to the MessagePack
  * format
  *
- * @param[in]  encoder encoder
- * @param[out] value   value to encode
+ * @param[inout] encoder encoder
+ * @param[out]   value   value to encode
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -2580,8 +2580,8 @@ dpack_encode_float(struct dpack_encoder * encoder, float value)
  * Decode a single precision floating point number encoded according to the
  * MessagePack format
  *
- * @param[in]  decoder decoder
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -2622,9 +2622,9 @@ dpack_decode_float(struct dpack_decoder * decoder,
  * Decode a single precision floating point number encoded according to the
  * MessagePack format with requested minimum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -2673,9 +2673,9 @@ dpack_decode_float_min(struct dpack_decoder * decoder,
  * Decode a single precision floating point number encoded according to the
  * MessagePack format with requested maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -2724,10 +2724,10 @@ dpack_decode_float_max(struct dpack_decoder * decoder,
  * Decode a single precision floating point number encoded according to the
  * MessagePack format with requested minimum and maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -2796,8 +2796,8 @@ dpack_decode_float_range(struct dpack_decoder * decoder,
  * Encode a double precision floating point number according to the MessagePack
  * format
  *
- * @param[in]  encoder encoder
- * @param[out] value   value to encode
+ * @param[inout] encoder encoder
+ * @param[out]   value   value to encode
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -2831,8 +2831,8 @@ dpack_encode_double(struct dpack_encoder * encoder, double value)
  * Decode a double precision floating point number encoded according to the
  * MessagePack format
  *
- * @param[in]  decoder decoder
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -2873,9 +2873,9 @@ dpack_decode_double(struct dpack_decoder * decoder,
  * Decode a double precision floating point number encoded according to the
  * MessagePack format with requested minimum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -2924,9 +2924,9 @@ dpack_decode_double_min(struct dpack_decoder * decoder,
  * Decode a double precision floating point number encoded according to the
  * MessagePack format with requested maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -2975,10 +2975,10 @@ dpack_decode_double_max(struct dpack_decoder * decoder,
  * Decode a double precision floating point number encoded according to the
  * MessagePack format with requested minimum and maximum value
  *
- * @param[in]  decoder decoder
- * @param[in]  low     minimum requested result value
- * @param[in]  high    maximum requested result value
- * @param[out] value   location where to store decoded value
+ * @param[inout] decoder decoder
+ * @param[in]    low     minimum requested result value
+ * @param[in]    high    maximum requested result value
+ * @param[out]   value   location where to store decoded value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -3044,7 +3044,7 @@ dpack_decode_double_range(struct dpack_decoder * decoder,
 /**
  * Encode a nil according to the MessagePack format.
  *
- * @param[in] encoder encoder
+ * @param[inout] encoder encoder
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -3074,7 +3074,7 @@ dpack_encode_nil(struct dpack_encoder  * encoder) __dpack_nonull(1)
 /**
  * Decode a nil encoded according to the MessagePack format.
  *
- * @param[in]  decoder decoder
+ * @param[inout]  decoder decoder
  *
  * @return an errno like error code
  * @retval 0         Success

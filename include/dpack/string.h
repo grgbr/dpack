@@ -193,8 +193,8 @@ dpack_str_size(size_t len) __dpack_const
 /**
  * Encode a string according to the MessagePack format
  *
- * @param[in] encoder encoder
- * @param[in] value   string to encode
+ * @param[inout] encoder encoder
+ * @param[in]    value   string to encode
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -230,9 +230,9 @@ dpack_encode_str(struct dpack_encoder  * encoder,
 /**
  * Encode a string according to the MessagePack format
  *
- * @param[in] encoder encoder
- * @param[in] value   string to encode
- * @param[in] len     length of @p value
+ * @param[inout] encoder encoder
+ * @param[in]    value   string to encode
+ * @param[in]    len     length of @p value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -275,8 +275,8 @@ dpack_encode_str_fix(struct dpack_encoder  * encoder,
 /**
  * Decode and allocate a string encoded according to the MessagePack format
  *
- * @param[in]  decoder decoder
- * @param[out] value   location where to store pointer to allocated string
+ * @param[inout] decoder decoder
+ * @param[out]   value   location where to store pointer to allocated string
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -324,9 +324,9 @@ dpack_decode_strdup(struct dpack_decoder * decoder,
  * Decode and allocate a string encoded according to the MessagePack format
  * with requested length
  *
- * @param[in]  decoder decoder
- * @param[in]  len     expected length of decoded string
- * @param[out] value   location where to store pointer to allocated string
+ * @param[inout] decoder decoder
+ * @param[in]    len     expected length of decoded string
+ * @param[out]   value   location where to store pointer to allocated string
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -378,9 +378,9 @@ dpack_decode_strdup_equ(struct dpack_decoder * decoder,
  * Decode and allocate a string encoded according to the MessagePack format
  * with requested maximum length
  *
- * @param[in]  decoder decoder
- * @param[in]  max_len maximum length of decoded string
- * @param[out] value   location where to store pointer to allocated string
+ * @param[inout] decoder decoder
+ * @param[in]    max_len maximum length of decoded string
+ * @param[out]   value   location where to store pointer to allocated string
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -432,10 +432,10 @@ dpack_decode_strdup_max(struct dpack_decoder * decoder,
  * Decode and allocate a string encoded according to the MessagePack format
  * with requested minimum and maximum length
  *
- * @param[in]  decoder decoder
- * @param[in]  min_len minimum length of decoded string
- * @param[in]  max_len maximum length of decoded string
- * @param[out] value   location where to store pointer to allocated string
+ * @param[inout] decoder decoder
+ * @param[in]    min_len minimum length of decoded string
+ * @param[in]    max_len maximum length of decoded string
+ * @param[out]   value   location where to store pointer to allocated string
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -492,9 +492,9 @@ dpack_decode_strdup_range(struct dpack_decoder * decoder,
 /**
  * Decode a string encoded according to the MessagePack format
  *
- * @param[in]  decoder decoder
- * @param[in]  size    size of decoded string storage area
- * @param[out] value   location where to store decoded string
+ * @param[inout] decoder decoder
+ * @param[in]    size    size of decoded string storage area
+ * @param[out]   value   location where to store decoded string
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -544,9 +544,9 @@ dpack_decode_strcpy(struct dpack_decoder * decoder,
  * Decode a string encoded according to the MessagePack format with requested
  * size.
  *
- * @param[in]  decoder decoder
- * @param[in]  size    expected size of decoded string
- * @param[out] value   location where to store decoded string
+ * @param[inout] decoder decoder
+ * @param[in]    size    expected size of decoded string
+ * @param[out]   value   location where to store decoded string
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -595,10 +595,10 @@ dpack_decode_strcpy_equ(struct dpack_decoder * decoder,
  * Decode a string encoded according to the MessagePack format with requested
  * minimum length and maximum size.
  *
- * @param[in]  decoder  decoder
- * @param[in]  min_len  minimum length of decoded string
- * @param[in]  max_size maximum size of decoded string
- * @param[out] value    location where to store decoded string
+ * @param[inout] decoder  decoder
+ * @param[in]    min_len  minimum length of decoded string
+ * @param[in]    max_size maximum size of decoded string
+ * @param[out]   value    location where to store decoded string
  *
  * @return an errno like error code
  * @retval 0         Success

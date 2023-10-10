@@ -91,7 +91,7 @@ dpack_encoder_space_left(struct dpack_encoder * encoder) __dpack_nonull(1)
 /**
  * Initialize a MessagePack encoder with buffer space
  *
- * @param[in]    encoder encoder
+ * @param[inout] encoder encoder
  * @param[inout] buffer  memory buffer
  * @param[in]    size of @p buffer
  *
@@ -145,8 +145,8 @@ dpack_encoder_init_buffer(struct dpack_encoder * encoder,
 /**
  * Finalize a MessagePack encoder
  *
- * @param[in] encoder encoder
- * @param[in] abort   request abortion
+ * @param[inout] encoder encoder
+ * @param[in]    abort   request abortion
  *
  * Release resources allocated for @p encoder.
  *
@@ -173,13 +173,47 @@ dpack_encoder_fini(struct dpack_encoder * encoder, bool abort)
 
 struct dpack_decoder;
 
-typedef int (dpack_decode_item_fn)(struct dpack_decoder * decoder,
-                                   unsigned int           id,
-                                   void * __restrict      data);
+/**
+ * MessagePack collection item callback.
+ *
+ * @param[inout] decoder decoder
+ * @param[in]    id      index of collection item
+ * @param[inout] data    arbitrary location to client data
+ *
+ * @return 0 in case of success, a negative errno like error code otherwise.
+ *
+ * Signature of callback functions called by decoding functions to decode items
+ * of @rstref{sect-api-array} or @rstref{sect-api-map} collections.
+ *
+ * @p decoder shall be given as a decoder initialized using
+ * dpack_decoder_init_buffer() or dpack_decoder_init_skip_buffer().
+ *
+ * @p id shall be given as the index of the next item within the current
+ * collection that is being decoded, starting from zero.
+ *
+ * The @p data argument passed to the collection decoding function
+ * (dpack_array_decode(), dpack_map_decode(), ...) shall be given as the @p data
+ * argument to the callback function. It should point to an optional arbitrary
+ * location owned by the client application.
+ *
+ * The callback function should **return** ``0`` in case of success. When
+ * returning a *negative error* code, current collection decoding process is
+ * interrupted and the error code is returned to the caller of the collection
+ * decoding function (dpack_array_decode(), dpack_map_decode(), ...).
+ *
+ * @see
+ * - dpack_array_decode()
+ * - dpack_map_decode()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
+typedef int dpack_decode_item_fn(struct dpack_decoder * decoder,
+                                 unsigned int           id,
+                                 void * __restrict      data);
 
-typedef void (dpack_decoder_intr_fn)(struct dpack_decoder * decoder,
-                                     enum mpack_type_t      type,
-                                     unsigned int           nr);
+typedef void dpack_decoder_intr_fn(struct dpack_decoder * decoder,
+                                   enum mpack_type_t      type,
+                                   unsigned int           nr);
 
 /**
  * A MessagePack decoder.
@@ -224,7 +258,7 @@ dpack_decoder_data_left(struct dpack_decoder * decoder) __dpack_nonull(1)
 /**
  * Skip next item of encoded data
  *
- * @param[in] decoder decoder
+ * @param[inout] decoder decoder
  *
  * While decoding, this function skip the next item of encoded data. When at the
  * start of a structured data set / data items collection decoding, the entire
@@ -246,8 +280,8 @@ dpack_decoder_skip(struct dpack_decoder * decoder)
 /**
  * Initialize a MessagePack decoder with buffer space
  *
- * @param[in]    decoder decoder
- * @param[inout] buffer  memory buffer
+ * @param[inout] decoder decoder
+ * @param[in]    buffer  memory buffer
  * @param[in]    size of @p buffer
  *
  * Initialize a @rstsubst{MessagePack} decoder for decoding / unpacking /
@@ -277,14 +311,14 @@ dpack_decoder_init_buffer(struct dpack_decoder * decoder,
 /**
  * Initialize a MessagePack decoder with buffer space and data skipping ability
  *
- * @param[in]    decoder decoder
- * @param[inout] buffer  memory buffer
+ * @param[inout] decoder decoder
+ * @param[in]    buffer  memory buffer
  * @param[in]    size of @p buffer
  *
  * Initialize a @rstsubst{MessagePack} decoder for decoding / unpacking /
  * deserialization purpose. The decoder will maintain internal state required to
  * skip encoded aggregates / structured data set (such as @rstref{sect-api-map}
- * or @rstref{sect-api-list}).
+ * or @rstref{sect-api-array}).
  *
  * @p buffer is a previously allocated memory area of size @p size and owned by
  * the caller. It is the responsibility of the caller to manage allocation and
@@ -299,7 +333,7 @@ dpack_decoder_init_buffer(struct dpack_decoder * decoder,
  * While in the middle of the decoding process of a complex structured data sets
  * and / or collections of data items, @p decoder has the ability to ignore the
  * current data aggregate which resulted in data consistency failure.
- * See @rstref{sect-api-map} and @rstref{sect-api-list} for further
+ * See @rstref{sect-api-map} and @rstref{sect-api-array} for further
  * informations.
  *
  * @warning
@@ -319,7 +353,7 @@ dpack_decoder_init_skip_buffer(struct dpack_decoder * decoder,
 /**
  * Finalize a MessagePack decoder
  *
- * @param[in] decoder decoder
+ * @param[inout] decoder decoder
  *
  * Release resources allocated for @p decoder.
  *

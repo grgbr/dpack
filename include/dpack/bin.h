@@ -168,9 +168,9 @@ dpack_bin_size(size_t size) __dpack_const
 /**
  * Encode a bin according to the MessagePack format
  *
- * @param[in] encoder encoder
- * @param[in] value   bin to encode
- * @param[in] size    size of bin to encode
+ * @param[inout] encoder encoder
+ * @param[in]    value   bin to encode
+ * @param[in]    size    size of bin to encode
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -206,8 +206,8 @@ dpack_encode_bin(struct dpack_encoder * encoder,
 /**
  * Decode and allocate a bin encoded according to the MessagePack format
  *
- * @param[in]  decoder decoder
- * @param[out] value   location where to store pointer to allocated bin
+ * @param[inout] decoder decoder
+ * @param[out]   value   location where to store pointer to allocated bin
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -253,9 +253,9 @@ dpack_decode_bindup(struct dpack_decoder * decoder,
  * Decode and allocate a bin encoded according to the MessagePack format
  * with requested size
  *
- * @param[in]  decoder decoder
- * @param[in]  size    expected size of decoded bin
- * @param[out] value   location where to store pointer to allocated bin
+ * @param[inout] decoder decoder
+ * @param[in]    size    expected size of decoded bin
+ * @param[out]   value   location where to store pointer to allocated bin
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -305,9 +305,9 @@ dpack_decode_bindup_equ(struct dpack_decoder * decoder,
  * Decode and allocate a bin encoded according to the MessagePack format with
  * requested maximum size
  *
- * @param[in]  decoder decoder
- * @param[in]  max_sz  maximum size of decoded bin
- * @param[out] value   location where to store pointer to allocated bin
+ * @param[inout] decoder decoder
+ * @param[in]    max_sz  maximum size of decoded bin
+ * @param[out]   value   location where to store pointer to allocated bin
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -357,10 +357,10 @@ dpack_decode_bindup_max(struct dpack_decoder * decoder,
  * Decode and allocate a bin encoded according to the MessagePack format
  * with requested minimum and maximum size
  *
- * @param[in]  decoder decoder
- * @param[in]  min_sz  minimum size of decoded bin
- * @param[in]  max_sz  maximum size of decoded bin
- * @param[out] value   location where to store pointer to allocated bin
+ * @param[inout] decoder decoder
+ * @param[in]    min_sz  minimum size of decoded bin
+ * @param[in]    max_sz  maximum size of decoded bin
+ * @param[out]   value   location where to store pointer to allocated bin
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -415,9 +415,9 @@ dpack_decode_bindup_range(struct dpack_decoder * decoder,
 /**
  * Decode a bin encoded according to the MessagePack format
  *
- * @param[in]  decoder decoder
- * @param[in]  size    size of decoded bin storage area
- * @param[out] value   location where to store decoded bin
+ * @param[inout] decoder decoder
+ * @param[in]    size    size of decoded bin storage area
+ * @param[out]   value   location where to store decoded bin
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -465,9 +465,9 @@ dpack_decode_bincpy(struct dpack_decoder * decoder,
 /**
  * Decode a bin encoded according to the MessagePack format with requested size.
  *
- * @param[in]  decoder decoder
- * @param[in]  size    expected size of decoded bin
- * @param[out] value   location where to store decoded bin
+ * @param[inout] decoder decoder
+ * @param[in]    size    expected size of decoded bin
+ * @param[out]   value   location where to store decoded bin
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -515,10 +515,10 @@ dpack_decode_bincpy_equ(struct dpack_decoder * decoder,
  * Decode a bin encoded according to the MessagePack format with requested
  * minimum and maximum size.
  *
- * @param[in]  decoder decoder
- * @param[in]  min_sz  minimum size of decoded bin
- * @param[in]  max_sz  maximum size of decoded bin
- * @param[out] value   location where to store decoded bin
+ * @param[inout] decoder decoder
+ * @param[in]    min_sz  minimum size of decoded bin
+ * @param[in]    max_sz  maximum size of decoded bin
+ * @param[out]   value   location where to store decoded bin
  *
  * @return an errno like error code
  * @retval 0         Success
