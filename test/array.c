@@ -691,6 +691,8 @@ CUTE_TEST(dpackut_array_encode_uint64)
 	               DPACKUT_ARRAY_UINT64_PACK_SIZE);
 }
 
+#if defined(CONFIG_DPACK_FLOAT)
+
 /* dpack-utest-gen.py -s "[-1.005, 10.0]" */
 #define DPACKUT_ARRAY_FLOAT_ELM_NR \
 	(2U)
@@ -723,6 +725,17 @@ CUTE_TEST(dpackut_array_encode_float)
 	               DPACKUT_ARRAY_FLOAT_PACK_DATA,
 	               DPACKUT_ARRAY_FLOAT_PACK_SIZE);
 }
+
+#else  /* !defined(CONFIG_DPACK_FLOAT) */
+
+CUTE_TEST(dpackut_array_encode_float)
+{
+	cute_skip("MessagePack float support not compiled-in");
+}
+
+#endif /* defined(CONFIG_DPACK_FLOAT) */
+
+#if defined(CONFIG_DPACK_DOUBLE)
 
 /* dpack-utest-gen.py "[-1.005, float('inf')]" */
 #define DPACKUT_ARRAY_DOUBLE_ELM_NR \
@@ -758,6 +771,15 @@ CUTE_TEST(dpackut_array_encode_double)
 	               DPACKUT_ARRAY_DOUBLE_PACK_DATA,
 	               DPACKUT_ARRAY_DOUBLE_PACK_SIZE);
 }
+
+#else  /* !defined(CONFIG_DPACK_DOUBLE) */
+
+CUTE_TEST(dpackut_array_encode_double)
+{
+	cute_skip("MessagePack double support not compiled-in");
+}
+
+#endif /* defined(CONFIG_DPACK_DOUBLE) */
 
 /* dpack-utest-gen.py '["a", "list", "of strings"]' */
 #define DPACKUT_ARRAY_STR_ELM_NR \
@@ -835,6 +857,11 @@ CUTE_TEST(dpackut_array_encode_bin)
 	               DPACKUT_ARRAY_BIN_PACK_SIZE);
 }
 
+#if defined(CONFIG_DPACK_SCALAR) && \
+    defined(CONFIG_DPACK_DOUBLE) && \
+    defined(CONFIG_DPACK_STRING) && \
+    defined(CONFIG_DPACK_BIN)
+
 /*
  * dpack/test/dpack-utest-gen.py "[True,
  *                                 1.005,
@@ -900,6 +927,25 @@ CUTE_TEST(dpackut_array_encode_multi)
 	               DPACKUT_ARRAY_MULTI_PACK_SIZE);
 }
 
+#else  /* !(defined(CONFIG_DPACK_SCALAR) && \
+            defined(CONFIG_DPACK_DOUBLE) && \
+            defined(CONFIG_DPACK_STRING) && \
+            defined(CONFIG_DPACK_BIN)) */
+
+CUTE_TEST(dpackut_array_encode_multi)
+{
+	cute_skip("MessagePack multi array test not compiled-in");
+}
+
+#endif /* defined(CONFIG_DPACK_SCALAR) && \
+          defined(CONFIG_DPACK_DOUBLE) && \
+          defined(CONFIG_DPACK_STRING) && \
+          defined(CONFIG_DPACK_BIN) */
+
+#if defined(CONFIG_DPACK_SCALAR) && \
+    defined(CONFIG_DPACK_DOUBLE) && \
+    defined(CONFIG_DPACK_STRING)
+
 /* dpack-utest-gen.py '[True, [-32768, 1.005], "test"]' */
 #define DPACKUT_ARRAY_NEST_LVL0_ELM_NR (3U)
 #define DPACKUT_ARRAY_NEST_LVL1_ELM_NR (2U)
@@ -950,6 +996,20 @@ CUTE_TEST(dpackut_array_encode_nest)
 	               DPACKUT_ARRAY_NEST_PACK_DATA,
 	               DPACKUT_ARRAY_NEST_PACK_SIZE);
 }
+
+#else  /* !(defined(CONFIG_DPACK_SCALAR) && \
+            defined(CONFIG_DPACK_DOUBLE) && \
+            defined(CONFIG_DPACK_STRING)) */
+
+CUTE_TEST(dpackut_array_encode_nest)
+{
+	cute_skip("MessagePack nested array test not compiled-in");
+}
+
+#endif /* defined(CONFIG_DPACK_SCALAR) && \
+          defined(CONFIG_DPACK_DOUBLE) && \
+          defined(CONFIG_DPACK_STRING) */
+
 
 #if defined(CONFIG_DPACK_ASSERT_API)
 
@@ -1546,6 +1606,8 @@ CUTE_TEST(dpackut_array_decode_uint64)
 	dpack_decoder_fini(&dec);
 }
 
+#if defined(CONFIG_DPACK_FLOAT)
+
 static int
 dpackut_array_xtract_float(struct dpack_decoder * decoder,
                            unsigned int           id,
@@ -1590,6 +1652,17 @@ CUTE_TEST(dpackut_array_decode_float)
 	dpack_decoder_fini(&dec);
 }
 
+#else  /* !defined(CONFIG_DPACK_FLOAT) */
+
+CUTE_TEST(dpackut_array_decode_float)
+{
+	cute_skip("MessagePack float support not compiled-in");
+}
+
+#endif /* defined(CONFIG_DPACK_FLOAT) */
+
+#if defined(CONFIG_DPACK_DOUBLE)
+
 static int
 dpackut_array_xtract_double(struct dpack_decoder * decoder,
                             unsigned int           id,
@@ -1633,6 +1706,15 @@ CUTE_TEST(dpackut_array_decode_double)
 
 	dpack_decoder_fini(&dec);
 }
+
+#else  /* !defined(CONFIG_DPACK_DOUBLE) */
+
+CUTE_TEST(dpackut_array_decode_double)
+{
+	cute_skip("MessagePack double support not compiled-in");
+}
+
+#endif /* defined(CONFIG_DPACK_DOUBLE) */
 
 static int
 dpackut_array_xtract_str(struct dpack_decoder * decoder,
@@ -1728,6 +1810,11 @@ CUTE_TEST(dpackut_array_decode_bin)
 
 	dpack_decoder_fini(&dec);
 }
+
+#if defined(CONFIG_DPACK_SCALAR) && \
+    defined(CONFIG_DPACK_DOUBLE) && \
+    defined(CONFIG_DPACK_STRING) && \
+    defined(CONFIG_DPACK_BIN)
 
 struct dpackut_array_decode_multi_data {
 	bool     abool;
@@ -1838,6 +1925,21 @@ CUTE_TEST(dpackut_array_decode_multi)
 
 	dpack_decoder_fini(&dec);
 }
+
+#else  /* !(defined(CONFIG_DPACK_SCALAR) && \
+            defined(CONFIG_DPACK_DOUBLE) && \
+            defined(CONFIG_DPACK_STRING) && \
+            defined(CONFIG_DPACK_BIN)) */
+
+CUTE_TEST(dpackut_array_decode_multi)
+{
+	cute_skip("MessagePack multi array test not compiled-in");
+}
+
+#endif /* defined(CONFIG_DPACK_SCALAR) && \
+          defined(CONFIG_DPACK_DOUBLE) && \
+          defined(CONFIG_DPACK_STRING) && \
+          defined(CONFIG_DPACK_BIN) */
 
 CUTE_GROUP(dpackut_array_group) = {
 	CUTE_REF(dpackut_fixarray_sizes),
