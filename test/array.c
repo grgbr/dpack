@@ -781,6 +781,8 @@ CUTE_TEST(dpackut_array_encode_double)
 
 #endif /* defined(CONFIG_DPACK_DOUBLE) */
 
+#if defined(CONFIG_DPACK_STRING)
+
 /* dpack-utest-gen.py '["a", "list", "of strings"]' */
 #define DPACKUT_ARRAY_STR_ELM_NR \
 	(3U)
@@ -817,6 +819,17 @@ CUTE_TEST(dpackut_array_encode_str)
 	               DPACKUT_ARRAY_STR_PACK_DATA,
 	               DPACKUT_ARRAY_STR_PACK_SIZE);
 }
+
+#else  /* !defined(CONFIG_DPACK_STRING) */
+
+CUTE_TEST(dpackut_array_encode_str)
+{
+	cute_skip("MessagePack string support not compiled-in");
+}
+
+#endif  /* !defined(CONFIG_DPACK_STRING) */
+
+#if defined(CONFIG_ARRAY_BIN)
 
 /* dpack/test/dpack-utest-gen.py "[b'\x00\x01\x03', b'\xff\xfe\xfd']" */
 #define DPACKUT_ARRAY_BIN_ELM_NR \
@@ -856,6 +869,16 @@ CUTE_TEST(dpackut_array_encode_bin)
 	               DPACKUT_ARRAY_BIN_PACK_DATA,
 	               DPACKUT_ARRAY_BIN_PACK_SIZE);
 }
+
+#else  /* !defined(CONFIG_ARRAY_BIN) */
+
+CUTE_TEST(dpackut_array_encode_bin)
+{
+	cute_skip("MessagePack bin support not compiled-in");
+}
+
+#endif /* defined(CONFIG_ARRAY_BIN) */
+
 
 #if defined(CONFIG_DPACK_SCALAR) && \
     defined(CONFIG_DPACK_DOUBLE) && \
@@ -1716,6 +1739,8 @@ CUTE_TEST(dpackut_array_decode_double)
 
 #endif /* defined(CONFIG_DPACK_DOUBLE) */
 
+#if defined(CONFIG_DPACK_STRING)
+
 static int
 dpackut_array_xtract_str(struct dpack_decoder * decoder,
                          unsigned int           id,
@@ -1765,6 +1790,17 @@ CUTE_TEST(dpackut_array_decode_str)
 	dpack_decoder_fini(&dec);
 }
 
+#else  /* !defined(CONFIG_DPACK_STRING) */
+
+CUTE_TEST(dpackut_array_decode_str)
+{
+	cute_skip("MessagePack string support not compiled-in");
+}
+
+#endif  /* !defined(CONFIG_DPACK_STRING) */
+
+#if defined(CONFIG_ARRAY_BIN)
+
 static int
 dpackut_array_xtract_bin(struct dpack_decoder * decoder,
                          unsigned int           id,
@@ -1810,6 +1846,15 @@ CUTE_TEST(dpackut_array_decode_bin)
 
 	dpack_decoder_fini(&dec);
 }
+
+#else  /* !defined(CONFIG_ARRAY_BIN) */
+
+CUTE_TEST(dpackut_array_decode_bin)
+{
+	cute_skip("MessagePack bin support not compiled-in");
+}
+
+#endif /* defined(CONFIG_ARRAY_BIN) */
 
 #if defined(CONFIG_DPACK_SCALAR) && \
     defined(CONFIG_DPACK_DOUBLE) && \

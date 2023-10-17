@@ -82,12 +82,6 @@
 
 #endif /* defined(CONFIG_DPACK_BIN) */
 
-/**
- * Maximum size of a dpack array
- */
-#define DPACK_ARRAY_SIZE_MAX \
-	(MPACK_TAG_SIZE_FIXARRAY + (64U * DPACK_ARRAY_ELMSZ_MAX))
-
 /* Maximum number of elements an msgpack fixarray may encode */
 #define _DPACK_FIXARRAY_ELMNR_MAX (15U)
 /* Maximum number of elements a 16 bits msgpack array may encode */
@@ -109,10 +103,6 @@
 #define __DPACK_ARRAY_HEAD_SIZE(_elm_nr) \
 	MPACK_TAG_SIZE_FIXARRAY
 
-/* Maximum size of the data portion of an encoded fixarray msgpack array. */
-#define _DPACK_ARRAY_DATA_SIZE_MAX \
-	(DPACK_ARRAY_SIZE_MAX - MPACK_TAG_SIZE_FIXARRAY)
-
 /******************************************************************************
  * Msgpack 16 bits array definitions
  ******************************************************************************/
@@ -127,10 +117,6 @@
 #undef __DPACK_ARRAY_HEAD_SIZE
 #define __DPACK_ARRAY_HEAD_SIZE(_elm_nr) \
 	_DPACK_ARRAY16_HEAD_SIZE(_elm_nr)
-
-#undef  _DPACK_ARRAY_DATA_SIZE_MAX
-#define _DPACK_ARRAY_DATA_SIZE_MAX \
-	(DPACK_ARRAY_SIZE_MAX - MPACK_TAG_SIZE_ARRAY16)
 
 #endif /* DPACK_ARRAY_ELMNR_MAX > _DPACK_FIXARRAY_ELMNR_MAX */
 
@@ -149,24 +135,24 @@
 #define __DPACK_ARRAY_HEAD_SIZE(_elm_nr) \
 	_DPACK_ARRAY32_HEAD_SIZE(_elm_nr)
 
-#undef  _DPACK_ARRAY_DATA_SIZE_MAX
-#define _DPACK_ARRAY_DATA_SIZE_MAX \
-	(DPACK_ARRAY_SIZE_MAX - MPACK_TAG_SIZE_ARRAY32)
-
 #endif /* DPACK_ARRAY_ELMNR_MAX > _DPACK_ARRAY16_ELMNR_MAX */
 
 /******************************************************************************
  * Top-level array size definitions
  ******************************************************************************/
 
-/*
- * Check DPACK_ARRAY_ELMNR_MAX and DPACK_ARRAY_SIZE_MAX are consistent, i.e.,
- * ensure that given the DPACK_ARRAY_SIZE_MAX set above, an array may hold
- * DPACK_ARRAY_ELMNR_MAX number of elements of at least 1 byte size each.
+#if DPACK_ARRAY_ELMNR_MAX < (64U * DPACK_ARRAY_ELMSZ_MAX)
+#define _DPACK_ARRAY_DATA_SIZE_MAX (64U * DPACK_ARRAY_ELMSZ_MAX)
+#else  /* !(DPACK_ARRAY_ELMNR_MAX < (64U * DPACK_ARRAY_ELMSZ_MAX)) */
+#define _DPACK_ARRAY_DATA_SIZE_MAX DPACK_ARRAY_ELMNR_MAX
+#endif /* DPACK_ARRAY_ELMNR_MAX < (64U * DPACK_ARRAY_ELMSZ_MAX) */
+
+/**
+ * Maximum size of a dpack array
  */
-#if (1U * DPACK_ARRAY_ELMNR_MAX) > _DPACK_ARRAY_DATA_SIZE_MAX
-#error Array cannot hold elements which size > 0
-#endif
+#define DPACK_ARRAY_SIZE_MAX \
+	(__DPACK_ARRAY_HEAD_SIZE(DPACK_ARRAY_ELMNR_MAX) + \
+	 _DPACK_ARRAY_DATA_SIZE_MAX)
 
 #define _DPACK_ARRAY_HEAD_SIZE(_elm_nr) \
 	compile_eval(((_elm_nr) > 0) && \
