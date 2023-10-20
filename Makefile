@@ -26,16 +26,19 @@ endif # ($(realpath $(EBUILDDIR)/main.mk),)
 
 include $(EBUILDDIR)/main.mk
 
-chkall_builddir  := $(BUILDDIR)/checkall
-chkconf_builddir  = $(chkall_builddir)/conf$(strip $(1))
-chkconf_infile    = $(chkall_builddir)/confs/conf$(strip $(1)).in
+chkall_builddir       := $(BUILDDIR)/checkall
+chkconf_builddir       = $(chkall_builddir)/conf$(strip $(1))
+chkconf_infile         = $(chkall_builddir)/confs/conf$(strip $(1)).in
+check_lib_search_path := \
+	$(BUILDDIR)/src$(if $(LD_LIBRARY_PATH),:$(LD_LIBRARY_PATH))
 
 .PHONY: check
 check: build
-	$(Q)$(BUILDDIR)/test/dpack-utest \
-		$(if $(Q),--silent,--terse) \
-		--xml=$(BUILDDIR)/test/dpack-utest.xml \
-		run
+	$(Q)env LD_LIBRARY_PATH="$(check_lib_search_path)" \
+	        $(BUILDDIR)/test/dpack-utest \
+	        $(if $(Q),--silent,--terse) \
+	        --xml=$(BUILDDIR)/test/dpack-utest.xml \
+	        run
 
 $(chkall_builddir)/confs/.generated: $(config-in) \
                                      $(TOPDIR)/scripts/gen_check_confs.py \
