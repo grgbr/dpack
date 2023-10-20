@@ -325,7 +325,7 @@ CUTE_TEST(dpackut_str16_sizes_257)
 
 #else  /* !(DPACK_STRLEN_MAX >= (UINT8_MAX + 2)) */
 
-CUTE_TEST(dpackut_str8_sizes_257)
+CUTE_TEST(dpackut_str16_sizes_257)
 {
 	cute_skip("MsgPack string length >= (UINT8_MAX + 2) support "
 	          "not compiled-in");
