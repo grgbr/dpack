@@ -74,7 +74,12 @@ conf_syms = frozenset({
 })
 
 
-def build_conf(syms):
+def sort_uniq(collection):
+    #return sorted(list(dict.fromkeys(collection)))
+    return sorted(tuple(frozenset(collection)))
+
+
+def make_conf(syms):
     def flatten(collection):
         for item in collection:
             if isinstance(item, (list, tuple, set, frozenset)):
@@ -85,9 +90,40 @@ def build_conf(syms):
     return tuple(sorted(frozenset(flatten(syms))))
 
 
-def gen_conf(path, syms):
+def conf_db(kconf):
+    lst = []
+    for cfg in itertools.product(*conf_syms):
+        lst.append(make_conf(cfg))
+    return sort_uniq(lst)
+
+
+def conf_str(db, index):
+    return '\n'.join(db[index])
+
+
+def gen_conf(db, index, path):
     with open(path, 'wt') as f:
-        print('\n'.join(build_conf(syms)), file=f)
+        print(conf_str(db, index), file=f)
+
+
+def count_conf(kconf):
+    return len(conf_db(kconf))
+
+
+def show_one_conf(kconf, index):
+    db = conf_db(kconf)
+    if index < 0 or index >= len(db):
+        raise Exception("cannot show configuration '{}': "
+                        "invalid specified index".format(index))
+    print(conf_str(db, index))
+
+
+def gen_one_conf(kconf, index, path):
+    db = conf_db(kconf)
+    if index < 0 or index >= len(db):
+        raise Exception("cannot generate configuration '{}': "
+                        "invalid specified index".format(index))
+    gen_conf(conf_db(kconf), index, path)
 
 
 def gen_all_confs(kconf, out_dpath):
@@ -100,12 +136,19 @@ def gen_all_confs(kconf, out_dpath):
             os.unlink(os.path.join(root, name))
         for name in dirs:
             os.rmdir(os.path.join(root, name))
-    
-    idx = 0
-    for cfg in itertools.product(*conf_syms):
+    db = conf_db(kconf)
+    for idx in range(len(db)):
         fpath = os.path.join(out_dpath, 'conf{}.in'.format(idx))
-        gen_conf(fpath, cfg)
-        idx += 1
+        gen_conf(db, idx, fpath)
+
+def init_kconf(path):
+    try:
+        kconf = Kconfig(path)
+    except Exception as e:
+        raise Exception("cannot parse KConfig file '{}': {}".format(path, e))
+    if not len(kconf.unique_defined_syms):
+        raise Exception("empty KConfig file '{}'".format(path))
+    return kconf
 
 
 def main():
@@ -113,44 +156,64 @@ def main():
 
     arg0 = os.path.basename(sys.argv[0])
 
-    parser = argparse.ArgumentParser(
-        description='DPack test build configuration generator')
+    parser = argparse.ArgumentParser(description = 'DPack testing build '
+                                                   'configuration generator')
     parser.add_argument('kconf_fpath',
                         nargs = 1,
                         default = None,
-                        metavar = 'KCONFIG_FILEPATH',
+                        metavar = 'KCONF_FILEPATH',
                         help = 'Pathname to KConfig file')
-    parser.add_argument('out_dpath',
-                        nargs = 1,
-                        default = None,
-                        metavar = 'OUTPUT_DIRPATH',
-                        help = 'Pathname to configurations output directory')
+    subparser = parser.add_subparsers(dest = 'cmd')
+    subparser.add_parser('count', help = 'Display count of configurations')
+    show_parser = subparser.add_parser('show',
+                                       help = 'Show content of a configuration')
+    show_parser.add_argument('index',
+                             nargs = 1,
+                             type = int,
+                             default = None,
+                             metavar = 'CONF_INDEX',
+                             help = 'Configuration index')
+    genone_parser = subparser.add_parser('genone',
+                                         help = 'Generate one configuration')
+    genone_parser.add_argument('index',
+                               nargs = 1,
+                               type = int,
+                               default = None,
+                               metavar = 'CONF_INDEX',
+                               help = 'Configuration index')
+    genone_parser.add_argument('out_fpath',
+                               nargs = 1,
+                               type = str,
+                               default = None,
+                               metavar = 'CONF_FILEPATH',
+                               help = 'Pathname to output configuration file')
+    genall_parser = subparser.add_parser('genall',
+                                         help = 'Generate all configurations')
+    genall_parser.add_argument('out_dpath',
+                               nargs = 1,
+                               type = str,
+                               default = None,
+                               metavar = 'CONF_DIRPATH',
+                               help = 'Pathname to configurations '
+                                      'output directory')
 
     args = parser.parse_args()
 
     try:
-        kconf = Kconfig(args.kconf_fpath[0])
+        kconf = init_kconf(args.kconf_fpath[0])
+        cmd = args.cmd
+        if cmd == 'count':
+            print(count_conf(kconf))
+        elif cmd == 'show':
+            show_one_conf(kconf, args.index[0])
+        elif cmd == 'genone':
+            gen_one_conf(kconf, args.index[0], args.out_fpath[0])
+        else:
+            gen_all_confs(kconf, args.out_dpath[0])
     except Exception as e:
-        print("{}: KConfig parsing failed: {}.".format(arg0, e),
-              file=sys.stderr)
+        print("{}: {}.".format(arg0, e), file=sys.stderr)
         sys.exit(1)
 
-    if not len(kconf.unique_defined_syms):
-        print("{}: Empty KConfig file.".format(arg0), file=sys.stderr)
-        sys.exit(1)
-
-    if not len(args.out_dpath[0]):
-        print("{}: '{}': Invalid configurations "
-              "output directory.".format(arg0, args.out_dpath[0]),
-              file=sys.stderr)
-        sys.exit(1)
-
-    try:
-        gen_all_confs(kconf, args.out_dpath[0])
-    except Exception as e:
-        print("{}: test build configurations "
-              "generation failed: {}.".format(arg0, e), file=sys.stderr)
-        sys.exit(1)
 
 if __name__ == "__main__":
     main()
