@@ -796,12 +796,32 @@ CUTE_TEST(dpackut_array_encode_double)
 #define DPACKUT_ARRAY_STR_PACK_SIZE_MAX \
 	DPACK_ARRAY_STR_SIZE_MAX(DPACKUT_ARRAY_STR_ELM_NR)
 
-CUTE_TEST(dpackut_array_encode_str)
+static char * dpackut_array_buff;
+
+static void dpackut_array_encode_str_setup(void)
+{
+	dpackut_array_buff = malloc(DPACKUT_ARRAY_STR_PACK_SIZE_MAX);
+	cute_check_ptr(dpackut_array_buff, unequal, NULL);
+
+	memset(dpackut_array_buff, 0, DPACKUT_ARRAY_STR_PACK_SIZE_MAX);
+}
+
+static void dpackut_array_teardown(void)
+{
+	cute_check_ptr(dpackut_array_buff, unequal, NULL);
+	free(dpackut_array_buff);
+}
+
+CUTE_TEST_STATIC(dpackut_array_encode_str,
+                 dpackut_array_encode_str_setup,
+                 dpackut_array_teardown,
+                 CUTE_DFLT_TMOUT)
 {
 	struct dpack_encoder enc;
-	char                 buff[DPACKUT_ARRAY_STR_PACK_SIZE_MAX] = { 0, };
 
-	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
+	dpack_encoder_init_buffer(&enc,
+	                          dpackut_array_buff,
+	                          DPACKUT_ARRAY_STR_PACK_SIZE_MAX);
 
 	cute_check_sint(dpack_array_begin_encode(&enc,
 	                                         DPACKUT_ARRAY_STR_ELM_NR),
@@ -814,7 +834,7 @@ CUTE_TEST(dpackut_array_encode_str)
 
 	dpack_encoder_fini(&enc, DPACK_DONE);
 
-	cute_check_mem(buff,
+	cute_check_mem(dpackut_array_buff,
 	               equal,
 	               DPACKUT_ARRAY_STR_PACK_DATA,
 	               DPACKUT_ARRAY_STR_PACK_SIZE);
@@ -841,14 +861,26 @@ CUTE_TEST(dpackut_array_encode_str)
 #define DPACKUT_ARRAY_BIN_PACK_SIZE_MAX \
 	DPACK_ARRAY_BIN_SIZE_MAX(DPACKUT_ARRAY_BIN_ELM_NR)
 
-CUTE_TEST(dpackut_array_encode_bin)
+static void dpackut_array_encode_bin_setup(void)
+{
+	dpackut_array_buff = malloc(DPACKUT_ARRAY_BIN_PACK_SIZE_MAX);
+	cute_check_ptr(dpackut_array_buff, unequal, NULL);
+
+	memset(dpackut_array_buff, 0, DPACKUT_ARRAY_BIN_PACK_SIZE_MAX);
+}
+
+CUTE_TEST_STATIC(dpackut_array_encode_bin,
+                 dpackut_array_encode_bin_setup,
+                 dpackut_array_teardown,
+                 CUTE_DFLT_TMOUT)
 {
 	struct dpack_encoder enc;
-	char                 buff[DPACKUT_ARRAY_BIN_PACK_SIZE_MAX] = { 0, };
 	const char           blob0[] = "\x00\x01\x03";
 	const char           blob1[] = "\xff\xfe\xfd";
 
-	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
+	dpack_encoder_init_buffer(&enc,
+	                          dpack_array_buff,
+	                          DPACKUT_ARRAY_BIN_PACK_SIZE_MAX);
 
 	cute_check_sint(dpack_array_begin_encode(&enc,
 	                                         DPACKUT_ARRAY_BIN_ELM_NR),
@@ -864,7 +896,7 @@ CUTE_TEST(dpackut_array_encode_bin)
 
 	dpack_encoder_fini(&enc, DPACK_DONE);
 
-	cute_check_mem(buff,
+	cute_check_mem(dpack_array_buff,
 	               equal,
 	               DPACKUT_ARRAY_BIN_PACK_DATA,
 	               DPACKUT_ARRAY_BIN_PACK_SIZE);

@@ -51,15 +51,15 @@ CUTE_TEST(dpackut_str_maxlen_str_size)
 #endif /* defined(MAXLEN_STR_SIZE_UTEST) */
 
 struct dpackut_str_data {
-	size_t len;       /* length of string to encode / decode */
-	bool   null_term; /* Value should be null terminated */
-	size_t size;      /* size of encoded string */
-	int    error;
-	size_t equ;
-	size_t low;
-	size_t high;
-	char * packed;
-	char * value;
+	size_t  len;       /* length of string to encode / decode */
+	bool    null_term; /* Value should be null terminated */
+	size_t  size;      /* size of encoded string */
+	ssize_t error;
+	size_t  equ;
+	size_t  low;
+	size_t  high;
+	char *  packed;
+	char *  value;
 };
 
 #define DPACKUT_STR_DATA(_var, _len, _term) \
@@ -106,31 +106,25 @@ dpackut_str_gen_data(struct dpackut_str_data * data)
 
 	p = data->packed;
 	switch (data->len) {
-	case 0 ... DPACK_FIXSTR_LEN_MAX:
+	case 0 ... 31:
 		*p++ = (char)(0xa0 | (data->len & 0x1f));
 		break;
-#if DPACK_STRLEN_MAX > DPACK_FIXSTR_LEN_MAX
-	case (DPACK_FIXSTR_LEN_MAX + 1) ... DPACK_STR8_LEN_MAX:
+	case 32 ... 255:
 		*p++ = (char)0xd9;
 		*p++ = (char)(data->len & 0xff);
 		break;
-#endif
-#if DPACK_STRLEN_MAX > DPACK_STR8_LEN_MAX
-	case (DPACK_STR8_LEN_MAX + 1) ... DPACK_STR16_LEN_MAX:
+	case 256 ... 65535:
 		*p++ = (char)0xda;
 		*p++ = (char)((data->len >> 8) & 0xff);
 		*p++ = (char)(data->len & 0xff);
 		break;
-#endif
-#if DPACK_STRLEN_MAX > DPACK_STR16_LEN_MAX
-	case (DPACK_STR16_LEN_MAX + 1) ... DPACK_STRLEN_MAX:
+	case 65536 ... 4294967295:
 		*p++ = (char)0xdb;
 		*p++ = (char)((data->len >> 24) & 0xff);
 		*p++ = (char)((data->len >> 16) & 0xff);
 		*p++ = (char)((data->len >> 8) & 0xff);
 		*p++ = (char)(data->len & 0xff);
 		break;
-#endif
 	default:
 		cute_fail("unsupported MsgPack string size");
 	}
@@ -446,10 +440,10 @@ CUTE_TEST(dpackut_str32_sizes_maxminus2)
 {
 	cute_check_uint(DPACK_STR_SIZE(UINT32_MAX - 2),
 	                equal,
-	                UINT32_MAX - 2 + 5);
+	                (uintmax_t)UINT32_MAX - 2 + 5);
 	cute_check_uint(dpack_str_size(UINT32_MAX - 2),
 	                equal,
-	                UINT32_MAX - 2 + 5);
+	                (uintmax_t)UINT32_MAX - 2 + 5);
 }
 
 #else  /* !(DPACK_STRLEN_MAX >= (UINT32_MAX - 2)) */
@@ -468,10 +462,10 @@ CUTE_TEST(dpackut_str32_sizes_maxminus1)
 {
 	cute_check_uint(DPACK_STR_SIZE(UINT32_MAX - 1),
 	                equal,
-	                UINT32_MAX - 1 + 5);
+	                (uintmax_t)UINT32_MAX - 1 + 5);
 	cute_check_uint(dpack_str_size(UINT32_MAX - 1),
 	                equal,
-	                UINT32_MAX - 1 + 5);
+	                (uintmax_t)UINT32_MAX - 1 + 5);
 }
 
 #else  /* !(DPACK_STRLEN_MAX >= (UINT32_MAX - 1)) */
@@ -488,8 +482,12 @@ CUTE_TEST(dpackut_str32_sizes_maxminus1)
 
 CUTE_TEST(dpackut_str32_sizes_max)
 {
-	cute_check_uint(DPACK_STR_SIZE(UINT32_MAX), equal, UINT32_MAX + 5);
-	cute_check_uint(dpack_str_size(UINT32_MAX), equal, UINT32_MAX + 5);
+	cute_check_uint(DPACK_STR_SIZE(UINT32_MAX),
+	                equal,
+	                (uintmax_t)UINT32_MAX + 5);
+	cute_check_uint(dpack_str_size(UINT32_MAX),
+	                equal,
+	                (uintmax_t)UINT32_MAX + 5);
 }
 
 #else  /* !(DPACK_STRLEN_MAX >= UINT32_MAX) */

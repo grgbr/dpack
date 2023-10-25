@@ -7,12 +7,10 @@
 # Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
 ################################################################################
 
-
 import sys
 import os
 import argparse
 import itertools
-from kconfiglib import Kconfig
 
 conf_syms = frozenset({
     frozenset({
@@ -24,7 +22,6 @@ conf_syms = frozenset({
         frozenset({ 'CONFIG_DPACK_DEBUG=y' })
     }),
     frozenset({
-        frozenset({ 'CONFIG_DPACK_SCALAR=n' }),
         frozenset({ 'CONFIG_DPACK_SCALAR=y' }),
         frozenset({ 'CONFIG_DPACK_SCALAR=y',
                     'CONFIG_DPACK_FLOAT=y',
@@ -44,7 +41,7 @@ conf_syms = frozenset({
         frozenset({ 'CONFIG_DPACK_STRING=y',
                     'CONFIG_DPACK_STRING_MAXLEN=65535' }),
         frozenset({ 'CONFIG_DPACK_STRING=y',
-                    'CONFIG_DPACK_STRING_MAXLEN=4294967294' }),
+                    'CONFIG_DPACK_STRING_MAXLEN=134217727' }),
         frozenset({ 'CONFIG_DPACK_STRING=n' })
     }),
     frozenset({
@@ -75,7 +72,6 @@ conf_syms = frozenset({
 
 
 def sort_uniq(collection):
-    #return sorted(list(dict.fromkeys(collection)))
     return sorted(tuple(frozenset(collection)))
 
 
@@ -90,7 +86,7 @@ def make_conf(syms):
     return tuple(sorted(frozenset(flatten(syms))))
 
 
-def conf_db(kconf):
+def conf_db():
     lst = []
     for cfg in itertools.product(*conf_syms):
         lst.append(make_conf(cfg))
@@ -106,27 +102,27 @@ def gen_conf(db, index, path):
         print(conf_str(db, index), file=f)
 
 
-def count_conf(kconf):
-    return len(conf_db(kconf))
+def count_conf():
+    return len(conf_db())
 
 
-def show_one_conf(kconf, index):
-    db = conf_db(kconf)
+def show_one_conf(index):
+    db = conf_db()
     if index < 0 or index >= len(db):
         raise Exception("cannot show configuration '{}': "
                         "invalid specified index".format(index))
     print(conf_str(db, index))
 
 
-def gen_one_conf(kconf, index, path):
-    db = conf_db(kconf)
+def gen_one_conf(index, path):
+    db = conf_db()
     if index < 0 or index >= len(db):
         raise Exception("cannot generate configuration '{}': "
                         "invalid specified index".format(index))
-    gen_conf(conf_db(kconf), index, path)
+    gen_conf(conf_db(), index, path)
 
 
-def gen_all_confs(kconf, out_dpath):
+def gen_all_confs(out_dpath):
     try:
         os.mkdir(out_dpath)
     except FileExistsError:
@@ -136,19 +132,10 @@ def gen_all_confs(kconf, out_dpath):
             os.unlink(os.path.join(root, name))
         for name in dirs:
             os.rmdir(os.path.join(root, name))
-    db = conf_db(kconf)
+    db = conf_db()
     for idx in range(len(db)):
         fpath = os.path.join(out_dpath, 'conf{}.in'.format(idx))
         gen_conf(db, idx, fpath)
-
-def init_kconf(path):
-    try:
-        kconf = Kconfig(path)
-    except Exception as e:
-        raise Exception("cannot parse KConfig file '{}': {}".format(path, e))
-    if not len(kconf.unique_defined_syms):
-        raise Exception("empty KConfig file '{}'".format(path))
-    return kconf
 
 
 def main():
@@ -158,11 +145,6 @@ def main():
 
     parser = argparse.ArgumentParser(description = 'DPack testing build '
                                                    'configuration generator')
-    parser.add_argument('kconf_fpath',
-                        nargs = 1,
-                        default = None,
-                        metavar = 'KCONF_FILEPATH',
-                        help = 'Pathname to KConfig file')
     subparser = parser.add_subparsers(dest = 'cmd')
     subparser.add_parser('count', help = 'Display count of configurations')
     show_parser = subparser.add_parser('show',
@@ -200,16 +182,15 @@ def main():
     args = parser.parse_args()
 
     try:
-        kconf = init_kconf(args.kconf_fpath[0])
         cmd = args.cmd
         if cmd == 'count':
-            print(count_conf(kconf))
+            print(count_conf())
         elif cmd == 'show':
-            show_one_conf(kconf, args.index[0])
+            show_one_conf(args.index[0])
         elif cmd == 'genone':
-            gen_one_conf(kconf, args.index[0], args.out_fpath[0])
+            gen_one_conf(args.index[0], args.out_fpath[0])
         else:
-            gen_all_confs(kconf, args.out_dpath[0])
+            gen_all_confs(args.out_dpath[0])
     except Exception as e:
         print("{}: {}.".format(arg0, e), file=sys.stderr)
         sys.exit(1)

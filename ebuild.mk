@@ -8,6 +8,12 @@
 config-in   := Config.in
 config-h    := $(PACKAGE)/config.h
 
+ifneq ($(realpath $(kconf_config)),)
+ifeq ($(call kconf_is_enabled,DPACK_HAS_BASIC_ITEMS),)
+$(error Invalid build configuration !)
+endif # ($(call kconf_is_enabled,DPACK_HAS_BASIC_ITEMS),)
+endif # ($(realpath $(kconf_config)),)
+
 HEADERDIR   := $(CURDIR)/include
 headers      = $(PACKAGE)/cdefs.h $(PACKAGE)/codec.h $(PACKAGE)/mpack-config.h
 headers     += $(call kconf_enabled,DPACK_SCALAR,$(PACKAGE)/scalar.h)

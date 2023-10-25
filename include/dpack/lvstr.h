@@ -25,16 +25,9 @@
 #define DPACK_LVSTRLEN_MAX \
 	STROLL_CONST_MIN(DPACK_STRLEN_MAX, STROLL_LVSTR_LEN_MAX)
 
-/*
- * Check DPACK_LVSTRLEN_MAX definition is sensible.
- * Multiple dpack internal functions (such as dpack_decode_str_tag() for
- * example) return string length using a ssize_t, effectively restricting
- * maximum length to a SSIZE_MAX...
- */
-#if DPACK_LVSTRLEN_MAX > SSIZE_MAX
-#error dpack cannot encode lvstr which length is > SSIZE_MAX !
-#elif DPACK_LVSTRLEN_MAX < 16U
-#error Huh ?!
+/* Check DPACK_LVSTRLEN_MAX definition is sensible. */
+#if DPACK_LVSTRLEN_MAX < 16U
+#error dpack cannot encode lvstr which length is < 16 !
 #endif
 
 /******************************************************************************

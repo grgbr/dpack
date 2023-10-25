@@ -45,11 +45,13 @@ struct dpack_decoder;
  * Multiple dpack internal functions (such as dpack_decode_str_tag() for
  * example) return string length using a ssize_t, effectively restricting
  * maximum length to a SSIZE_MAX...
+ * In addition, restrict maximum length to 128 MB minus one terminating NULL
+ * byte !
  */
-#if DPACK_STRLEN_MAX > SSIZE_MAX
-#error dpack cannot encode strings which length is > SSIZE_MAX !
+#if DPACK_STRLEN_MAX >= (128U * 1024 * 1024)
+#error dpack cannot encode strings which length is >= 128 MB !
 #elif DPACK_STRLEN_MAX < 16U
-#error Huh ?!
+#error dpack cannot encode strings which length is < 16 !
 #endif
 
 /******************************************************************************
@@ -58,7 +60,7 @@ struct dpack_decoder;
 
 /* Compute size of an encoded msgpack fixstr */
 #define DPACK_FIXSTR_SIZE(_len) \
-	(MPACK_TAG_SIZE_FIXSTR + (_len))
+	((size_t)MPACK_TAG_SIZE_FIXSTR + (size_t)(_len))
 
 #define _DPACK_STR_CONST_SIZE(_len) \
 	DPACK_FIXSTR_SIZE(_len)
@@ -71,7 +73,7 @@ struct dpack_decoder;
 
 /* Compute size of an encoded 8 bits msgpack string */
 #define DPACK_STR8_SIZE(_len) \
-	(MPACK_TAG_SIZE_STR8 + (_len))
+	((size_t)MPACK_TAG_SIZE_STR8 + (size_t)(_len))
 
 /* Size of an encoded string when length fits into an msgpack 8 bits string. */
 #define DPACK_STR8_CONST_SIZE(_len) \
@@ -92,7 +94,7 @@ struct dpack_decoder;
 
 /* Compute size of an encoded 16 bits msgpack string */
 #define DPACK_STR16_SIZE(_len) \
-	(MPACK_TAG_SIZE_STR16 + (_len))
+	((size_t)MPACK_TAG_SIZE_STR16 + (size_t)(_len))
 
 /* Size of an encoded string when length fits into an msgpack 16 bits string. */
 #define DPACK_STR16_CONST_SIZE(_len) \
@@ -113,7 +115,7 @@ struct dpack_decoder;
 
 /* Compute size of an encoded 32 bits msgpack string */
 #define DPACK_STR32_SIZE(_len) \
-	(MPACK_TAG_SIZE_STR32 + (_len))
+	((size_t)MPACK_TAG_SIZE_STR32 + (size_t)(_len))
 
 /* Size of an encoded string when length fits into an msgpack 32 bits string. */
 #define DPACK_STR32_CONST_SIZE(_len) \

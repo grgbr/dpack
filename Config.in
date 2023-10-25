@@ -35,8 +35,13 @@ config DPACK_DEBUG
 	  - custom dpack / mpack assertions,
 	  - reader / writer tracking.
 
+config DPACK_HAS_BASIC_ITEMS
+	bool
+	default n
+
 config DPACK_SCALAR
 	bool "Scalars"
+	select DPACK_HAS_BASIC_ITEMS
 	default y
 	help
 	  Build dpack library with scalar support allowing to (de)serialize,
@@ -45,6 +50,7 @@ config DPACK_SCALAR
 config DPACK_FLOAT
 	bool "Single precision floating point numbers"
 	depends on DPACK_SCALAR
+	select DPACK_HAS_BASIC_ITEMS
 	default n
 	help
 	  Build dpack library with single precision floating point number
@@ -53,6 +59,7 @@ config DPACK_FLOAT
 config DPACK_DOUBLE
 	bool "Double precision floating point numbers"
 	depends on DPACK_SCALAR
+	select DPACK_HAS_BASIC_ITEMS
 	default n
 	help
 	  Build dpack library with double precision floating point number
@@ -60,6 +67,7 @@ config DPACK_DOUBLE
 
 config DPACK_STRING
 	bool "Strings"
+	select DPACK_HAS_BASIC_ITEMS
 	default y
 	help
 	  Build dpack library with string support allowing to (de)serialize
@@ -67,8 +75,9 @@ config DPACK_STRING
 
 config DPACK_STRING_MAXLEN
 	int "Maximum strings length"
-	default 4095
+	range 16 134217727
 	depends on DPACK_STRING
+	default 4095
 	help
 	  Enforce a maximum length over strings excluding the terminating NULL
 	  byte.
@@ -76,6 +85,7 @@ config DPACK_STRING_MAXLEN
 config DPACK_LVSTR
 	bool "Length-Value strings"
 	select DPACK_STRING
+	select DPACK_HAS_BASIC_ITEMS
 	default y
 	help
           Build dpack library with length-value string support allowing to
@@ -85,6 +95,7 @@ config DPACK_LVSTR
 
 config DPACK_BIN
 	bool "Bins"
+	select DPACK_HAS_BASIC_ITEMS
 	default n
 	help
           Build dpack library with MessagePack bin support allowing to
@@ -94,13 +105,14 @@ config DPACK_BIN
 config DPACK_ARRAY
 	bool "Arrays"
 	default y
+	depends on DPACK_HAS_BASIC_ITEMS
 	help
           Build dpack library with MessagePack array support allowing to
 	  (de)serialize lists of objects.
 
 config DPACK_MAP
 	bool "Maps"
-	select DPACK_SCALAR
+	depends on DPACK_SCALAR
 	default y
 	help
           Build dpack library with MessagePack map support allowing to
@@ -108,6 +120,7 @@ config DPACK_MAP
 
 config DPACK_UTEST
 	bool "Unit tests"
+	depends on DPACK_HAS_BASIC_ITEMS
 	default n
 	help
 	  Build dpack library unit testsuite.

@@ -43,11 +43,12 @@ struct dpack_decoder;
  * Multiple dpack internal functions (such as dpack_decode_bin_tag() for
  * example) return bin size using a ssize_t, effectively restricting
  * maximum size to a SSIZE_MAX...
+ * In addition, restrict maximum size to 128 MB !
  */
-#if DPACK_BINSZ_MAX > SSIZE_MAX
-#error dpack cannot encode bin which size is > SSIZE_MAX !
+#if DPACK_BINSZ_MAX > (128U * 1024 * 1024)
+#error dpack cannot encode bin which size is > 128 MB !
 #elif DPACK_BINSZ_MAX < 16U
-#error Huh ?!
+#error dpack cannot encode bin which size is < 16 !
 #endif
 
 /******************************************************************************

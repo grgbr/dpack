@@ -312,7 +312,7 @@ dpack_map_encode_str_fix(struct dpack_encoder * encoder,
 
 #define DPACK_MAP_LVSTR_SIZE_MIN(_len) \
 	(DPACK_MAP_FLDID_SIZE_MIN + DPACK_LVSTR_SIZE(_len))
-#define DPACK_MAP_LVSTR_SIZE_MAX \
+#define DPACK_MAP_LVSTR_SIZE_MAX(_len) \
 	(DPACK_MAP_FLDID_SIZE_MAX + DPACK_LVSTR_SIZE(_len))
 
 extern int
