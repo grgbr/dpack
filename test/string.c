@@ -2548,7 +2548,10 @@ CUTE_TEST(dpackut_str_decode_strcpy_range_65535_65536)
 
 #endif /* DPACK_STRLEN_MAX >= 65536 */
 
-CUTE_TEST(dpackut_str_decode_strcpy_range_maxminu1_max)
+CUTE_TEST_STATIC(dpackut_str_decode_strcpy_range_maxminus1_max,
+                 CUTE_NULL_SETUP,
+                 CUTE_NULL_TEARDOWN,
+                 10)
 {
 	struct dpackut_str_data data;
 
@@ -2691,7 +2694,7 @@ CUTE_GROUP(dpackut_str_group) = {
 	CUTE_REF(dpackut_str_decode_strcpy_range_255_256),
 	CUTE_REF(dpackut_str_decode_strcpy_range_65534_65535),
 	CUTE_REF(dpackut_str_decode_strcpy_range_65535_65536),
-	CUTE_REF(dpackut_str_decode_strcpy_range_maxminu1_max)
+	CUTE_REF(dpackut_str_decode_strcpy_range_maxminus1_max)
 };
 
 CUTE_SUITE_EXTERN(dpackut_str_suite,
