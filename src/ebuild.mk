@@ -43,7 +43,7 @@ libdpack.so-objs      += $(call kconf_enabled,DPACK_BIN,shared/bin.o)
 libdpack.so-objs      += $(call kconf_enabled,DPACK_MAP,shared/map.o)
 libdpack.so-objs      += $(call kconf_enabled,DPACK_ARRAY,shared/array.o)
 libdpack.so-cflags    := $(filter-out -fpie -fPIE,$(common-cflags)) -fpic
-libdpack.so-ldflags   := $(filter-out -fpie -fPIE,$(common-cflags)) \
+libdpack.so-ldflags   := $(filter-out -fpie -fPIE,$(common-ldflags)) \
                          -shared -fpic -Bsymbolic -Wl,-soname,libdpack.so
 libdpack.so-pkgconf   := libstroll
 
