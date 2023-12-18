@@ -7,6 +7,7 @@
 
 config-in   := Config.in
 config-h    := $(PACKAGE)/config.h
+config-obj  := config.o
 
 ifneq ($(realpath $(kconf_config)),)
 ifeq ($(call kconf_is_enabled,DPACK_HAS_BASIC_ITEMS),)
