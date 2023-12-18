@@ -26,6 +26,8 @@ endif # ($(realpath $(EBUILDDIR)/main.mk),)
 
 include $(EBUILDDIR)/main.mk
 
+ifeq ($(strip $(CROSS_COMPILE)),)
+
 define list_check_confs_cmds :=
 if ! nr=$$($(PYTHON) $(TOPDIR)/scripts/gen_check_confs.py count); then \
 	exit 1; \
@@ -102,3 +104,11 @@ clean: clean-checkall
 .PHONY: clean-checkall
 clean-checkall:
 	$(call rmr_recipe,$(checkall_builddir))
+
+else  # ifneq ($(strip $(CROSS_COMPILE)),)
+
+.PHONY: check checkall
+check checkall:
+	$(error Cannot check while cross building !)
+
+endif # ifeq ($(strip $(CROSS_COMPILE)),)
