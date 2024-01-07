@@ -80,7 +80,7 @@ checkall: $(check_conf_targets)
 .PHONY: $(check_conf_targets)
 $(check_conf_targets): check-conf%: $(checkall_builddir)/conf%/.config
 	$(Q)$(MAKE) $(K) -C $(TOPDIR) check BUILDDIR:='$(abspath $(dir $(<)))'
-	$(Q)cute-junit.py join --package 'DPack' \
+	$(Q)cute-report join --package 'DPack' \
 	                       --revision '$(VERSION)' \
 	                       $(checkall_builddir)/dpack-all-utest.xml \
 	                       $(dir $(<))/test/dpack-utest.xml \
