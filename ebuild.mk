@@ -57,16 +57,9 @@ libdpack.pc-tmpl := libdpack_pkgconf_tmpl
 # Source code tags generation
 ################################################################################
 
-tag-files        := $(shell find $(addprefix $(CURDIR)/,$(subdirs) mpack) \
-                                 $(HEADERDIR) \
-                                 -type f)
-.PHONY: ctags
-ctags:
-	ctags -f $(BUILDDIR)/tags $(tag-files)
-
-.PHONY: cscope
-cscope:
-	cscope -b -f $(BUILDDIR)/cscope.out -q -u $(tag-files)
+tagfiles := $(shell find $(addprefix $(CURDIR)/,$(subdirs) mpack) \
+                    $(HEADERDIR) \
+                    -type f)
 
 ################################################################################
 # Documentation generation

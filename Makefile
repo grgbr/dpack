@@ -26,6 +26,8 @@ endif # ($(realpath $(EBUILDDIR)/main.mk),)
 
 include $(EBUILDDIR)/main.mk
 
+ifeq ($(CONFIG_DPACK_UTEST),y)
+
 ifeq ($(strip $(CROSS_COMPILE)),)
 
 define list_check_confs_cmds :=
@@ -49,25 +51,25 @@ checkall_builddir     := $(BUILDDIR)/checkall
 check_lib_search_path := \
 	$(BUILDDIR)/src$(if $(LD_LIBRARY_PATH),:$(LD_LIBRARY_PATH))
 
-FORCE_CHECK ?= y
-ifneq ($(filter y 1,$(FORCE_CHECK)),)
+CHECK_FORCE ?= y
+ifneq ($(filter y 1,$(CHECK_FORCE)),)
 .PHONY: $(BUILDDIR)/test/dpack-utest.xml
 endif
 
-HALT_CHECK_ONFAIL ?= n
-ifneq ($(filter y 1,$(HALT_CHECK_ONFAIL)),)
+CHECK_HALT_ON_FAIL ?= n
+ifneq ($(filter y 1,$(CHECK_HALT_ON_FAIL)),)
 K := --no-keep-going
 else
 K := --keep-going
 endif
 
-CHECK_VERBOSITY ?= --silent
+CHECK_VERBOSE ?= --silent
 
-$(BUILDDIR)/test/dpack-utest.xml: | build
+$(BUILDDIR)/test/dpack-utest.xml: | build-check
 	@echo "  CHECK   $(@)"
 	$(Q)env LD_LIBRARY_PATH="$(check_lib_search_path)" \
 	        $(BUILDDIR)/test/dpack-utest \
-	        $(CHECK_VERBOSITY) \
+	        $(CHECK_VERBOSE) \
 	        --xml='$(@)' \
 	        run
 
@@ -112,3 +114,10 @@ check checkall:
 	$(error Cannot check while cross building !)
 
 endif # ifeq ($(strip $(CROSS_COMPILE)),)
+
+else  # ifneq ($(CONFIG_DPACK_UTEST),y)
+
+.PHONY: check checkall clean-checkall
+check checkall clean-checkall:
+
+endif # ifeq ($(CONFIG_DPACK_UTEST),y)

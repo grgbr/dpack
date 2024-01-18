@@ -38,7 +38,7 @@ builtins            := builtin.a
 builtin.a-objs      := utest.o $(config-obj)
 builtin.a-cflags    := $(test-cflags)
 
-bins                := dpack-utest
+checkbins           := dpack-utest
 
 dpack-utest-objs    += $(call kconf_enabled,DPACK_ARRAY,array.o)
 dpack-utest-objs    += $(call kconf_enabled,DPACK_BIN,bin.o)
