@@ -1,7 +1,7 @@
 .. SPDX-License-Identifier: GPL-3.0-only
 
    This file is part of DPack.
-   Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+   Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
 
 .. include:: _cdefs.rst
 
@@ -13,8 +13,6 @@
 .. |MessagePack bin format|    replace:: :ref:`MessagePack bin format <sect-msgpack-bin>`
 .. |MessagePack nil format|    replace:: :ref:`MessagePack nil format <sect-msgpack-nil>`
 .. |MessagePack array format|  replace:: :ref:`MessagePack array format <sect-msgpack-array>`
-
-.. _dpack:                     https://github.com/grgbr/dpack
 
 .. _mpack:                     https://github.com/ludocode/mpack
 .. |MPack|                     replace:: `MPack <mpack_>`_

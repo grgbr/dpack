@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 #
 # This file is part of DPack.
-# Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+# Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
 ################################################################################
 # -*- coding: utf-8 -*-
 #
@@ -216,6 +216,17 @@ if not ebuilddoc_inventory_path:
         ebuilddoc_inventory_path = os.path.join(docdir,
                                                 '../ebuild/html/objects.inv')
 
+cutedoc_target_path = os.getenv('CUTEDOC_TARGET_PATH')
+if not cutedoc_target_path:
+    cutedoc_target_path = '../../cute/html'
+
+cutedoc_inventory_path = os.getenv('CUTEDOC_INVENTORY_PATH')
+if not cutedoc_inventory_path:
+    docdir = os.getenv('DOCDIR')
+    if docdir:
+        cutedoc_inventory_path = os.path.join(docdir,
+                                              '../cute/html/objects.inv')
+
 strolldoc_target_path = os.getenv('STROLLDOC_TARGET_PATH')
 if not strolldoc_target_path:
     strolldoc_target_path = '../../stroll/html'
@@ -230,6 +241,7 @@ if not strolldoc_inventory_path:
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
         'ebuild': (ebuilddoc_target_path, ebuilddoc_inventory_path),
+        'cute':   (cutedoc_target_path, cutedoc_inventory_path),
         'stroll': (strolldoc_target_path, strolldoc_inventory_path)
 }
 

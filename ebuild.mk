@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: LGPL-3.0-only
 #
 # This file is part of DPack.
-# Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+# Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
 ################################################################################
 
 config-in   := Config.in
@@ -75,9 +75,27 @@ sphinxenv := \
 	     EBUILDDOC_TARGET_PATH="$(strip $(EBUILDDOC_TARGET_PATH))") \
 	$(if $(strip $(EBUILDDOC_INVENTORY_PATH)), \
 	     EBUILDDOC_INVENTORY_PATH="$(strip $(EBUILDDOC_INVENTORY_PATH))") \
+	$(if $(strip $(CUTEDOC_TARGET_PATH)), \
+	     CUTEDOC_TARGET_PATH="$(strip $(CUTEDOC_TARGET_PATH))") \
+	$(if $(strip $(CUTEDOC_INVENTORY_PATH)), \
+	     CUTEDOC_INVENTORY_PATH="$(strip $(CUTEDOC_INVENTORY_PATH))") \
 	$(if $(strip $(STROLLDOC_TARGET_PATH)), \
 	     STROLLDOC_TARGET_PATH="$(strip $(STROLLDOC_TARGET_PATH))") \
 	$(if $(strip $(STROLLDOC_INVENTORY_PATH)), \
 	     STROLLDOC_INVENTORY_PATH="$(strip $(STROLLDOC_INVENTORY_PATH))")
+
+################################################################################
+# Source distribution generation
+################################################################################
+
+# Declare the list of files under revision control to include into final source
+# distribution tarball.
+override distfiles = $(list_versioned_recipe)
+
+# Override InterSphinx eBuild base documentation URI and make it point to online
+# GitHub pages when building final source distribution tarball
+dist: export EBUILDDOC_TARGET_PATH := http://grgbr.github.io/ebuild/
+dist: export CUTEDOC_TARGET_PATH := http://grgbr.github.io/cute/
+dist: export STROLLDOC_TARGET_PATH := http://grgbr.github.io/stroll/
 
 # ex: filetype=make :

@@ -8,7 +8,7 @@
 Welcome to DPack documentation
 ###############################
 
-**Copyright** |copy| 2023 Grégor Boirie.
+**Copyright** |copy| 2023-2024 Grégor Boirie.
 
 This manual is free software: you can redistribute it and/or modify it under the
 terms of the GNU General Public License as published by the Free Software

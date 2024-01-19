@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: LGPL-3.0-only
 #
 # This file is part of DPack.
-# Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+# Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
 ################################################################################
 
 override PACKAGE := dpack
@@ -65,17 +65,6 @@ endif
 
 CHECK_VERBOSE ?= --silent
 
-$(BUILDDIR)/test/dpack-utest.xml: | build-check
-	@echo "  CHECK   $(@)"
-	$(Q)env LD_LIBRARY_PATH="$(check_lib_search_path)" \
-	        $(BUILDDIR)/test/dpack-utest \
-	        $(CHECK_VERBOSE) \
-	        --xml='$(@)' \
-	        run
-
-.PHONY: check
-check: $(BUILDDIR)/test/dpack-utest.xml
-
 .PHONY: checkall
 checkall: $(check_conf_targets)
 
@@ -101,23 +90,40 @@ $(checkall_builddir)/conf%/test.config: $(TOPDIR)/scripts/gen_check_confs.py
 	@mkdir -p $(dir $(@))
 	$(Q)$(PYTHON) $(TOPDIR)/scripts/gen_check_confs.py genone $(*) $(@)
 
-clean: clean-checkall
+.PHONY: check
+check: $(BUILDDIR)/test/dpack-utest.xml
 
-.PHONY: clean-checkall
-clean-checkall:
+$(BUILDDIR)/test/dpack-utest.xml: | build-check
+	@echo "  CHECK   $(@)"
+	$(Q)env LD_LIBRARY_PATH="$(check_lib_search_path)" \
+	        $(BUILDDIR)/test/dpack-utest \
+	        $(CHECK_VERBOSE) \
+	        --xml='$(@)' \
+	        run
+
+clean-check: _clean-check
+
+.PHONY: _clean-check
+_clean-check:
+	$(call rm_recipe,$(BUILDDIR)/test/dpack-utest.xml)
+
+clean-check: _clean-checkall
+
+.PHONY: _clean-checkall
+_clean-checkall:
 	$(call rmr_recipe,$(checkall_builddir))
 
 else  # ifneq ($(strip $(CROSS_COMPILE)),)
 
-.PHONY: check checkall
+.PHONY: check
 check checkall:
 	$(error Cannot check while cross building !)
 
 endif # ifeq ($(strip $(CROSS_COMPILE)),)
 
-else  # ifneq ($(CONFIG_DPACK_UTEST),y)
+else  # ifneq ($(CONFIG_STROLL_UTEST),y)
 
-.PHONY: check checkall clean-checkall
-check checkall clean-checkall:
+.PHONY: check
+check checkall:
 
-endif # ifeq ($(CONFIG_DPACK_UTEST),y)
+endif # ifeq ($(CONFIG_STROLL_UTEST),y)
