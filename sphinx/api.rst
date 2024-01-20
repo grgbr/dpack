@@ -370,6 +370,11 @@ Available operations are:
       * :c:macro:`DPACK_LVSTR_SIZE()`
       * :c:func:`dpack_lvstr_size`
 
+   * lvstsr encoding:
+
+      * :c:func:`dpack_encode_lvstr`
+      * :c:func:`dpack_encode_lvstr_range`
+
 You *MUST* include :file:`dpack/lvstr.h` header to use these interfaces.
 
 .. index:: bin, blob, byte array
@@ -1175,7 +1180,7 @@ dpack_decode_int_range
 **********************
 
 .. doxygenfunction:: dpack_decode_int_range
-   
+
 dpack_decode_nil
 ****************
 
@@ -1385,6 +1390,16 @@ dpack_encode_int8
 *****************
 
 .. doxygenfunction:: dpack_encode_int8
+
+dpack_encode_lvstr
+******************
+
+.. doxygenfunction:: dpack_encode_lvstr
+
+dpack_encode_lvstr_range
+************************
+
+.. doxygenfunction:: dpack_encode_lvstr_range
 
 dpack_encode_nil
 ****************

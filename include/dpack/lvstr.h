@@ -137,11 +137,51 @@
  * #DPACK_LVSTR_SIZE
  */
 extern size_t
-dpack_lvstr_size(size_t len) __dpack_export;
+dpack_lvstr_size(size_t len) __dpack_const
+                             __dpack_nothrow
+                             __leaf
+                             __warn_result
+                             __dpack_export;
 
+/**
+ * Encode a lvstr according to the MessagePack string format
+ *
+ * @param[inout] encoder encoder
+ * @param[in]    value   lvstr to encode
+ *
+ * @return an errno like error code
+ * @retval 0         Success
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ *
+ * Encode / pack / serialize @rstlnk{lvstr} @p value into the
+ * buffer assigned to @p encoder at initialization time according to the
+ * @rstsubst{MessagePack string format}.
+ *
+ * @warning
+ * - @p encoder *MUST* have been initialized using dpack_encoder_init_buffer()
+ *   before calling this function. Result is undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p encoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p value lvstr is not initialized or initialized with a ``NULL`` C string,
+ *   result is undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p value lvstr length is zero or greater than #DPACK_LVSTRLEN_MAX, result
+ *   is undefined. An assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_encode_lvstr_range()
+ * - dpack_encoder_init_buffer()
+ */
 extern int
 dpack_encode_lvstr(struct dpack_encoder *      encoder,
-                   const struct stroll_lvstr * value) __dpack_export;
+                   const struct stroll_lvstr * value) __dpack_nonull(1, 2)
+                                                      __dpack_nothrow
+                                                      __leaf
+                                                      __warn_result
+                                                      __dpack_export;
 
 extern int
 dpack_decode_lvstr_range(struct dpack_decoder * decoder,
