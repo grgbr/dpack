@@ -171,7 +171,7 @@ CUTE_TEST(dpackut_fixstr_sizes_30)
 
 CUTE_TEST(dpackut_fixstr_sizes_30)
 {
-	cute_skip("string length >= 30 support not compiled-in");
+	cute_skip("MsgPack string length >= 30 support not compiled-in");
 }
 
 #endif /* DPACK_STRLEN_MAX >= 30 */

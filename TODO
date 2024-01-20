@@ -1,14 +1,13 @@
 TODO
 ====
 
-* nil: implement / test / document decoding
 * unit tests:
+  * nil
   * lvstr
-  * list / array
+  * lvstr array
   * map
 * doc:
-  * lvstr
-  * list / array
+  * lvstr and lvstr array
   * map
 * gcc attributes
 * utf8 support ?

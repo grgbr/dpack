@@ -22,6 +22,11 @@
 #include <dpack/string.h>
 #include <stroll/lvstr.h>
 
+/**
+ * Maximum length of a lvstr
+ *
+ * Maximum length in bytes of a @rstlnk{lvstr}.
+ */
 #define DPACK_LVSTRLEN_MAX \
 	STROLL_CONST_MIN(DPACK_STRLEN_MAX, STROLL_LVSTR_LEN_MAX)
 
@@ -90,18 +95,47 @@
 	             _DPACK_LVSTR_CONST_SIZE(_len), \
 	             "invalid constant lvstr length")
 
-/*
- * Given the length of a lvstr, compute the size of the corresponding encoded
- * msgpack string.
+/**
+ * Return size of a serialized lvstr
  *
+ * @param[in] _len deserialized lvstr length
+ *
+ * Given the length of a deserialized @rstlnk{lvstr}, compute the size of the
+ * corresponding string encoded according to the
+ * @rstsubst{MessagePack string format}.
+ *
+ * @note
+ * Use this function when @p _len is known at compile time. Use
+ * dpack_lvstr_size() otherwise.
+ *
+ * @warning
  * Length value MUST be known at compile time, i.e., constant. Trigger a compile
  * time error otherwise.
+ *
+ * @see
+ * dpack_lvstr_size()
  */
 #define DPACK_LVSTR_SIZE(_len) \
 	compile_eval(__builtin_constant_p(_len), \
 	             DPACK_LVSTR_CONST_SIZE(_len), \
 	             "constant lvstr length expected")
 
+/**
+ * Return size of a serialized lvstr
+ *
+ * @param[in] len deserialized lvstr length
+ *
+ * Given the length of a deserialized @rstlnk{lvstr}, compute the size of the
+ * corresponding string encoded according to the
+ * @rstsubst{MessagePack string format}.
+ *
+ * @note
+ * Use this function when @p len is not known at compile time. Use
+ * #DPACK_LVSTR_SIZE otherwise.
+ *
+ * @see
+ * #DPACK_LVSTR_SIZE
+ */
 extern size_t
 dpack_lvstr_size(size_t len) __dpack_export;
 

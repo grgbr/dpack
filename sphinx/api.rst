@@ -351,12 +351,26 @@ You *MUST* include :file:`dpack/string.h` header to use these interfaces.
 
 .. index:: Length-Value string, lvstr
 
+.. _lvstr:
+
 Length-Value string
 ===================
 
-.. todo::
+When compiled with the :c:macro:`CONFIG_DPACK_LVSTR` build configuration option
+enabled, the DPack_ library provides support for Length-Value string
+(de)serialization according to the |MessagePack string format|.
 
-   Document lvstr
+Available operations are:
+
+.. hlist::
+
+   * lvstr serialization utilities:
+
+      * :c:macro:`DPACK_LVSTRLEN_MAX`
+      * :c:macro:`DPACK_LVSTR_SIZE()`
+      * :c:func:`dpack_lvstr_size`
+
+You *MUST* include :file:`dpack/lvstr.h` header to use these interfaces.
 
 .. index:: bin, blob, byte array
 
@@ -822,6 +836,16 @@ DPACK_INT_SIZE_MIN
 ******************
 
 .. doxygendefine:: DPACK_INT_SIZE_MIN
+
+DPACK_LVSTR_SIZE
+****************
+
+.. doxygendefine:: DPACK_LVSTR_SIZE
+
+DPACK_LVSTRLEN_MAX
+******************
+
+.. doxygendefine:: DPACK_LVSTRLEN_MAX
 
 DPACK_NIL_SIZE
 **************
@@ -1421,6 +1445,11 @@ dpack_encoder_space_used
 ************************
 
 .. doxygenfunction:: dpack_encoder_space_used
+
+dpack_lvstr_size
+****************
+
+.. doxygenfunction:: dpack_lvstr_size
 
 dpack_str_size
 **************

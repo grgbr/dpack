@@ -290,6 +290,9 @@ extern CUTE_SUITE_DECL(dpackut_int64_suite);
 #if defined(CONFIG_DPACK_STRING)
 extern CUTE_SUITE_DECL(dpackut_str_suite);
 #endif
+#if defined(CONFIG_DPACK_LVSTR)
+extern CUTE_SUITE_DECL(dpackut_lvstr_suite);
+#endif
 
 CUTE_GROUP(dpackut_group) = {
 #if defined(CONFIG_DPACK_ARRAY)
@@ -317,6 +320,9 @@ CUTE_GROUP(dpackut_group) = {
 #endif
 #if defined(CONFIG_DPACK_STRING)
 	CUTE_REF(dpackut_str_suite),
+#endif
+#if defined(CONFIG_DPACK_LVSTR)
+	CUTE_REF(dpackut_lvstr_suite),
 #endif
 };
 
