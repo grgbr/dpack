@@ -54,7 +54,7 @@ dpack_encode_lvstr(struct dpack_encoder *      encoder,
 	                            stroll_lvstr_len(value));
 }
 
-int
+ssize_t
 dpack_decode_lvstr_range(struct dpack_decoder * decoder,
                          size_t                 min_len,
                          size_t                 max_len,
@@ -79,11 +79,12 @@ dpack_decode_lvstr_range(struct dpack_decoder * decoder,
 	dpack_assert_intern((size_t)len <= max_len);
 
 	stroll_lvstr_ncede(value, cstr, (size_t)len);
+	dpack_assert_intern((size_t)len == stroll_lvstr_len(value));
 
-	return 0;
+	return len;
 }
 
-int
+ssize_t
 dpack_decode_lvstr_fix(struct dpack_decoder * decoder,
                        size_t                 len,
                        struct stroll_lvstr *  value)
@@ -106,5 +107,5 @@ dpack_decode_lvstr_fix(struct dpack_decoder * decoder,
 
 	stroll_lvstr_ncede(value, cstr, len);
 
-	return 0;
+	return ret;
 }

@@ -429,6 +429,9 @@ struct dpackut_lvstr_data {
 typedef void (dpackut_lvstr_pack_fn)(struct dpack_encoder *,
                                      const struct dpackut_lvstr_data *);
 
+typedef void (dpackut_lvstr_unpack_fn)(struct dpack_decoder *,
+                                       const struct dpackut_lvstr_data *);
+
 static size_t
 dpackut_lvstr_size(size_t len)
 {
@@ -658,6 +661,222 @@ CUTE_TEST(dpackut_lvstr_encode_max)
 	dpackut_lvstr_encode(&data, dpackut_lvstr_pack);
 }
 
+#if defined(CONFIG_DPACK_ASSERT_API)
+
+CUTE_TEST(dpackut_lvstr_decode_assert)
+{
+       struct dpack_decoder dec = { 0, };
+       struct stroll_lvstr  lvstr = STROLL_LVSTR_INIT;
+       char                 buff[8];
+       ssize_t              ret __unused;
+
+       cute_expect_assertion(ret = dpack_decode_lvstr(NULL, &lvstr));
+#if defined(CONFIG_DPACK_DEBUG)
+       cute_expect_assertion(ret = dpack_decode_lvstr(&dec, &lvstr));
+#endif /* defined(CONFIG_DPACK_DEBUG) */
+
+       dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
+       cute_expect_assertion(ret = dpack_decode_lvstr(&dec, NULL));
+       dpack_decoder_fini(&dec);
+}
+
+#else  /* !(defined(CONFIG_DPACK_ASSERT_API)) */
+
+CUTE_TEST(dpackut_lvstr_decode_assert)
+{
+	cute_skip("assertion unsupported");
+}
+
+#endif  /* defined(CONFIG_DPACK_ASSERT_API) */
+
+#define DPACKUT_LVSTR_DEC(_var, _len, _error) \
+	struct dpackut_lvstr_data _var = { \
+		.len       = _len, \
+		.error     = _error \
+	}
+
+static void
+dpackut_lvstr_decode(struct dpackut_lvstr_data * data,
+                     dpackut_lvstr_unpack_fn *   unpack)
+{
+	struct dpack_decoder dec;
+
+	dpackut_lvstr_gen_data(data);
+	cute_check_uint(data->len, equal, stroll_lvstr_len(&data->value));
+
+	cute_check_uint(dpackut_lvstr_size(data->len), equal, data->size);
+
+	dpack_decoder_init_buffer(&dec, data->packed, data->size);
+	unpack(&dec, data);
+	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+	dpack_decoder_fini(&dec);
+
+	dpackut_lvstr_fini_data(data);
+}
+
+static void
+dpackut_lvstr_unpack(struct dpack_decoder *            decoder,
+                     const struct dpackut_lvstr_data * data)
+{
+	struct stroll_lvstr val = STROLL_LVSTR_INIT;
+
+	cute_check_sint(dpack_decode_lvstr(decoder, &val), equal, data->error);
+
+	if (data->error >= 0) {
+		cute_check_uint(stroll_lvstr_len(&val), equal, data->len);
+		cute_check_str(stroll_lvstr_cstr(&val),
+		               equal,
+		               stroll_lvstr_cstr(&data->value));
+		stroll_lvstr_fini(&val);
+	}
+}
+
+CUTE_TEST(dpackut_lvstr_decode_0)
+{
+	DPACKUT_LVSTR_DEC(data, 0, -EMSGSIZE);
+	dpackut_lvstr_decode(&data, dpackut_lvstr_unpack);
+}
+
+CUTE_TEST(dpackut_lvstr_decode_1)
+{
+	DPACKUT_LVSTR_DEC(data, 1, 1);
+	dpackut_lvstr_decode(&data, dpackut_lvstr_unpack);
+}
+
+#if DPACK_LVSTRLEN_MAX >= 31
+
+CUTE_TEST(dpackut_lvstr_decode_31)
+{
+	DPACKUT_LVSTR_DEC(data, 31, 31);
+	dpackut_lvstr_decode(&data, dpackut_lvstr_unpack);
+}
+
+#else  /* !(DPACK_LVSTRLEN_MAX >= 31) */
+
+CUTE_TEST(dpackut_lvstr_decode_31)
+{
+	cute_skip("string length >= 31 support not compiled-in");
+}
+
+#endif /* DPACK_LVSTRLEN_MAX >= 31 */
+
+#if DPACK_LVSTRLEN_MAX >= 32
+
+CUTE_TEST(dpackut_lvstr_decode_32)
+{
+	DPACKUT_LVSTR_DEC(data, 32, 32);
+	dpackut_lvstr_decode(&data, dpackut_lvstr_unpack);
+}
+
+#else  /* !(DPACK_LVSTRLEN_MAX >= 32) */
+
+CUTE_TEST(dpackut_lvstr_decode_32)
+{
+	cute_skip("string length >= 32 support not compiled-in");
+}
+
+#endif /* DPACK_LVSTRLEN_MAX >= 32 */
+
+#if DPACK_LVSTRLEN_MAX >= 255
+
+CUTE_TEST(dpackut_lvstr_decode_255)
+{
+	DPACKUT_LVSTR_DEC(data, 255, 255);
+	dpackut_lvstr_decode(&data, dpackut_lvstr_unpack);
+}
+
+#else  /* !(DPACK_LVSTRLEN_MAX >= 255) */
+
+CUTE_TEST(dpackut_lvstr_decode_255)
+{
+	cute_skip("string length >= 255 support not compiled-in");
+}
+
+#endif /* DPACK_LVSTRLEN_MAX >= 255 */
+
+#if DPACK_LVSTRLEN_MAX >= 256
+
+CUTE_TEST(dpackut_lvstr_decode_256)
+{
+	DPACKUT_LVSTR_DEC(data, 256, 256);
+	dpackut_lvstr_decode(&data, dpackut_lvstr_unpack);
+}
+
+#else  /* !(DPACK_LVSTRLEN_MAX >= 256) */
+
+CUTE_TEST(dpackut_lvstr_decode_256)
+{
+	cute_skip("string length >= 256 support not compiled-in");
+}
+
+#endif /* DPACK_LVSTRLEN_MAX >= 256 */
+
+#if DPACK_LVSTRLEN_MAX >= 65535
+
+CUTE_TEST(dpackut_lvstr_decode_65535)
+{
+	DPACKUT_LVSTR_DEC(data, 65535, 65535);
+	dpackut_lvstr_decode(&data, dpackut_lvstr_unpack);
+}
+
+#else  /* !(DPACK_LVSTRLEN_MAX >= 65535) */
+
+CUTE_TEST(dpackut_lvstr_decode_65535)
+{
+	cute_skip("string length >= 65535 support not compiled-in");
+}
+
+#endif /* DPACK_LVSTRLEN_MAX >= 65535 */
+
+#if DPACK_LVSTRLEN_MAX >= 65536
+
+CUTE_TEST(dpackut_lvstr_decode_65536)
+{
+	DPACKUT_LVSTR_DEC(data, 65536, 65536);
+	dpackut_lvstr_decode(&data, dpackut_lvstr_unpack);
+}
+
+#else  /* !(DPACK_LVSTRLEN_MAX >= 65536) */
+
+CUTE_TEST(dpackut_lvstr_decode_65536)
+{
+	cute_skip("string length >= 65536 support not compiled-in");
+}
+
+#endif /* DPACK_LVSTRLEN_MAX >= 65536 */
+
+CUTE_TEST(dpackut_lvstr_decode_max)
+{
+	DPACKUT_LVSTR_DEC(data, DPACK_LVSTRLEN_MAX, DPACK_LVSTRLEN_MAX);
+	dpackut_lvstr_decode(&data, dpackut_lvstr_unpack);
+}
+
+CUTE_TEST(dpackut_lvstr_decode_maxplus1)
+{
+	DPACKUT_LVSTR_DEC(data, DPACK_LVSTRLEN_MAX + 1, -EMSGSIZE);
+	dpackut_lvstr_decode(&data, dpackut_lvstr_unpack);
+}
+
+CUTE_TEST(dpackut_lvstr_decode_fail)
+{
+	struct dpack_decoder dec;
+	char                 buff[] = "\xa1\x30";
+	struct stroll_lvstr  lvstr = STROLL_LVSTR_INIT;
+	ssize_t              ret __unused;
+
+	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
+	if (dpackut_expect_malloc()) {
+		cute_check_sint(dpack_decode_lvstr(&dec, &lvstr), equal, 1);
+		cute_check_ptr(stroll_lvstr_cstr(&lvstr), unequal, NULL);
+		stroll_lvstr_fini(&lvstr);
+	}
+	else
+		cute_check_sint(dpack_decode_lvstr(&dec, &lvstr),
+		                equal,
+		                -ENOMEM);
+	dpack_decoder_fini(&dec);
+}
+
 CUTE_GROUP(dpackut_lvstr_group) = {
 	CUTE_REF(dpackut_fixlvstr_sizes),
 	CUTE_REF(dpackut_fixlvstr_sizes_30),
@@ -688,6 +907,19 @@ CUTE_GROUP(dpackut_lvstr_group) = {
 	CUTE_REF(dpackut_lvstr_encode_65535),
 	CUTE_REF(dpackut_lvstr_encode_65536),
 	CUTE_REF(dpackut_lvstr_encode_max),
+
+	CUTE_REF(dpackut_lvstr_decode_assert),
+	CUTE_REF(dpackut_lvstr_decode_0),
+	CUTE_REF(dpackut_lvstr_decode_1),
+	CUTE_REF(dpackut_lvstr_decode_31),
+	CUTE_REF(dpackut_lvstr_decode_32),
+	CUTE_REF(dpackut_lvstr_decode_255),
+	CUTE_REF(dpackut_lvstr_decode_256),
+	CUTE_REF(dpackut_lvstr_decode_65535),
+	CUTE_REF(dpackut_lvstr_decode_65536),
+	CUTE_REF(dpackut_lvstr_decode_max),
+	CUTE_REF(dpackut_lvstr_decode_maxplus1),
+	CUTE_REF(dpackut_lvstr_decode_fail),
 };
 
 CUTE_SUITE_EXTERN(dpackut_lvstr_suite,

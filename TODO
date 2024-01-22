@@ -11,3 +11,5 @@ TODO
   * map
 * gcc attributes
 * utf8 support ?
+
+* lvstr.[ch] gcc attributes

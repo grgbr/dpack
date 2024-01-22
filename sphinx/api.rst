@@ -18,8 +18,11 @@
 .. |MPack|                     replace:: `MPack <mpack_>`_
 
 .. |Stroll|                    replace:: :external+stroll:doc:`Stroll <index>`
+.. |Stroll's API guide|        replace:: :external+stroll:doc:`Stroll's API guide <api>`
 
 .. |lvstr|                     replace:: :external+stroll:ref:`lvstr <sect-api-lvstr>`
+.. |stroll_lvstr_fini|         replace:: :external+stroll:ref:`sect-api-stroll_lvstr_fini`
+.. |stroll_lvstr_drop|         replace:: :external+stroll:ref:`sect-api-stroll_lvstr_drop`
 
 .. _glibc:                     https://www.gnu.org/s/libc/
 .. |GLibc|                     replace:: `GNU C library <glibc_>`_
@@ -357,7 +360,8 @@ Length-Value string
 ===================
 
 When compiled with the :c:macro:`CONFIG_DPACK_LVSTR` build configuration option
-enabled, the DPack_ library provides support for Length-Value string
+enabled, the DPack_ library provides support for
+:external+stroll:ref:`Length-Value string <sect-api-lvstr>`
 (de)serialization according to the |MessagePack string format|.
 
 Available operations are:
@@ -373,7 +377,13 @@ Available operations are:
    * lvstsr encoding:
 
       * :c:func:`dpack_encode_lvstr`
-      * :c:func:`dpack_encode_lvstr_range`
+
+   * string decoding:
+
+      * :c:func:`dpack_decode_lvstr`
+      * :c:func:`dpack_decode_lvstr_fix`
+      * :c:func:`dpack_decode_lvstr_max`
+      * :c:func:`dpack_decode_lvstr_range`
 
 You *MUST* include :file:`dpack/lvstr.h` header to use these interfaces.
 
@@ -1181,6 +1191,26 @@ dpack_decode_int_range
 
 .. doxygenfunction:: dpack_decode_int_range
 
+dpack_decode_lvstr
+******************
+
+.. doxygenfunction:: dpack_decode_lvstr
+
+dpack_decode_lvstr_fix
+**********************
+
+.. doxygenfunction:: dpack_decode_lvstr_fix
+
+dpack_decode_lvstr_max
+**********************
+
+.. doxygenfunction:: dpack_decode_lvstr_max
+
+dpack_decode_lvstr_range
+************************
+
+.. doxygenfunction:: dpack_decode_lvstr_range
+
 dpack_decode_nil
 ****************
 
@@ -1395,11 +1425,6 @@ dpack_encode_lvstr
 ******************
 
 .. doxygenfunction:: dpack_encode_lvstr
-
-dpack_encode_lvstr_range
-************************
-
-.. doxygenfunction:: dpack_encode_lvstr_range
 
 dpack_encode_nil
 ****************

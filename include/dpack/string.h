@@ -280,8 +280,9 @@ dpack_encode_str_fix(struct dpack_encoder  * encoder,
  * @param[inout] decoder decoder
  * @param[out]   value   location where to store pointer to allocated string
  *
- * @return an errno like error code
- * @retval 0         Success
+ * @return length of decoded string when successful, an errno like error code
+ *         otherwise
+ * @retval >0        Success
  * @retval -EPROTO   Not a valid MessagePack stream
  * @retval -ENOTSUP  Unsupported MessagePack stream data
  * @retval -EBADMSG  Invalid MessagePack string data
@@ -330,8 +331,9 @@ dpack_decode_strdup(struct dpack_decoder * decoder,
  * @param[in]    len     expected length of decoded string
  * @param[out]   value   location where to store pointer to allocated string
  *
- * @return an errno like error code
- * @retval 0         Success
+ * @return length of decoded string when successful, an errno like error code
+ *         otherwise
+ * @retval >0        Success
  * @retval -EPROTO   Not a valid MessagePack stream
  * @retval -ENOTSUP  Unsupported MessagePack stream data
  * @retval -EBADMSG  Invalid MessagePack string data
@@ -384,8 +386,9 @@ dpack_decode_strdup_equ(struct dpack_decoder * decoder,
  * @param[in]    max_len maximum length of decoded string
  * @param[out]   value   location where to store pointer to allocated string
  *
- * @return an errno like error code
- * @retval 0         Success
+ * @return length of decoded string when successful, an errno like error code
+ *         otherwise
+ * @retval >0        Success
  * @retval -EPROTO   Not a valid MessagePack stream
  * @retval -ENOTSUP  Unsupported MessagePack stream data
  * @retval -EBADMSG  Invalid MessagePack string data
@@ -439,8 +442,9 @@ dpack_decode_strdup_max(struct dpack_decoder * decoder,
  * @param[in]    max_len maximum length of decoded string
  * @param[out]   value   location where to store pointer to allocated string
  *
- * @return an errno like error code
- * @retval 0         Success
+ * @return length of decoded string when successful, an errno like error code
+ *         otherwise
+ * @retval >0        Success
  * @retval -EPROTO   Not a valid MessagePack stream
  * @retval -ENOTSUP  Unsupported MessagePack stream data
  * @retval -EBADMSG  Invalid MessagePack string data
@@ -498,8 +502,9 @@ dpack_decode_strdup_range(struct dpack_decoder * decoder,
  * @param[in]    size    size of decoded string storage area
  * @param[out]   value   location where to store decoded string
  *
- * @return an errno like error code
- * @retval 0         Success
+ * @return length of decoded string when successful, an errno like error code
+ *         otherwise
+ * @retval >0        Success
  * @retval -EPROTO   Not a valid MessagePack stream
  * @retval -ENOTSUP  Unsupported MessagePack stream data
  * @retval -EBADMSG  Invalid MessagePack string data
@@ -550,8 +555,9 @@ dpack_decode_strcpy(struct dpack_decoder * decoder,
  * @param[in]    size    expected size of decoded string
  * @param[out]   value   location where to store decoded string
  *
- * @return an errno like error code
- * @retval 0         Success
+ * @return length of decoded string when successful, an errno like error code
+ *         otherwise
+ * @retval >0        Success
  * @retval -EPROTO   Not a valid MessagePack stream
  * @retval -ENOTSUP  Unsupported MessagePack stream data
  * @retval -EBADMSG  Invalid MessagePack string data
@@ -602,8 +608,9 @@ dpack_decode_strcpy_equ(struct dpack_decoder * decoder,
  * @param[in]    max_size maximum size of decoded string
  * @param[out]   value    location where to store decoded string
  *
- * @return an errno like error code
- * @retval 0         Success
+ * @return length of decoded string when successful, an errno like error code
+ *         otherwise
+ * @retval >0        Success
  * @retval -EPROTO   Not a valid MessagePack stream
  * @retval -ENOTSUP  Unsupported MessagePack stream data
  * @retval -EBADMSG  Invalid MessagePack string data
