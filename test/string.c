@@ -919,19 +919,19 @@ dpackut_str_unpack_dup(struct dpack_decoder *          decoder,
 
 CUTE_TEST(dpackut_str_decode_dup_assert)
 {
-       struct dpack_decoder dec = { 0, };
-       char *               str;
-       char                 buff[8];
-       ssize_t              ret __unused;
+	struct dpack_decoder dec = { 0, };
+	char *               str;
+	char                 buff[8];
+	ssize_t              ret __unused;
 
-       cute_expect_assertion(ret = dpack_decode_strdup(NULL, &str));
+	cute_expect_assertion(ret = dpack_decode_strdup(NULL, &str));
 #if defined(CONFIG_DPACK_DEBUG)
-       cute_expect_assertion(ret = dpack_decode_strdup(&dec, &str));
+	cute_expect_assertion(ret = dpack_decode_strdup(&dec, &str));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
-       dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
-       cute_expect_assertion(ret = dpack_decode_strdup(&dec, NULL));
-       dpack_decoder_fini(&dec);
+	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
+	cute_expect_assertion(ret = dpack_decode_strdup(&dec, NULL));
+	dpack_decoder_fini(&dec);
 }
 
 #else  /* !(defined(CONFIG_DPACK_ASSERT_API)) */

@@ -381,7 +381,7 @@ Available operations are:
    * string decoding:
 
       * :c:func:`dpack_decode_lvstr`
-      * :c:func:`dpack_decode_lvstr_fix`
+      * :c:func:`dpack_decode_lvstr_equ`
       * :c:func:`dpack_decode_lvstr_max`
       * :c:func:`dpack_decode_lvstr_range`
 
@@ -1196,10 +1196,10 @@ dpack_decode_lvstr
 
 .. doxygenfunction:: dpack_decode_lvstr
 
-dpack_decode_lvstr_fix
+dpack_decode_lvstr_equ
 **********************
 
-.. doxygenfunction:: dpack_decode_lvstr_fix
+.. doxygenfunction:: dpack_decode_lvstr_equ
 
 dpack_decode_lvstr_max
 **********************

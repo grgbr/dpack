@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: LGPL-3.0-only
  *
  * This file is part of DPack.
- * Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ * Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
  ******************************************************************************/
 
 #include "dpack/lvstr.h"
@@ -55,6 +55,32 @@ dpack_encode_lvstr(struct dpack_encoder *      encoder,
 }
 
 ssize_t
+dpack_decode_lvstr_equ(struct dpack_decoder * decoder,
+                       size_t                 len,
+                       struct stroll_lvstr *  value)
+{
+	dpack_assert_api_decoder(decoder);
+	dpack_assert_api(len);
+	dpack_assert_api(len <= DPACK_LVSTRLEN_MAX);
+	dpack_assert_api(value);
+
+	ssize_t ret;
+	char *  cstr;
+
+	ret = dpack_decode_strdup_equ(decoder, len, &cstr);
+	if (ret < 0)
+		return ret;
+
+	dpack_assert_intern(cstr);
+	dpack_assert_intern(cstr[0]);
+	dpack_assert_intern((size_t)ret == len);
+
+	stroll_lvstr_ncede(value, cstr, len);
+
+	return ret;
+}
+
+ssize_t
 dpack_decode_lvstr_range(struct dpack_decoder * decoder,
                          size_t                 min_len,
                          size_t                 max_len,
@@ -71,7 +97,7 @@ dpack_decode_lvstr_range(struct dpack_decoder * decoder,
 
 	len = dpack_decode_strdup_range(decoder, min_len, max_len, &cstr);
 	if (len < 0)
-		return (int)len;
+		return len;
 
 	dpack_assert_intern(cstr);
 	dpack_assert_intern(cstr[0]);
@@ -82,30 +108,4 @@ dpack_decode_lvstr_range(struct dpack_decoder * decoder,
 	dpack_assert_intern((size_t)len == stroll_lvstr_len(value));
 
 	return len;
-}
-
-ssize_t
-dpack_decode_lvstr_fix(struct dpack_decoder * decoder,
-                       size_t                 len,
-                       struct stroll_lvstr *  value)
-{
-	dpack_assert_api_decoder(decoder);
-	dpack_assert_api(len);
-	dpack_assert_api(len <= DPACK_LVSTRLEN_MAX);
-	dpack_assert_api(value);
-
-	ssize_t ret;
-	char *  cstr;
-
-	ret = dpack_decode_strdup_equ(decoder, len, &cstr);
-	if (ret < 0)
-		return (int)ret;
-
-	dpack_assert_intern(cstr);
-	dpack_assert_intern(cstr[0]);
-	dpack_assert_intern((size_t)ret == len);
-
-	stroll_lvstr_ncede(value, cstr, len);
-
-	return ret;
 }
