@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: LGPL-3.0-only
 #
 # This file is part of DPack.
-# Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+# Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
 ################################################################################
 
 # Enable a bunch of warning options and disable -fno-signed-zeros optimization
@@ -55,6 +55,7 @@ dpack-utest-objs    += $(call kconf_enabled,DPACK_SCALAR,uint64.o)
 dpack-utest-objs    += $(call kconf_enabled,DPACK_SCALAR,int64.o)
 dpack-utest-objs    += $(call kconf_enabled,DPACK_STRING,string.o)
 dpack-utest-objs    += $(call kconf_enabled,DPACK_LVSTR,lvstr.o)
+dpack-utest-objs    += $(call kconf_enabled,DPACK_MAP,map.o)
 dpack-utest-cflags  := $(test-cflags)
 dpack-utest-ldflags := $(test-ldflags)
 dpack-utest-pkgconf := libstroll libcute

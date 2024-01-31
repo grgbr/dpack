@@ -13,6 +13,7 @@
 .. |MessagePack bin format|    replace:: :ref:`MessagePack bin format <sect-msgpack-bin>`
 .. |MessagePack nil format|    replace:: :ref:`MessagePack nil format <sect-msgpack-nil>`
 .. |MessagePack array format|  replace:: :ref:`MessagePack array format <sect-msgpack-array>`
+.. |MessagePack map format|    replace:: :ref:`MessagePack map format <sect-msgpack-map>`
 
 .. _mpack:                     https://github.com/ludocode/mpack
 .. |MPack|                     replace:: `MPack <mpack_>`_
@@ -128,6 +129,9 @@ You *MUST* include :file:`dpack/codec.h` header to use this interface.
 
 .. index:: boolean, bool
 
+.. _bool:
+.. _sect-api-bool:
+
 Boolean
 =======
 
@@ -144,6 +148,9 @@ Available operations are:
 You *MUST* include :file:`dpack/scalar.h` header to use this interface.
 
 .. index:: integers, signed, unsigned, 8-bits, 16-bits, 32-bits, 64-bits
+
+.. _int:
+.. _sect-api-int:
 
 Integer
 ========
@@ -263,6 +270,9 @@ You *MUST* include :file:`dpack/scalar.h` header to use this interface.
 
 .. index:: float, double, floating point number
 
+.. _float:
+.. _sect-api-float:
+
 Floating point number
 =====================
 
@@ -298,6 +308,9 @@ You *MUST* include :file:`dpack/scalar.h` header to use these interfaces.
 
 .. index:: nil, null
 
+.. _nil:
+.. _sect-api-nil:
+
 Nil
 ===
 
@@ -314,6 +327,9 @@ Available operations are:
 You *MUST* include :file:`dpack/scalar.h` header to use this interface.
 
 .. index:: string
+
+.. _string:
+.. _sect-api-string:
 
 String
 ======
@@ -355,6 +371,7 @@ You *MUST* include :file:`dpack/string.h` header to use these interfaces.
 .. index:: Length-Value string, lvstr
 
 .. _lvstr:
+.. _sect-api-lvstr:
 
 Length-Value string
 ===================
@@ -388,6 +405,9 @@ Available operations are:
 You *MUST* include :file:`dpack/lvstr.h` header to use these interfaces.
 
 .. index:: bin, blob, byte array
+
+.. _bin:
+.. _sect-api-bin:
 
 Bin
 ===
@@ -430,6 +450,7 @@ You *MUST* include :file:`dpack/bin.h` header to use these interfaces.
 
 .. index:: list, array, collection
 
+.. _array:
 .. _sect-api-array:
 
 Array
@@ -448,6 +469,7 @@ Available operations are:
 
    * array utilities:
 
+      * :c:macro:`DPACK_ARRAY_DATA_SIZE_MAX`
       * :c:macro:`DPACK_ARRAY_ELMNR_MAX`
       * :c:macro:`DPACK_ARRAY_ELMSZ_MAX`
       * :c:macro:`DPACK_ARRAY_FIXED_SIZE()`
@@ -516,14 +538,121 @@ Available operations are:
 
 .. index:: map, structured aggregate, structured collection
 
+.. _map:
 .. _sect-api-map:
 
 Map
 ===
 
-.. todo::
+When compiled with the :c:macro:`CONFIG_DPACK_MAP` build configuration option
+enabled, the DPack_ library provides support for map (de)serialization
+operations.
 
-   Document maps
+DPack_ *maps* are collections of |MessagePack| objects indexed by numerical
+field identifiers and serialized according to the |MessagePack map format|.
+
+Available operations are:
+
+.. hlist::
+
+   * map utilities:
+
+      * :c:macro:`DPACK_MAP_DATA_SIZE_MAX`
+      * :c:macro:`DPACK_MAP_HEAD_SIZE()`
+      * :c:macro:`DPACK_MAP_FLDID_SIZE_MIN`
+      * :c:macro:`DPACK_MAP_FLDID_SIZE_MAX`
+      * :c:macro:`DPACK_MAP_FLDNR_MAX`
+      * :c:macro:`DPACK_MAP_FLDSZ_MAX`
+      * :c:macro:`DPACK_MAP_SIZE()`
+      * :c:macro:`DPACK_MAP_SIZE_MAX`
+      * :c:func:`dpack_map_size()`
+
+   * map encoding:
+
+      * :c:func:`dpack_map_begin_encode`
+      * :c:func:`dpack_map_end_encode`
+
+   * map field identifiers:
+
+      * :c:func:`dpack_map_encode_fldid`
+      * :c:func:`dpack_map_decode_fldid`
+
+   * boolean map fields:
+
+      * :c:macro:`DPACK_MAP_BOOL_SIZE_MAX`
+      * :c:macro:`DPACK_MAP_BOOL_SIZE_MIN`
+      * :c:func:`dpack_map_encode_bool`
+
+   * signed integer map fields:
+
+      * :c:macro:`DPACK_MAP_INT8_SIZE_MAX`
+      * :c:macro:`DPACK_MAP_INT8_SIZE_MIN`
+      * :c:macro:`DPACK_MAP_INT16_SIZE_MAX`
+      * :c:macro:`DPACK_MAP_INT16_SIZE_MIN`
+      * :c:macro:`DPACK_MAP_INT32_SIZE_MAX`
+      * :c:macro:`DPACK_MAP_INT32_SIZE_MIN`
+      * :c:macro:`DPACK_MAP_INT64_SIZE_MAX`
+      * :c:macro:`DPACK_MAP_INT64_SIZE_MIN`
+      * :c:func:`dpack_map_encode_int8`
+      * :c:func:`dpack_map_encode_int16`
+      * :c:func:`dpack_map_encode_int32`
+      * :c:func:`dpack_map_encode_int64`
+
+   * unsigned integer map fields:
+
+      * :c:macro:`DPACK_MAP_UINT8_SIZE_MAX`
+      * :c:macro:`DPACK_MAP_UINT8_SIZE_MIN`
+      * :c:macro:`DPACK_MAP_UINT16_SIZE_MAX`
+      * :c:macro:`DPACK_MAP_UINT16_SIZE_MIN`
+      * :c:macro:`DPACK_MAP_UINT32_SIZE_MAX`
+      * :c:macro:`DPACK_MAP_UINT32_SIZE_MIN`
+      * :c:macro:`DPACK_MAP_UINT64_SIZE_MAX`
+      * :c:macro:`DPACK_MAP_UINT64_SIZE_MIN`
+      * :c:func:`dpack_map_encode_uint8`
+      * :c:func:`dpack_map_encode_uint16`
+      * :c:func:`dpack_map_encode_uint32`
+      * :c:func:`dpack_map_encode_uint64`
+
+   * floating point number map fields:
+
+      * :c:macro:`DPACK_MAP_DOUBLE_SIZE_MAX`
+      * :c:macro:`DPACK_MAP_DOUBLE_SIZE_MIN`
+      * :c:macro:`DPACK_MAP_FLOAT_SIZE_MAX`
+      * :c:macro:`DPACK_MAP_FLOAT_SIZE_MIN`
+      * :c:func:`dpack_map_encode_double`
+      * :c:func:`dpack_map_encode_float`
+
+   * string and lvstr map fields:
+
+     * :c:macro:`DPACK_MAP_LVSTR_SIZE()`
+     * :c:macro:`DPACK_MAP_LVSTR_SIZE_MAX`
+     * :c:macro:`DPACK_MAP_LVSTR_SIZE_MIN`
+     * :c:macro:`DPACK_MAP_STR_SIZE()`
+     * :c:macro:`DPACK_MAP_STR_SIZE_MAX`
+     * :c:macro:`DPACK_MAP_STR_SIZE_MIN`
+     * :c:func:`dpack_map_encode_lvstr`
+     * :c:func:`dpack_map_encode_str`
+     * :c:func:`dpack_map_encode_str_fix`
+
+   * bin map fields:
+
+     * :c:macro:`DPACK_MAP_BIN_SIZE()`
+     * :c:macro:`DPACK_MAP_BIN_SIZE_MAX`
+     * :c:macro:`DPACK_MAP_BIN_SIZE_MIN`
+     * :c:func:`dpack_map_encode_bin`
+
+   * nil map fields:
+
+     * :c:macro:`DPACK_MAP_NIL_SIZE_MAX`
+     * :c:macro:`DPACK_MAP_NIL_SIZE_MIN`
+     * :c:func:`dpack_map_encode_nil`
+
+   * nested collection map fields:
+
+     * :c:macro:`DPACK_MAP_NEST_SIZE_MAX()`
+     * :c:macro:`DPACK_MAP_NEST_SIZE_MIN()`
+     * :c:func:`dpack_map_begin_encode_nest_array`
+     * :c:func:`dpack_map_begin_encode_nest_map`
 
 .. index:: API reference, reference
 
@@ -636,6 +765,11 @@ DPACK_ARRAY_BOOL_SIZE
 *********************
 
 .. doxygendefine:: DPACK_ARRAY_BOOL_SIZE
+
+DPACK_ARRAY_DATA_SIZE_MAX
+*************************
+
+.. doxygendefine:: DPACK_ARRAY_DATA_SIZE_MAX
 
 DPACK_ARRAY_DOUBLE_SIZE
 ***********************
@@ -861,6 +995,221 @@ DPACK_LVSTRLEN_MAX
 ******************
 
 .. doxygendefine:: DPACK_LVSTRLEN_MAX
+
+DPACK_MAP_BIN_SIZE
+******************
+
+.. doxygendefine:: DPACK_MAP_BIN_SIZE
+
+DPACK_MAP_BIN_SIZE_MAX
+**********************
+
+.. doxygendefine:: DPACK_MAP_BIN_SIZE_MAX
+
+DPACK_MAP_BIN_SIZE_MIN
+**********************
+
+.. doxygendefine:: DPACK_MAP_BIN_SIZE_MIN
+
+DPACK_MAP_BOOL_SIZE_MAX
+***********************
+
+.. doxygendefine:: DPACK_MAP_BOOL_SIZE_MAX
+
+DPACK_MAP_BOOL_SIZE_MIN
+***********************
+
+.. doxygendefine:: DPACK_MAP_BOOL_SIZE_MIN
+
+DPACK_MAP_DATA_SIZE_MAX
+***********************
+
+.. doxygendefine:: DPACK_MAP_DATA_SIZE_MAX
+
+DPACK_MAP_DOUBLE_SIZE_MAX
+*************************
+
+.. doxygendefine:: DPACK_MAP_DOUBLE_SIZE_MAX
+
+DPACK_MAP_DOUBLE_SIZE_MIN
+*************************
+
+.. doxygendefine:: DPACK_MAP_DOUBLE_SIZE_MIN
+
+DPACK_MAP_FLDID_SIZE_MIN
+************************
+
+.. doxygendefine:: DPACK_MAP_FLDID_SIZE_MIN
+
+DPACK_MAP_FLDID_SIZE_MAX
+************************
+
+.. doxygendefine:: DPACK_MAP_FLDID_SIZE_MAX
+
+DPACK_MAP_FLDNR_MAX
+*******************
+
+.. doxygendefine:: DPACK_MAP_FLDNR_MAX
+
+DPACK_MAP_FLDSZ_MAX
+*******************
+
+.. doxygendefine:: DPACK_MAP_FLDSZ_MAX
+
+DPACK_MAP_FLOAT_SIZE_MAX
+************************
+
+.. doxygendefine:: DPACK_MAP_FLOAT_SIZE_MAX
+
+DPACK_MAP_FLOAT_SIZE_MIN
+************************
+
+.. doxygendefine:: DPACK_MAP_FLOAT_SIZE_MIN
+
+DPACK_MAP_HEAD_SIZE
+*******************
+
+.. doxygendefine:: DPACK_MAP_HEAD_SIZE
+
+DPACK_MAP_INT8_SIZE_MAX
+***********************
+
+.. doxygendefine:: DPACK_MAP_INT8_SIZE_MAX
+
+DPACK_MAP_INT16_SIZE_MAX
+************************
+
+.. doxygendefine:: DPACK_MAP_INT16_SIZE_MAX
+
+DPACK_MAP_INT8_SIZE_MIN
+***********************
+
+.. doxygendefine:: DPACK_MAP_INT8_SIZE_MIN
+
+DPACK_MAP_INT16_SIZE_MIN
+************************
+
+.. doxygendefine:: DPACK_MAP_INT16_SIZE_MIN
+
+DPACK_MAP_INT32_SIZE_MAX
+************************
+
+.. doxygendefine:: DPACK_MAP_INT32_SIZE_MAX
+
+DPACK_MAP_INT32_SIZE_MIN
+************************
+
+.. doxygendefine:: DPACK_MAP_INT32_SIZE_MIN
+
+DPACK_MAP_INT64_SIZE_MAX
+************************
+
+.. doxygendefine:: DPACK_MAP_INT64_SIZE_MAX
+
+DPACK_MAP_INT64_SIZE_MIN
+************************
+
+.. doxygendefine:: DPACK_MAP_INT64_SIZE_MIN
+
+DPACK_MAP_LVSTR_SIZE()
+**********************
+
+.. doxygendefine:: DPACK_MAP_LVSTR_SIZE
+
+DPACK_MAP_LVSTR_SIZE_MAX
+************************
+
+.. doxygendefine:: DPACK_MAP_LVSTR_SIZE_MAX
+
+DPACK_MAP_LVSTR_SIZE_MIN
+************************
+
+.. doxygendefine:: DPACK_MAP_LVSTR_SIZE_MIN
+
+DPACK_MAP_NEST_SIZE_MAX
+***********************
+
+.. doxygendefine:: DPACK_MAP_NEST_SIZE_MAX
+
+DPACK_MAP_NEST_SIZE_MIN
+***********************
+
+.. doxygendefine:: DPACK_MAP_NEST_SIZE_MIN
+
+DPACK_MAP_NIL_SIZE_MAX
+**********************
+
+.. doxygendefine:: DPACK_MAP_NIL_SIZE_MAX
+
+DPACK_MAP_NIL_SIZE_MIN
+**********************
+
+.. doxygendefine:: DPACK_MAP_NIL_SIZE_MIN
+
+DPACK_MAP_SIZE
+**************
+
+.. doxygendefine:: DPACK_MAP_SIZE
+
+DPACK_MAP_SIZE_MAX
+******************
+
+.. doxygendefine:: DPACK_MAP_SIZE_MAX
+
+DPACK_MAP_STR_SIZE
+******************
+
+.. doxygendefine:: DPACK_MAP_STR_SIZE
+
+DPACK_MAP_STR_SIZE_MIN
+**********************
+
+.. doxygendefine:: DPACK_MAP_STR_SIZE_MIN
+
+DPACK_MAP_STR_SIZE_MAX
+**********************
+
+.. doxygendefine:: DPACK_MAP_STR_SIZE_MAX
+
+DPACK_MAP_UINT8_SIZE_MAX
+************************
+
+.. doxygendefine:: DPACK_MAP_UINT8_SIZE_MAX
+
+DPACK_MAP_UINT16_SIZE_MAX
+*************************
+
+.. doxygendefine:: DPACK_MAP_UINT16_SIZE_MAX
+
+DPACK_MAP_UINT8_SIZE_MIN
+************************
+
+.. doxygendefine:: DPACK_MAP_UINT8_SIZE_MIN
+
+DPACK_MAP_UINT16_SIZE_MIN
+*************************
+
+.. doxygendefine:: DPACK_MAP_UINT16_SIZE_MIN
+
+DPACK_MAP_UINT32_SIZE_MAX
+*************************
+
+.. doxygendefine:: DPACK_MAP_UINT32_SIZE_MAX
+
+DPACK_MAP_UINT32_SIZE_MIN
+*************************
+
+.. doxygendefine:: DPACK_MAP_UINT32_SIZE_MIN
+
+DPACK_MAP_UINT64_SIZE_MAX
+*************************
+
+.. doxygendefine:: DPACK_MAP_UINT64_SIZE_MAX
+
+DPACK_MAP_UINT64_SIZE_MIN
+*************************
+
+.. doxygendefine:: DPACK_MAP_UINT64_SIZE_MIN
 
 DPACK_NIL_SIZE
 **************
@@ -1490,6 +1839,121 @@ dpack_lvstr_size
 ****************
 
 .. doxygenfunction:: dpack_lvstr_size
+
+dpack_map_begin_encode
+**********************
+
+.. doxygenfunction:: dpack_map_begin_encode
+
+dpack_map_begin_encode_nest_array
+*********************************
+
+.. doxygenfunction:: dpack_map_begin_encode_nest_array
+
+dpack_map_begin_encode_nest_map
+*******************************
+
+.. doxygenfunction:: dpack_map_begin_encode_nest_map
+
+dpack_map_decode_fldid
+**********************
+
+.. doxygenfunction:: dpack_map_decode_fldid
+
+dpack_map_encode_bin
+********************
+
+.. doxygenfunction:: dpack_map_encode_bin
+
+dpack_map_encode_bool
+*********************
+
+.. doxygenfunction:: dpack_map_encode_bool
+
+dpack_map_encode_double
+***********************
+
+.. doxygenfunction:: dpack_map_encode_double
+
+dpack_map_encode_fldid
+**********************
+
+.. doxygenfunction:: dpack_map_encode_fldid
+
+dpack_map_encode_float
+**********************
+
+.. doxygenfunction:: dpack_map_encode_float
+
+dpack_map_encode_int8
+*********************
+
+.. doxygenfunction:: dpack_map_encode_int8
+
+dpack_map_encode_int16
+**********************
+
+.. doxygenfunction:: dpack_map_encode_int16
+
+dpack_map_encode_int32
+**********************
+
+.. doxygenfunction:: dpack_map_encode_int32
+
+dpack_map_encode_int64
+**********************
+
+.. doxygenfunction:: dpack_map_encode_int64
+
+dpack_map_encode_lvstr
+**********************
+
+.. doxygenfunction:: dpack_map_encode_lvstr
+
+dpack_map_encode_nil
+********************
+
+.. doxygenfunction:: dpack_map_encode_nil
+
+dpack_map_encode_str
+********************
+
+.. doxygenfunction:: dpack_map_encode_str
+
+dpack_map_encode_str_fix
+************************
+
+.. doxygenfunction:: dpack_map_encode_str_fix
+
+dpack_map_encode_uint8
+**********************
+
+.. doxygenfunction:: dpack_map_encode_uint8
+
+dpack_map_encode_uint16
+***********************
+
+.. doxygenfunction:: dpack_map_encode_uint16
+
+dpack_map_encode_uint32
+***********************
+
+.. doxygenfunction:: dpack_map_encode_uint32
+
+dpack_map_encode_uint64
+***********************
+
+.. doxygenfunction:: dpack_map_encode_uint64
+
+dpack_map_end_encode
+********************
+
+.. doxygenfunction:: dpack_map_end_encode
+
+dpack_map_size
+**************
+
+.. doxygenfunction:: dpack_map_size
 
 dpack_str_size
 **************

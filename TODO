@@ -2,14 +2,14 @@ TODO
 ====
 
 * unit tests:
-  * nil
-  * lvstr
   * lvstr array
   * map
+  * map and array discarding
+  * test skip decoding
+  * DPACK_ARRAY_LVSTR_SIZE(), DPACK_ARRAY_LVSTR_SIZE_MIN(), DPACK_ARRAY_LVSTR_SIZE_MAX()
 * doc:
   * lvstr and lvstr array
   * map
+  * probe / peek tag
 * gcc attributes
 * utf8 support ?
-
-* lvstr.[ch] gcc attributes

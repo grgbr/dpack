@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: LGPL-3.0-only
  *
  * This file is part of DPack.
- * Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ * Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
  ******************************************************************************/
 
 #include "utest.h"
@@ -293,6 +293,9 @@ extern CUTE_SUITE_DECL(dpackut_str_suite);
 #if defined(CONFIG_DPACK_LVSTR)
 extern CUTE_SUITE_DECL(dpackut_lvstr_suite);
 #endif
+#if defined(CONFIG_DPACK_MAP)
+extern CUTE_SUITE_DECL(dpackut_map_suite);
+#endif
 
 CUTE_GROUP(dpackut_group) = {
 #if defined(CONFIG_DPACK_ARRAY)
@@ -323,6 +326,9 @@ CUTE_GROUP(dpackut_group) = {
 #endif
 #if defined(CONFIG_DPACK_LVSTR)
 	CUTE_REF(dpackut_lvstr_suite),
+#endif
+#if defined(CONFIG_DPACK_MAP)
+	CUTE_REF(dpackut_map_suite),
 #endif
 };
 

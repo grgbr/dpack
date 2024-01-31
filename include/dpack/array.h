@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: LGPL-3.0-only
  *
  * This file is part of DPack.
- * Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ * Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
  ******************************************************************************/
 
 /**
@@ -11,7 +11,7 @@
  *
  * @author    Grégor Boirie <gregor.boirie@free.fr>
  * @date      22 Feb 2023
- * @copyright Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ * @copyright Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
  * @license   [GNU Lesser General Public License (LGPL) v3]
  *            (https://www.gnu.org/licenses/lgpl+gpl-3.0.txt)
  */
@@ -24,27 +24,27 @@
 /**
  * Maximum number of elements of a dpack array
  */
-#define DPACK_ARRAY_ELMNR_MAX  (1024U)
+#define DPACK_ARRAY_ELMNR_MAX (1024U)
 
 /**
  * Maximum size of a dpack array element
  */
-#define DPACK_ARRAY_ELMSZ_MAX  (0U)
+#define DPACK_ARRAY_ELMSZ_MAX (1024U)
 
 #if defined(CONFIG_DPACK_SCALAR)
 
 #include <dpack/scalar.h>
 
 #if DPACK_STDINT_SIZE_MAX > DPACK_ARRAY_ELMSZ_MAX
-#undef DPACK_ARRAY_ELMSZ_MAX
-#define DPACK_ARRAY_ELMSZ_MAX DPACK_STDINT_SIZE_MAX 
+#error DPack array element cannot hold a single scalar element, \
+       increase DPACK_ARRAY_ELMSZ_MAX !
 #endif /* DPACK_STDINT_SIZE_MAX > DPACK_ARRAY_ELMSZ_MAX */
 
 #if defined(CONFIG_DPACK_FLOAT)
 
 #if DPACK_FLOAT_SIZE > DPACK_ARRAY_ELMSZ_MAX
-#undef DPACK_ARRAY_ELMSZ_MAX
-#define DPACK_ARRAY_ELMSZ_MAX DPACK_FLOAT_SIZE
+#error DPack array element cannot hold a single float element, \
+       increase DPACK_ARRAY_ELMSZ_MAX !
 #endif /* DPACK_FLOAT_SIZE > DPACK_ARRAY_ELMSZ_MAX */
 
 #endif /* defined(CONFIG_DPACK_FLOAT) */
@@ -52,8 +52,8 @@
 #if defined(CONFIG_DPACK_DOUBLE)
 
 #if DPACK_DOUBLE_SIZE > DPACK_ARRAY_ELMSZ_MAX
-#undef DPACK_ARRAY_ELMSZ_MAX
-#define DPACK_ARRAY_ELMSZ_MAX DPACK_DOUBLE_SIZE
+#error DPack array element cannot hold a single double element, \
+       increase DPACK_ARRAY_ELMSZ_MAX !
 #endif /* DPACK_DOUBLE_SIZE > DPACK_ARRAY_ELMSZ_MAX */
 
 #endif /* defined(CONFIG_DPACK_DOUBLE) */
@@ -64,10 +64,10 @@
 
 #include <dpack/string.h>
 
-#if DPACK_STRLEN_MAX > DPACK_ARRAY_ELMSZ_MAX
-#undef DPACK_ARRAY_ELMSZ_MAX
-#define DPACK_ARRAY_ELMSZ_MAX DPACK_STRLEN_MAX
-#endif /* DPACK_STRLEN_MAX > DPACK_ARRAY_ELMSZ_MAX */
+#if _DPACK_STRSZ_MAX_MIN > DPACK_ARRAY_ELMSZ_MAX
+#error DPack array element cannot hold a single string element, \
+       increase DPACK_ARRAY_ELMSZ_MAX !
+#endif /* _DPACK_STRSZ_MAX_MIN > DPACK_ARRAY_ELMSZ_MAX */
 
 #endif /* defined(CONFIG_DPACK_STRING) */
 
@@ -75,10 +75,10 @@
 
 #include <dpack/bin.h>
 
-#if DPACK_BINSZ_MAX > DPACK_ARRAY_ELMSZ_MAX
-#undef DPACK_ARRAY_ELMSZ_MAX
-#define DPACK_ARRAY_ELMSZ_MAX DPACK_BINSZ_MAX
-#endif /* DPACK_BINSZ_MAX > DPACK_ARRAY_ELMSZ_MAX */
+#if _DPACK_BINSZ_MAX_MIN > DPACK_ARRAY_ELMSZ_MAX
+#error DPack array element cannot hold a single bin element, \
+       increase DPACK_ARRAY_ELMSZ_MAX !
+#endif /* _DPACK_BINSZ_MAX_MIN > DPACK_ARRAY_ELMSZ_MAX */
 
 #endif /* defined(CONFIG_DPACK_BIN) */
 
@@ -91,7 +91,7 @@
 
 /* Check DPACK_ARRAY_ELMNR_MAX definition is sensible. */
 #if DPACK_ARRAY_ELMNR_MAX > _DPACK_ARRAY32_ELMNR_MAX
-#error msgpack cannot encode arrays containing more that UINT32_MAX elements !
+#error MsgPack cannot encode arrays containing more that UINT32_MAX elements !
 #elif DPACK_ARRAY_ELMNR_MAX < 4U
 #error Huh ?!
 #endif
@@ -141,18 +141,22 @@
  * Top-level array size definitions
  ******************************************************************************/
 
-#if DPACK_ARRAY_ELMNR_MAX < (64U * DPACK_ARRAY_ELMSZ_MAX)
-#define _DPACK_ARRAY_DATA_SIZE_MAX (64U * DPACK_ARRAY_ELMSZ_MAX)
-#else  /* !(DPACK_ARRAY_ELMNR_MAX < (64U * DPACK_ARRAY_ELMSZ_MAX)) */
-#define _DPACK_ARRAY_DATA_SIZE_MAX DPACK_ARRAY_ELMNR_MAX
-#endif /* DPACK_ARRAY_ELMNR_MAX < (64U * DPACK_ARRAY_ELMSZ_MAX) */
+/**
+ * Maximum size of a dpack array data block
+ */
+#define DPACK_ARRAY_DATA_SIZE_MAX \
+	(DPACK_ARRAY_ELMNR_MAX * DPACK_ARRAY_ELMSZ_MAX)
 
 /**
  * Maximum size of a dpack array
  */
 #define DPACK_ARRAY_SIZE_MAX \
 	(__DPACK_ARRAY_HEAD_SIZE(DPACK_ARRAY_ELMNR_MAX) + \
-	 _DPACK_ARRAY_DATA_SIZE_MAX)
+	 DPACK_ARRAY_DATA_SIZE_MAX)
+
+#if DPACK_ARRAY_SIZE_MAX > (128U * 1024 * 1024)
+#error DPack cannot encode arrays which overall size > 128 MB !
+#endif /* DPACK_ARRAY_SIZE_MAX > (128U * 1024 * 1024) */
 
 #define _DPACK_ARRAY_HEAD_SIZE(_elm_nr) \
 	compile_eval(((_elm_nr) > 0) && \
@@ -186,7 +190,7 @@
 	compile_eval(((_elm_nr) > 0) && \
 	             ((_elm_nr) <= DPACK_ARRAY_ELMNR_MAX) && \
 	             ((_data_size) > 0) && \
-	             ((_data_size) <= _DPACK_ARRAY_DATA_SIZE_MAX), \
+	             ((_data_size) <= DPACK_ARRAY_DATA_SIZE_MAX), \
 	             (__DPACK_ARRAY_HEAD_SIZE(_elm_nr) + (_data_size)), \
 	             "invalid array length or data size")
 

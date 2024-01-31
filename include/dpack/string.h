@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: LGPL-3.0-only
  *
  * This file is part of DPack.
- * Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ * Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
  ******************************************************************************/
 
 /**
@@ -32,13 +32,13 @@ struct dpack_decoder;
 #define DPACK_STRLEN_MAX     STROLL_CONCAT(CONFIG_DPACK_STRING_MAXLEN, U)
 
 /* Maximum number of characters an msgpack fixstr may encode */
-#define DPACK_FIXSTR_LEN_MAX (31U)
+#define _DPACK_FIXSTR_LEN_MAX  (31U)
 /* Maximum number of characters an 8 bits msgpack string may encode */
-#define DPACK_STR8_LEN_MAX   UINT8_MAX
+#define _DPACK_STR8_LEN_MAX    UINT8_MAX
 /* Maximum number of characters an 16 bits msgpack string may encode */
-#define DPACK_STR16_LEN_MAX  UINT16_MAX
+#define _DPACK_STR16_LEN_MAX   UINT16_MAX
 /* Maximum number of characters an 32 bits msgpack string may encode */
-#define DPACK_STR32_LEN_MAX  UINT32_MAX
+#define _DPACK_STR32_LEN_MAX   UINT32_MAX
 
 /*
  * Check DPACK_STRLEN_MAX definition is sensible.
@@ -48,10 +48,17 @@ struct dpack_decoder;
  * In addition, restrict maximum length to 128 MB minus one terminating NULL
  * byte !
  */
+
+#define _DPACK_STRLEN_MAX_MIN (16U)
+#define _DPACK_STRSZ_MAX_MIN \
+	(STROLL_CONCAT(MPACK_TAG_SIZE_FIXSTR, U) + _DPACK_STRLEN_MAX_MIN)
+
 #if DPACK_STRLEN_MAX >= (128U * 1024 * 1024)
-#error dpack cannot encode strings which length is >= 128 MB !
-#elif DPACK_STRLEN_MAX < 16U
-#error dpack cannot encode strings which length is < 16 !
+#error DPack maximum string length to large, \
+       decrease CONFIG_DPACK_STRING_MAXLEN !
+#elif DPACK_STRLEN_MAX < _DPACK_STRLEN_MAX_MIN
+#error DPack maximum string length to small, \
+       increase CONFIG_DPACK_STRING_MAXLEN !
 #endif
 
 /******************************************************************************
@@ -69,7 +76,7 @@ struct dpack_decoder;
  * Msgpack 8 bits string definitions
  ******************************************************************************/
 
-#if DPACK_STRLEN_MAX > DPACK_FIXSTR_LEN_MAX
+#if DPACK_STRLEN_MAX > _DPACK_FIXSTR_LEN_MAX
 
 /* Compute size of an encoded 8 bits msgpack string */
 #define DPACK_STR8_SIZE(_len) \
@@ -77,20 +84,20 @@ struct dpack_decoder;
 
 /* Size of an encoded string when length fits into an msgpack 8 bits string. */
 #define DPACK_STR8_CONST_SIZE(_len) \
-	(((_len) > DPACK_FIXSTR_LEN_MAX) ? DPACK_STR8_SIZE(_len) : \
-	                                   DPACK_FIXSTR_SIZE(_len))
+	(((_len) > _DPACK_FIXSTR_LEN_MAX) ? DPACK_STR8_SIZE(_len) : \
+	                                    DPACK_FIXSTR_SIZE(_len))
 
 #undef _DPACK_STR_CONST_SIZE
 #define _DPACK_STR_CONST_SIZE(_len) \
 	DPACK_STR8_CONST_SIZE(_len)
 
-#endif /* DPACK_STRLEN_MAX > DPACK_FIXSTR_LEN_MAX */
+#endif /* DPACK_STRLEN_MAX > _DPACK_FIXSTR_LEN_MAX */
 
 /******************************************************************************
  * Msgpack 16 bits string definitions
  ******************************************************************************/
 
-#if DPACK_STRLEN_MAX > DPACK_STR8_LEN_MAX
+#if DPACK_STRLEN_MAX > _DPACK_STR8_LEN_MAX
 
 /* Compute size of an encoded 16 bits msgpack string */
 #define DPACK_STR16_SIZE(_len) \
@@ -98,20 +105,20 @@ struct dpack_decoder;
 
 /* Size of an encoded string when length fits into an msgpack 16 bits string. */
 #define DPACK_STR16_CONST_SIZE(_len) \
-	(((_len) > DPACK_STR8_LEN_MAX) ? DPACK_STR16_SIZE(_len) : \
-	                                 DPACK_STR8_CONST_SIZE(_len))
+	(((_len) > _DPACK_STR8_LEN_MAX) ? DPACK_STR16_SIZE(_len) : \
+	                                  DPACK_STR8_CONST_SIZE(_len))
 
 #undef _DPACK_STR_CONST_SIZE
 #define _DPACK_STR_CONST_SIZE(_len) \
 	DPACK_STR16_CONST_SIZE(_len)
 
-#endif /* DPACK_STRLEN_MAX > DPACK_STR8_LEN_MAX */
+#endif /* DPACK_STRLEN_MAX > _DPACK_STR8_LEN_MAX */
 
 /******************************************************************************
  * Msgpack 32 bits string definitions
  ******************************************************************************/
 
-#if DPACK_STRLEN_MAX > DPACK_STR16_LEN_MAX
+#if DPACK_STRLEN_MAX > _DPACK_STR16_LEN_MAX
 
 /* Compute size of an encoded 32 bits msgpack string */
 #define DPACK_STR32_SIZE(_len) \
@@ -119,14 +126,14 @@ struct dpack_decoder;
 
 /* Size of an encoded string when length fits into an msgpack 32 bits string. */
 #define DPACK_STR32_CONST_SIZE(_len) \
-	(((_len) > DPACK_STR16_LEN_MAX) ? DPACK_STR32_SIZE(_len) : \
-	                                  DPACK_STR16_CONST_SIZE(_len))
+	(((_len) > _DPACK_STR16_LEN_MAX) ? DPACK_STR32_SIZE(_len) : \
+	                                   DPACK_STR16_CONST_SIZE(_len))
 
 #undef _DPACK_STR_CONST_SIZE
 #define _DPACK_STR_CONST_SIZE(_len) \
 	DPACK_STR32_CONST_SIZE(_len)
 
-#endif /* DPACK_STRLEN_MAX > DPACK_STR16_LEN_MAX */
+#endif /* DPACK_STRLEN_MAX > _DPACK_STR16_LEN_MAX */
 
 /******************************************************************************
  * Top-level string size definitions
@@ -245,8 +252,8 @@ dpack_encode_str(struct dpack_encoder  * encoder,
  * encoder at initialization time according to the
  * @rstsubst{MessagePack string format}.
  *
- * This function is similar to dpack_encode_str() except that at most @p len
- * bytes of @p value are encoded.
+ * This function is similar to dpack_encode_str() except that @p len bytes of @p
+ * value are encoded.
  *
  * @warning
  * - @p encoder *MUST* have been initialized using dpack_encoder_init_buffer()

@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: LGPL-3.0-only
  *
  * This file is part of DPack.
- * Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ * Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
  ******************************************************************************/
 
 /**
@@ -11,7 +11,7 @@
  *
  * @author    Grégor Boirie <gregor.boirie@free.fr>
  * @date      10 Apr 2023
- * @copyright Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ * @copyright Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
  * @license   [GNU Lesser General Public License (LGPL) v3]
  *            (https://www.gnu.org/licenses/lgpl+gpl-3.0.txt)
  */
@@ -30,11 +30,6 @@
 #define DPACK_LVSTRLEN_MAX \
 	STROLL_CONST_MIN(DPACK_STRLEN_MAX, STROLL_LVSTR_LEN_MAX)
 
-/* Check DPACK_LVSTRLEN_MAX definition is sensible. */
-#if DPACK_LVSTRLEN_MAX < 16U
-#error dpack cannot encode lvstr which length is < 16 !
-#endif
-
 /******************************************************************************
  * Msgpack fixstr definitions
  ******************************************************************************/
@@ -46,37 +41,37 @@
  * Msgpack 8 bits lvstr definitions
  ******************************************************************************/
 
-#if DPACK_LVSTRLEN_MAX > DPACK_FIXSTR_LEN_MAX
+#if DPACK_LVSTRLEN_MAX > _DPACK_FIXSTR_LEN_MAX
 
 #undef _DPACK_LVSTR_CONST_SIZE
 #define _DPACK_LVSTR_CONST_SIZE(_len) \
 	DPACK_STR8_CONST_SIZE(_len)
 
-#endif /* DPACK_LVSTRLEN_MAX > DPACK_FIXSTR_LEN_MAX */
+#endif /* DPACK_LVSTRLEN_MAX > _DPACK_FIXSTR_LEN_MAX */
 
 /******************************************************************************
  * Msgpack 16 bits lvstr definitions
  ******************************************************************************/
 
-#if DPACK_LVSTRLEN_MAX > DPACK_STR8_LEN_MAX
+#if DPACK_LVSTRLEN_MAX > _DPACK_STR8_LEN_MAX
 
 #undef _DPACK_LVSTR_CONST_SIZE
 #define _DPACK_LVSTR_CONST_SIZE(_len) \
 	DPACK_STR16_CONST_SIZE(_len)
 
-#endif /* DPACK_LVSTRLEN_MAX > DPACK_STR8_LEN_MAX */
+#endif /* DPACK_LVSTRLEN_MAX > _DPACK_STR8_LEN_MAX */
 
 /******************************************************************************
  * Msgpack 32 bits lvstr definitions
  ******************************************************************************/
 
-#if DPACK_LVSTRLEN_MAX > DPACK_STR16_LEN_MAX
+#if DPACK_LVSTRLEN_MAX > _DPACK_STR16_LEN_MAX
 
 #undef _DPACK_LVSTR_CONST_SIZE
 #define _DPACK_LVSTR_CONST_SIZE(_len) \
 	DPACK_STR32_CONST_SIZE(_len)
 
-#endif /* DPACK_LVSTRLEN_MAX > DPACK_STR16_LEN_MAX */
+#endif /* DPACK_LVSTRLEN_MAX > _DPACK_STR16_LEN_MAX */
 
 /******************************************************************************
  * Top-level lvstr size definitions
@@ -174,12 +169,13 @@ dpack_lvstr_size(size_t len) __dpack_const
  * @see dpack_encoder_init_buffer()
  */
 extern int
-dpack_encode_lvstr(struct dpack_encoder *      encoder,
-                   const struct stroll_lvstr * value) __dpack_nonull(1, 2)
-                                                      __dpack_nothrow
-                                                      __leaf
-                                                      __warn_result
-                                                      __dpack_export;
+dpack_encode_lvstr(struct dpack_encoder *                 encoder,
+                   const struct stroll_lvstr * __restrict value)
+	__dpack_nonull(1, 2)
+	__dpack_nothrow
+	__leaf
+	__warn_result
+	__dpack_export;
 
 /**
  * Decode a string encoded according to the MessagePack format into a lvstr with
@@ -237,13 +233,14 @@ dpack_encode_lvstr(struct dpack_encoder *      encoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern ssize_t
-dpack_decode_lvstr_equ(struct dpack_decoder * decoder,
-                       size_t                 len,
-                       struct stroll_lvstr *  value) __dpack_nonull(1, 3)
-                                                     __dpack_nothrow
-                                                     __leaf
-                                                     __warn_result
-                                                     __dpack_export;
+dpack_decode_lvstr_equ(struct dpack_decoder *           decoder,
+                       size_t                           len,
+                       struct stroll_lvstr * __restrict value)
+	__dpack_nonull(1, 3)
+	__dpack_nothrow
+	__leaf
+	__warn_result
+	__dpack_export;
 
 /**
  * Decode a string encoded according to the MessagePack format into a lvstr
@@ -307,14 +304,15 @@ dpack_decode_lvstr_equ(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern ssize_t
-dpack_decode_lvstr_range(struct dpack_decoder * decoder,
-                         size_t                 min_len,
-                         size_t                 max_len,
-                         struct stroll_lvstr *  value) __dpack_nonull(1, 4)
-                                                       __dpack_nothrow
-                                                       __leaf
-                                                       __warn_result
-                                                       __dpack_export;
+dpack_decode_lvstr_range(struct dpack_decoder *           decoder,
+                         size_t                           min_len,
+                         size_t                           max_len,
+                         struct stroll_lvstr * __restrict value)
+	__dpack_nonull(1, 4)
+	__dpack_nothrow
+	__leaf
+	__warn_result
+	__dpack_export;
 
 /**
  * Decode a string encoded according to the MessagePack format into a lvstr
@@ -367,8 +365,8 @@ dpack_decode_lvstr_range(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 static inline ssize_t __dpack_nonull(1, 2) __dpack_nothrow __warn_result
-dpack_decode_lvstr(struct dpack_decoder * decoder,
-                   struct stroll_lvstr *  value)
+dpack_decode_lvstr(struct dpack_decoder *           decoder,
+                   struct stroll_lvstr * __restrict value)
 {
 	return dpack_decode_lvstr_range(decoder, 1, DPACK_LVSTRLEN_MAX, value);
 }
@@ -429,9 +427,9 @@ dpack_decode_lvstr(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 static inline ssize_t __dpack_nonull(1, 3) __dpack_nothrow __warn_result
-dpack_decode_lvstr_max(struct dpack_decoder * decoder,
-                       size_t                 max_len,
-                       struct stroll_lvstr *  value)
+dpack_decode_lvstr_max(struct dpack_decoder *           decoder,
+                       size_t                           max_len,
+                       struct stroll_lvstr * __restrict value)
 {
 	return dpack_decode_lvstr_range(decoder, 1, max_len, value);
 }

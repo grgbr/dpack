@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: LGPL-3.0-only
  *
  * This file is part of DPack.
- * Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ * Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
  ******************************************************************************/
 
 #include "dpack/string.h"
@@ -16,18 +16,18 @@ dpack_str_size(size_t len)
 	dpack_assert_api(len <= DPACK_STRLEN_MAX);
 
 	switch (len) {
-	case 1 ... DPACK_FIXSTR_LEN_MAX:
+	case 1 ... _DPACK_FIXSTR_LEN_MAX:
 		return DPACK_FIXSTR_SIZE(len);
-#if DPACK_STRLEN_MAX > DPACK_FIXSTR_LEN_MAX
-	case (DPACK_FIXSTR_LEN_MAX + 1) ... DPACK_STR8_LEN_MAX:
+#if DPACK_STRLEN_MAX > _DPACK_FIXSTR_LEN_MAX
+	case (_DPACK_FIXSTR_LEN_MAX + 1) ... _DPACK_STR8_LEN_MAX:
 		return DPACK_STR8_SIZE(len);
 #endif
-#if DPACK_STRLEN_MAX > DPACK_STR8_LEN_MAX
-	case (DPACK_STR8_LEN_MAX + 1) ... DPACK_STR16_LEN_MAX:
+#if DPACK_STRLEN_MAX > _DPACK_STR8_LEN_MAX
+	case (_DPACK_STR8_LEN_MAX + 1) ... _DPACK_STR16_LEN_MAX:
 		return DPACK_STR16_SIZE(len);
 #endif
-#if DPACK_STRLEN_MAX > DPACK_STR16_LEN_MAX
-	case (DPACK_STR16_LEN_MAX + 1) ... DPACK_STRLEN_MAX:
+#if DPACK_STRLEN_MAX > _DPACK_STR16_LEN_MAX
+	case (_DPACK_STR16_LEN_MAX + 1) ... DPACK_STRLEN_MAX:
 		return DPACK_STR32_SIZE(len);
 #endif
 	default:

@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: LGPL-3.0-only
  *
  * This file is part of DPack.
- * Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ * Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
  ******************************************************************************/
 
 /**
@@ -11,7 +11,7 @@
  *
  * @author    Grégor Boirie <gregor.boirie@free.fr>
  * @date      20 May 2023
- * @copyright Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ * @copyright Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
  * @license   [GNU Lesser General Public License (LGPL) v3]
  *            (https://www.gnu.org/licenses/lgpl+gpl-3.0.txt)
  */
@@ -32,11 +32,11 @@ struct dpack_decoder;
 #define DPACK_BINSZ_MAX (64U * 1024U)
 
 /* Maximum number of bytes an 8 bits msgpack bin may encode */
-#define DPACK_BIN8_SIZE_MAX  UINT8_MAX
+#define _DPACK_BIN8_SIZE_MAX  UINT8_MAX
 /* Maximum number of bytes a 16 bits msgpack bin may encode */
-#define DPACK_BIN16_SIZE_MAX UINT16_MAX
+#define _DPACK_BIN16_SIZE_MAX UINT16_MAX
 /* Maximum number of bytes a 32 bits msgpack bin may encode */
-#define DPACK_BIN32_SIZE_MAX UINT32_MAX
+#define _DPACK_BIN32_SIZE_MAX UINT32_MAX
 
 /*
  * Check DPACK_BINSZ_MAX definition is sensible.
@@ -45,10 +45,18 @@ struct dpack_decoder;
  * maximum size to a SSIZE_MAX...
  * In addition, restrict maximum size to 128 MB !
  */
+
+#define __DPACK_BINSZ_MAX_MIN (16U)
+#define _DPACK_BINSZ_MAX_MIN \
+	(STROLL_CONCAT(MPACK_TAG_SIZE_BIN8, U) + __DPACK_BINSZ_MAX_MIN)
+
 #if DPACK_BINSZ_MAX > (128U * 1024 * 1024)
 #error dpack cannot encode bin which size is > 128 MB !
-#elif DPACK_BINSZ_MAX < 16U
-#error dpack cannot encode bin which size is < 16 !
+#error DPack maximum bin size to large, \
+       decrease DPACK_BINSZ_MAX !
+#elif DPACK_BINSZ_MAX < __DPACK_BINSZ_MAX_MIN
+#error DPack maximum bin size to small, \
+       increase DPACK_BINSZ_MAX !
 #endif
 
 /******************************************************************************
@@ -66,7 +74,7 @@ struct dpack_decoder;
  * Msgpack 16 bits bin definitions
  ******************************************************************************/
 
-#if DPACK_BINSZ_MAX > DPACK_BIN8_SIZE_MAX
+#if DPACK_BINSZ_MAX > _DPACK_BIN8_SIZE_MAX
 
 /* Compute size of an encoded 16 bits msgpack bin */
 #define DPACK_BIN16_SIZE(_sz) \
@@ -74,20 +82,20 @@ struct dpack_decoder;
 
 /* Size of an encoded bin when size fits into an msgpack 16 bits bin. */
 #define DPACK_BIN16_CONST_SIZE(_sz) \
-	(((_sz) > DPACK_BIN8_SIZE_MAX) ? DPACK_BIN16_SIZE(_sz) : \
-	                                 DPACK_BIN8_SIZE(_sz))
+	(((_sz) > _DPACK_BIN8_SIZE_MAX) ? DPACK_BIN16_SIZE(_sz) : \
+	                                  DPACK_BIN8_SIZE(_sz))
 
 #undef _DPACK_BIN_CONST_SIZE
 #define _DPACK_BIN_CONST_SIZE(_sz) \
 	DPACK_BIN16_CONST_SIZE(_sz)
 
-#endif /* DPACK_BINSZ_MAX > DPACK_BIN8_SIZE_MAX */
+#endif /* DPACK_BINSZ_MAX > _DPACK_BIN8_SIZE_MAX */
 
 /******************************************************************************
  * Msgpack 32 bits bin definitions
  ******************************************************************************/
 
-#if DPACK_BINSZ_MAX > DPACK_BIN16_SIZE_MAX
+#if DPACK_BINSZ_MAX > _DPACK_BIN16_SIZE_MAX
 
 /* Compute size of an encoded 32 bits msgpack bin */
 #define DPACK_BIN32_SIZE(_sz) \
@@ -95,14 +103,14 @@ struct dpack_decoder;
 
 /* Size of an encoded bin when size fits into an msgpack 32 bits bin. */
 #define DPACK_BIN32_CONST_SIZE(_sz) \
-	(((_sz) > DPACK_BIN16_SIZE_MAX) ? DPACK_BIN32_SIZE(_sz) : \
-	                                  DPACK_BIN16_CONST_SIZE(_sz))
+	(((_sz) > _DPACK_BIN16_SIZE_MAX) ? DPACK_BIN32_SIZE(_sz) : \
+	                                   DPACK_BIN16_CONST_SIZE(_sz))
 
 #undef _DPACK_BIN_CONST_SIZE
 #define _DPACK_BIN_CONST_SIZE(_sz) \
 	DPACK_BIN32_CONST_SIZE(_sz)
 
-#endif /* DPACK_BINSZ_MAX > DPACK_BIN16_SIZE_MAX */
+#endif /* DPACK_BINSZ_MAX > _DPACK_BIN16_SIZE_MAX */
 
 /******************************************************************************
  * Top-level bin size definitions
@@ -196,13 +204,13 @@ dpack_bin_size(size_t size) __dpack_const
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_encode_bin(struct dpack_encoder * encoder,
-                 const char *           value,
-                 size_t                 size) __dpack_nonull(1, 2)
-                                              __dpack_nothrow
-                                              __leaf
-                                              __warn_result
-                                              __dpack_export;
+dpack_encode_bin(struct dpack_encoder *  encoder,
+                 const char * __restrict value,
+                 size_t                  size) __dpack_nonull(1, 2)
+                                               __dpack_nothrow
+                                               __leaf
+                                               __warn_result
+                                               __dpack_export;
 
 /**
  * Decode and allocate a bin encoded according to the MessagePack format

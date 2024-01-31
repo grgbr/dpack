@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: LGPL-3.0-only
  *
  * This file is part of DPack.
- * Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ * Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
  ******************************************************************************/
 
 #ifndef _MAP_SAMPLE_H
@@ -69,7 +69,7 @@ struct map_sample {
 #define MAP_SAMPLE_PACKED_SIZE_MAX \
 	(DPACK_MAP_HEAD_SIZE(MAP_SAMPLE_FLD_NR) + \
 	 DPACK_MAP_UINT16_SIZE_MAX + \
-	 DPACK_MAP_LVSTR_SIZE_MAX(MAP_SAMPLE_ASTRING_LEN_MAX) + \
+	 DPACK_MAP_LVSTR_SIZE(MAP_SAMPLE_ASTRING_LEN_MAX) + \
 	 DPACK_MAP_BOOL_SIZE_MAX + \
 	 DPACK_MAP_UINT32_SIZE_MAX)
 

@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: LGPL-3.0-only
  *
  * This file is part of DPack.
- * Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ * Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
  ******************************************************************************/
 
 #include "dpack/array.h"
@@ -15,7 +15,7 @@ dpack_array_mixed_size(unsigned int elm_nr, size_t data_size)
 	dpack_assert_api(elm_nr);
 	dpack_assert_api(elm_nr <= DPACK_ARRAY_ELMNR_MAX);
 	dpack_assert_api(data_size);
-	dpack_assert_api(data_size <= _DPACK_ARRAY_DATA_SIZE_MAX);
+	dpack_assert_api(data_size <= DPACK_ARRAY_DATA_SIZE_MAX);
 
 	size_t head;
 

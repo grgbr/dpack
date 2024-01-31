@@ -55,7 +55,7 @@ CUTE_TEST(dpackut_fixlvstr_sizes_31)
 
 #endif /* DPACK_LVSTRLEN_MAX >= 31 */
 
-#if DPACK_LVSTRLEN_MAX > DPACK_FIXSTR_LEN_MAX
+#if DPACK_LVSTRLEN_MAX > _DPACK_FIXSTR_LEN_MAX
 
 CUTE_TEST(dpackut_lvstr8_sizes)
 {
@@ -64,7 +64,7 @@ CUTE_TEST(dpackut_lvstr8_sizes)
 	cute_check_uint(dpack_lvstr_size(32), equal, 34);
 }
 
-#else  /* !(DPACK_LVSTRLEN_MAX > DPACK_FIXSTR_LEN_MAX) */
+#else  /* !(DPACK_LVSTRLEN_MAX > _DPACK_FIXSTR_LEN_MAX) */
 
 CUTE_TEST(dpackut_lvstr8_sizes)
 {
@@ -72,7 +72,7 @@ CUTE_TEST(dpackut_lvstr8_sizes)
 	          " support not compiled-in");
 }
 
-#endif /* DPACK_LVSTRLEN_MAX > DPACK_FIXSTR_LEN_MAX */
+#endif /* DPACK_LVSTRLEN_MAX > _DPACK_FIXSTR_LEN_MAX */
 
 #if DPACK_LVSTRLEN_MAX >= 33
 
@@ -142,7 +142,7 @@ CUTE_TEST(dpackut_lvstr8_sizes_255)
 
 #endif /* DPACK_LVSTRLEN_MAX >= UINT8_MAX */
 
-#if DPACK_LVSTRLEN_MAX > DPACK_STR8_LEN_MAX
+#if DPACK_LVSTRLEN_MAX > _DPACK_STR8_LEN_MAX
 
 CUTE_TEST(dpackut_lvstr16_sizes)
 {
@@ -155,7 +155,7 @@ CUTE_TEST(dpackut_lvstr16_sizes)
 	                UINT8_MAX + 1 + 3);
 }
 
-#else  /* !(DPACK_LVSTRLEN_MAX > DPACK_STR8_LEN_MAX) */
+#else  /* !(DPACK_LVSTRLEN_MAX > _DPACK_STR8_LEN_MAX) */
 
 CUTE_TEST(dpackut_lvstr16_sizes)
 {
@@ -163,7 +163,7 @@ CUTE_TEST(dpackut_lvstr16_sizes)
 	          " support not compiled-in");
 }
 
-#endif /* DPACK_LVSTRLEN_MAX > DPACK_STR8_LEN_MAX */
+#endif /* DPACK_LVSTRLEN_MAX > _DPACK_STR8_LEN_MAX */
 
 #if DPACK_LVSTRLEN_MAX >= (UINT8_MAX + 2)
 
@@ -245,7 +245,7 @@ CUTE_TEST(dpackut_lvstr16_sizes_65535)
 
 #endif /* DPACK_LVSTRLEN_MAX >= UINT16_MAX */
 
-#if DPACK_LVSTRLEN_MAX > DPACK_STR16_LEN_MAX
+#if DPACK_LVSTRLEN_MAX > _DPACK_STR16_LEN_MAX
 
 CUTE_TEST(dpackut_lvstr32_sizes)
 {
@@ -258,7 +258,7 @@ CUTE_TEST(dpackut_lvstr32_sizes)
 	                UINT16_MAX + 1 + 5);
 }
 
-#else  /* !(DPACK_LVSTRLEN_MAX > DPACK_STR16_LEN_MAX) */
+#else  /* !(DPACK_LVSTRLEN_MAX > _DPACK_STR16_LEN_MAX) */
 
 CUTE_TEST(dpackut_lvstr32_sizes)
 {
@@ -266,7 +266,7 @@ CUTE_TEST(dpackut_lvstr32_sizes)
 	          " support not compiled-in");
 }
 
-#endif /* DPACK_LVSTRLEN_MAX > DPACK_STR16_LEN_MAX */
+#endif /* DPACK_LVSTRLEN_MAX > _DPACK_STR16_LEN_MAX */
 
 #if DPACK_LVSTRLEN_MAX >= (UINT16_MAX + 2)
 

@@ -16,18 +16,18 @@ dpack_lvstr_size(size_t len)
 	dpack_assert_api(len <= DPACK_LVSTRLEN_MAX);
 
 	switch (len) {
-	case 1 ... DPACK_FIXSTR_LEN_MAX:
+	case 1 ... _DPACK_FIXSTR_LEN_MAX:
 		return DPACK_FIXSTR_SIZE(len);
-#if DPACK_LVSTRLEN_MAX > DPACK_FIXSTR_LEN_MAX
-	case (DPACK_FIXSTR_LEN_MAX + 1) ... DPACK_STR8_LEN_MAX:
+#if DPACK_LVSTRLEN_MAX > _DPACK_FIXSTR_LEN_MAX
+	case (_DPACK_FIXSTR_LEN_MAX + 1) ... _DPACK_STR8_LEN_MAX:
 		return DPACK_STR8_SIZE(len);
 #endif
-#if DPACK_LVSTRLEN_MAX > DPACK_STR8_LEN_MAX
-	case (DPACK_STR8_LEN_MAX + 1) ... DPACK_STR16_LEN_MAX:
+#if DPACK_LVSTRLEN_MAX > _DPACK_STR8_LEN_MAX
+	case (_DPACK_STR8_LEN_MAX + 1) ... _DPACK_STR16_LEN_MAX:
 		return DPACK_STR16_SIZE(len);
 #endif
-#if DPACK_LVSTRLEN_MAX > DPACK_STR16_LEN_MAX
-	case (DPACK_STR16_LEN_MAX + 1) ... DPACK_LVSTRLEN_MAX:
+#if DPACK_LVSTRLEN_MAX > _DPACK_STR16_LEN_MAX
+	case (_DPACK_STR16_LEN_MAX + 1) ... DPACK_LVSTRLEN_MAX:
 		return DPACK_STR32_SIZE(len);
 #endif
 	default:
@@ -38,8 +38,8 @@ dpack_lvstr_size(size_t len)
 }
 
 int
-dpack_encode_lvstr(struct dpack_encoder *      encoder,
-                   const struct stroll_lvstr * value)
+dpack_encode_lvstr(struct dpack_encoder *                 encoder,
+                   const struct stroll_lvstr * __restrict value)
 {
 	dpack_assert_api_encoder(encoder);
 	dpack_assert_api(value);
@@ -55,9 +55,9 @@ dpack_encode_lvstr(struct dpack_encoder *      encoder,
 }
 
 ssize_t
-dpack_decode_lvstr_equ(struct dpack_decoder * decoder,
-                       size_t                 len,
-                       struct stroll_lvstr *  value)
+dpack_decode_lvstr_equ(struct dpack_decoder *           decoder,
+                       size_t                           len,
+                       struct stroll_lvstr * __restrict value)
 {
 	dpack_assert_api_decoder(decoder);
 	dpack_assert_api(len);
@@ -81,10 +81,10 @@ dpack_decode_lvstr_equ(struct dpack_decoder * decoder,
 }
 
 ssize_t
-dpack_decode_lvstr_range(struct dpack_decoder * decoder,
-                         size_t                 min_len,
-                         size_t                 max_len,
-                         struct stroll_lvstr *  value)
+dpack_decode_lvstr_range(struct dpack_decoder *           decoder,
+                         size_t                           min_len,
+                         size_t                           max_len,
+                         struct stroll_lvstr * __restrict value)
 {
 	dpack_assert_api_decoder(decoder);
 	dpack_assert_api(min_len);

@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: LGPL-3.0-only
  *
  * This file is part of DPack.
- * Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ * Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
  ******************************************************************************/
 
 #include "dpack/bin.h"
@@ -61,7 +61,7 @@ CUTE_TEST(dpackut_bin8_sizes)
 #endif
 }
 
-#if DPACK_BINSZ_MAX > DPACK_BIN8_SIZE_MAX
+#if DPACK_BINSZ_MAX > _DPACK_BIN8_SIZE_MAX
 
 CUTE_TEST(dpackut_bin16_sizes)
 {
@@ -86,16 +86,16 @@ CUTE_TEST(dpackut_bin16_sizes)
 #endif
 }
 
-#else  /* !(DPACK_BINSZ_MAX > DPACK_BIN8_SIZE_MAX) */
+#else  /* !(DPACK_BINSZ_MAX > _DPACK_BIN8_SIZE_MAX) */
 
 CUTE_TEST(dpackut_bin16_sizes)
 {
 	cute_skip("16-bits MessagePack bin support not compiled-in");
 }
 
-#endif /* DPACK_BINSZ_MAX > DPACK_BIN8_SIZE_MAX */
+#endif /* DPACK_BINSZ_MAX > _DPACK_BIN8_SIZE_MAX */
 
-#if DPACK_BINSZ_MAX > DPACK_BIN16_SIZE_MAX
+#if DPACK_BINSZ_MAX > _DPACK_BIN16_SIZE_MAX
 
 CUTE_TEST(dpackut_bin32_sizes)
 {
@@ -120,14 +120,14 @@ CUTE_TEST(dpackut_bin32_sizes)
 #endif
 }
 
-#else  /* !(DPACK_BINSZ_MAX > DPACK_BIN16_SIZE_MAX) */
+#else  /* !(DPACK_BINSZ_MAX > _DPACK_BIN16_SIZE_MAX) */
 
 CUTE_TEST(dpackut_bin32_sizes)
 {
 	cute_skip("32-bits MessagePack bin support not compiled-in");
 }
 
-#endif /* DPACK_BINSZ_MAX > DPACK_BIN16_SIZE_MAX */
+#endif /* DPACK_BINSZ_MAX > _DPACK_BIN16_SIZE_MAX */
 
 #if defined(CONFIG_DPACK_ASSERT_API)
 
@@ -199,14 +199,14 @@ dpackut_bin_gen_data(struct dpackut_bin_data * data, size_t size)
 		data->pack_buff[0] = (char)0xc4;
 		data->pack_buff[1] = (char)(size);
 		break;
-#if DPACK_BINSZ_MAX > DPACK_BIN8_SIZE_MAX
+#if DPACK_BINSZ_MAX > _DPACK_BIN8_SIZE_MAX
 	case (UINT8_MAX + 1) ... UINT16_MAX:
 		data->pack_buff[0] = (char)0xc5;
 		data->pack_buff[1] = (char)((size >> 8) & 0xff);
 		data->pack_buff[2] = (char)(size & 0xff);
 		break;
 #endif
-#if DPACK_BINSZ_MAX > DPACK_BIN16_SIZE_MAX
+#if DPACK_BINSZ_MAX > _DPACK_BIN16_SIZE_MAX
 	case (UINT16_MAX + 1) ... UINT32_MAX:
 		data->pack_buff[0] = (char)0xc6;
 		data->pack_buff[1] = (char)((size >> 24) & 0xff);

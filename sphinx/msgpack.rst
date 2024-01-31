@@ -452,6 +452,8 @@ Where:
   which represents N
 * N is the size of an array
 
+.. _sect-msgpack-map:
+
 map format family
 ~~~~~~~~~~~~~~~~~
 

@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: LGPL-3.0-only
  *
  * This file is part of DPack.
- * Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ * Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
  ******************************************************************************/
 
 #include "map_sample.h"
@@ -261,7 +261,10 @@ map_sample_pack(struct dpack_encoder    * encoder,
 
 	int err;
 
-	dpack_map_begin_encode(encoder, stroll_bmap32_hweight(sample->filled));
+	err = dpack_map_begin_encode(encoder,
+	                             stroll_bmap32_hweight(sample->filled));
+	if (err)
+		return err;
 
 	/* ashort field is mandatory. */
 	err = dpack_map_encode_int16(encoder,

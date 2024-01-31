@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: LGPL-3.0-only
  *
  * This file is part of DPack.
- * Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ * Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
  ******************************************************************************/
 
 #include "dpack/bin.h"
@@ -16,14 +16,14 @@ dpack_bin_size(size_t size)
 	dpack_assert_api(size <= DPACK_BINSZ_MAX);
 
 	switch (size) {
-	case 1 ... DPACK_BIN8_SIZE_MAX:
+	case 1 ... _DPACK_BIN8_SIZE_MAX:
 		return DPACK_BIN8_SIZE(size);
-#if DPACK_BINSZ_MAX > DPACK_BIN8_SIZE_MAX
-	case (DPACK_BIN8_SIZE_MAX + 1) ... DPACK_BIN16_SIZE_MAX:
+#if DPACK_BINSZ_MAX > _DPACK_BIN8_SIZE_MAX
+	case (_DPACK_BIN8_SIZE_MAX + 1) ... _DPACK_BIN16_SIZE_MAX:
 		return DPACK_BIN16_SIZE(size);
 #endif
-#if DPACK_BINSZ_MAX > DPACK_BIN16_SIZE_MAX
-	case (DPACK_BIN16_SIZE_MAX + 1) ... DPACK_BINSZ_MAX:
+#if DPACK_BINSZ_MAX > _DPACK_BIN16_SIZE_MAX
+	case (_DPACK_BIN16_SIZE_MAX + 1) ... DPACK_BINSZ_MAX:
 		return DPACK_BIN32_SIZE(size);
 #endif
 	default:
@@ -34,9 +34,9 @@ dpack_bin_size(size_t size)
 }
 
 int
-dpack_encode_bin(struct dpack_encoder * encoder,
-                 const char *           value,
-                 size_t                 size)
+dpack_encode_bin(struct dpack_encoder *  encoder,
+                 const char * __restrict value,
+                 size_t                  size)
 {
 	dpack_assert_api_encoder(encoder);
 	dpack_assert_api(value);

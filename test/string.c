@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: LGPL-3.0-only
  *
  * This file is part of DPack.
- * Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ * Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
  ******************************************************************************/
 
 #include "dpack/string.h"
@@ -193,7 +193,7 @@ CUTE_TEST(dpackut_fixstr_sizes_31)
 
 #endif /* DPACK_STRLEN_MAX >= 31 */
 
-#if DPACK_STRLEN_MAX > DPACK_FIXSTR_LEN_MAX
+#if DPACK_STRLEN_MAX > _DPACK_FIXSTR_LEN_MAX
 
 CUTE_TEST(dpackut_str8_sizes)
 {
@@ -202,7 +202,7 @@ CUTE_TEST(dpackut_str8_sizes)
 	cute_check_uint(dpack_str_size(32), equal, 34);
 }
 
-#else  /* !(DPACK_STRLEN_MAX > DPACK_FIXSTR_LEN_MAX) */
+#else  /* !(DPACK_STRLEN_MAX > _DPACK_FIXSTR_LEN_MAX) */
 
 CUTE_TEST(dpackut_str8_sizes)
 {
@@ -210,7 +210,7 @@ CUTE_TEST(dpackut_str8_sizes)
 	          " support not compiled-in");
 }
 
-#endif /* DPACK_STRLEN_MAX > DPACK_FIXSTR_LEN_MAX */
+#endif /* DPACK_STRLEN_MAX > _DPACK_FIXSTR_LEN_MAX */
 
 #if DPACK_STRLEN_MAX >= 33
 
@@ -282,7 +282,7 @@ CUTE_TEST(dpackut_str8_sizes_255)
 
 #endif /* DPACK_STRLEN_MAX >= UINT8_MAX */
 
-#if DPACK_STRLEN_MAX > DPACK_STR8_LEN_MAX
+#if DPACK_STRLEN_MAX > _DPACK_STR8_LEN_MAX
 
 CUTE_TEST(dpackut_str16_sizes)
 {
@@ -295,7 +295,7 @@ CUTE_TEST(dpackut_str16_sizes)
 	                UINT8_MAX + 1 + 3);
 }
 
-#else  /* !(DPACK_STRLEN_MAX > DPACK_STR8_LEN_MAX) */
+#else  /* !(DPACK_STRLEN_MAX > _DPACK_STR8_LEN_MAX) */
 
 CUTE_TEST(dpackut_str16_sizes)
 {
@@ -303,7 +303,7 @@ CUTE_TEST(dpackut_str16_sizes)
 	          " support not compiled-in");
 }
 
-#endif /* DPACK_STRLEN_MAX > DPACK_STR8_LEN_MAX */
+#endif /* DPACK_STRLEN_MAX > _DPACK_STR8_LEN_MAX */
 
 #if DPACK_STRLEN_MAX >= (UINT8_MAX + 2)
 
@@ -389,7 +389,7 @@ CUTE_TEST(dpackut_str16_sizes_65535)
 
 #endif /* DPACK_STRLEN_MAX >= UINT16_MAX */
 
-#if DPACK_STRLEN_MAX > DPACK_STR16_LEN_MAX
+#if DPACK_STRLEN_MAX > _DPACK_STR16_LEN_MAX
 
 CUTE_TEST(dpackut_str32_sizes)
 {
@@ -402,7 +402,7 @@ CUTE_TEST(dpackut_str32_sizes)
 	                UINT16_MAX + 1 + 5);
 }
 
-#else  /* !(DPACK_STRLEN_MAX > DPACK_STR16_LEN_MAX) */
+#else  /* !(DPACK_STRLEN_MAX > _DPACK_STR16_LEN_MAX) */
 
 CUTE_TEST(dpackut_str32_sizes)
 {
@@ -410,7 +410,7 @@ CUTE_TEST(dpackut_str32_sizes)
 	          " support not compiled-in");
 }
 
-#endif /* DPACK_STRLEN_MAX > DPACK_STR16_LEN_MAX */
+#endif /* DPACK_STRLEN_MAX > _DPACK_STR16_LEN_MAX */
 
 #if DPACK_STRLEN_MAX >= (UINT16_MAX + 2)
 

@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: LGPL-3.0-only
  *
  * This file is part of DPack.
- * Copyright (C) 2023 Grégor Boirie <gregor.boirie@free.fr>
+ * Copyright (C) 2023-2024 Grégor Boirie <gregor.boirie@free.fr>
  ******************************************************************************/
 
 #include "dpack/array.h"
@@ -20,7 +20,7 @@
 
 #define DPACKUT_ARRAY_ENABLED(_elm_nr) \
 	((DPACK_ARRAY_ELMNR_MAX >= (_elm_nr)) && \
-	 (((_elm_nr) * DPACKUT_ARRAY_ELMSIZE) <= _DPACK_ARRAY_DATA_SIZE_MAX))
+	 (((_elm_nr) * DPACKUT_ARRAY_ELMSIZE) <= DPACK_ARRAY_DATA_SIZE_MAX))
 
 CUTE_TEST(dpackut_fixarray_sizes)
 {
@@ -192,10 +192,10 @@ CUTE_TEST(dpackut_array_fixed_size_assert)
 	cute_expect_assertion(
 		ret = dpack_array_fixed_size(DPACK_ARRAY_ELMNR_MAX + 1, 1));
 
-	ret = dpack_array_fixed_size(1, _DPACK_ARRAY_DATA_SIZE_MAX);
+	ret = dpack_array_fixed_size(1, DPACK_ARRAY_DATA_SIZE_MAX);
+
 	cute_expect_assertion(
-		ret = dpack_array_fixed_size(1,
-		                             _DPACK_ARRAY_DATA_SIZE_MAX + 1));
+		ret = dpack_array_fixed_size(1, DPACK_ARRAY_DATA_SIZE_MAX + 1));
 }
 
 CUTE_TEST(dpackut_array_encode_begin_null_enc)
@@ -208,7 +208,6 @@ CUTE_TEST(dpackut_array_encode_begin_null_enc)
 	cute_expect_assertion(ret = dpack_array_begin_encode(NULL, 1));
 	dpack_encoder_fini(&enc, DPACK_ABORT);
 }
-
 
 CUTE_TEST(dpackut_array_encode_begin_zero)
 {
@@ -521,7 +520,7 @@ CUTE_TEST(dpackut_array_encode_int16)
 	               DPACKUT_ARRAY_INT16_PACK_SIZE);
 }
 
-/* dpack-utest-gen.py "[0,255]" */
+/* dpack-utest-gen.py "[0,65535]" */
 #define DPACKUT_ARRAY_UINT16_ELM_NR \
 	(2U)
 #define DPACKUT_ARRAY_UINT16_PACK_DATA \
@@ -781,6 +780,12 @@ CUTE_TEST(dpackut_array_encode_double)
 
 #endif /* defined(CONFIG_DPACK_DOUBLE) */
 
+#if defined(CONFIG_DPACK_STRING) || defined(CONFIG_DPACK_BIN)
+
+static char * dpackut_array_buff;
+
+#endif /* defined(CONFIG_DPACK_STRING) || defined(CONFIG_DPACK_BIN) */
+
 #if defined(CONFIG_DPACK_STRING)
 
 /* dpack-utest-gen.py '["a", "list", "of strings"]' */
@@ -794,9 +799,7 @@ CUTE_TEST(dpackut_array_encode_double)
 #define DPACKUT_ARRAY_STR_PACK_SIZE \
 	(sizeof(DPACKUT_ARRAY_STR_PACK_DATA) - 1)
 #define DPACKUT_ARRAY_STR_PACK_SIZE_MAX \
-	DPACK_ARRAY_STR_SIZE_MAX(DPACKUT_ARRAY_STR_ELM_NR)
-
-static char * dpackut_array_buff;
+	DPACK_ARRAY_STR_SIZE(DPACKUT_ARRAY_STR_ELM_NR, 10U)
 
 static void dpackut_array_encode_str_setup(void)
 {
@@ -847,9 +850,9 @@ CUTE_TEST(dpackut_array_encode_str)
 	cute_skip("MessagePack string support not compiled-in");
 }
 
-#endif  /* !defined(CONFIG_DPACK_STRING) */
+#endif /* defined(CONFIG_DPACK_STRING) */
 
-#if defined(CONFIG_ARRAY_BIN)
+#if defined(CONFIG_DPACK_BIN)
 
 /* dpack/test/dpack-utest-gen.py "[b'\x00\x01\x03', b'\xff\xfe\xfd']" */
 #define DPACKUT_ARRAY_BIN_ELM_NR \
@@ -879,7 +882,7 @@ CUTE_TEST_STATIC(dpackut_array_encode_bin,
 	const char           blob1[] = "\xff\xfe\xfd";
 
 	dpack_encoder_init_buffer(&enc,
-	                          dpack_array_buff,
+	                          dpackut_array_buff,
 	                          DPACKUT_ARRAY_BIN_PACK_SIZE_MAX);
 
 	cute_check_sint(dpack_array_begin_encode(&enc,
@@ -896,21 +899,20 @@ CUTE_TEST_STATIC(dpackut_array_encode_bin,
 
 	dpack_encoder_fini(&enc, DPACK_DONE);
 
-	cute_check_mem(dpack_array_buff,
+	cute_check_mem(dpackut_array_buff,
 	               equal,
 	               DPACKUT_ARRAY_BIN_PACK_DATA,
 	               DPACKUT_ARRAY_BIN_PACK_SIZE);
 }
 
-#else  /* !defined(CONFIG_ARRAY_BIN) */
+#else  /* !defined(CONFIG_DPACK_BIN) */
 
 CUTE_TEST(dpackut_array_encode_bin)
 {
 	cute_skip("MessagePack bin support not compiled-in");
 }
 
-#endif /* defined(CONFIG_ARRAY_BIN) */
-
+#endif /* defined(CONFIG_DPACK_BIN) */
 
 #if defined(CONFIG_DPACK_SCALAR) && \
     defined(CONFIG_DPACK_DOUBLE) && \
@@ -1064,7 +1066,6 @@ CUTE_TEST(dpackut_array_encode_nest)
 #endif /* defined(CONFIG_DPACK_SCALAR) && \
           defined(CONFIG_DPACK_DOUBLE) && \
           defined(CONFIG_DPACK_STRING) */
-
 
 #if defined(CONFIG_DPACK_ASSERT_API)
 
@@ -1831,7 +1832,7 @@ CUTE_TEST(dpackut_array_decode_str)
 
 #endif  /* !defined(CONFIG_DPACK_STRING) */
 
-#if defined(CONFIG_ARRAY_BIN)
+#if defined(CONFIG_DPACK_BIN)
 
 static int
 dpackut_array_xtract_bin(struct dpack_decoder * decoder,
@@ -1879,14 +1880,14 @@ CUTE_TEST(dpackut_array_decode_bin)
 	dpack_decoder_fini(&dec);
 }
 
-#else  /* !defined(CONFIG_ARRAY_BIN) */
+#else  /* !defined(CONFIG_DPACK_BIN) */
 
 CUTE_TEST(dpackut_array_decode_bin)
 {
 	cute_skip("MessagePack bin support not compiled-in");
 }
 
-#endif /* defined(CONFIG_ARRAY_BIN) */
+#endif /* defined(CONFIG_DPACK_BIN) */
 
 #if defined(CONFIG_DPACK_SCALAR) && \
     defined(CONFIG_DPACK_DOUBLE) && \
