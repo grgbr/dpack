@@ -697,11 +697,21 @@ CUTE_TEST(dpackut_map_encode_double)
 
 #endif /* defined(CONFIG_DPACK_DOUBLE) */
 
-#if defined(CONFIG_DPACK_STRING) || defined(CONFIG_DPACK_BIN)
+#if defined(CONFIG_DPACK_STRING) || \
+    defined(CONFIG_DPACK_LVSTR) || \
+    defined(CONFIG_DPACK_BIN)
 
 static char * dpackut_map_buff;
 
-#endif  /* defined(CONFIG_DPACK_STRING) || defined(CONFIG_DPACK_BIN) */
+static void dpackut_map_teardown(void)
+{
+	cute_check_ptr(dpackut_map_buff, unequal, NULL);
+	free(dpackut_map_buff);
+}
+
+#endif  /* defined(CONFIG_DPACK_STRING) || \
+           defined(CONFIG_DPACK_LVSTR) || \
+           defined(CONFIG_DPACK_BIN) */
 
 #if defined(CONFIG_DPACK_STRING)
 
@@ -725,12 +735,6 @@ static void dpackut_map_encode_str_setup(void)
 	cute_check_ptr(dpackut_map_buff, unequal, NULL);
 
 	memset(dpackut_map_buff, 0, DPACKUT_MAP_STR_PACK_SIZE_MAX);
-}
-
-static void dpackut_map_teardown(void)
-{
-	cute_check_ptr(dpackut_map_buff, unequal, NULL);
-	free(dpackut_map_buff);
 }
 
 CUTE_TEST_STATIC(dpackut_map_encode_str,

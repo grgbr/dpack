@@ -784,6 +784,12 @@ CUTE_TEST(dpackut_array_encode_double)
 
 static char * dpackut_array_buff;
 
+static void dpackut_array_teardown(void)
+{
+	cute_check_ptr(dpackut_array_buff, unequal, NULL);
+	free(dpackut_array_buff);
+}
+
 #endif /* defined(CONFIG_DPACK_STRING) || defined(CONFIG_DPACK_BIN) */
 
 #if defined(CONFIG_DPACK_STRING)
@@ -807,12 +813,6 @@ static void dpackut_array_encode_str_setup(void)
 	cute_check_ptr(dpackut_array_buff, unequal, NULL);
 
 	memset(dpackut_array_buff, 0, DPACKUT_ARRAY_STR_PACK_SIZE_MAX);
-}
-
-static void dpackut_array_teardown(void)
-{
-	cute_check_ptr(dpackut_array_buff, unequal, NULL);
-	free(dpackut_array_buff);
 }
 
 CUTE_TEST_STATIC(dpackut_array_encode_str,

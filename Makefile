@@ -121,9 +121,9 @@ check checkall:
 
 endif # ifeq ($(strip $(CROSS_COMPILE)),)
 
-else  # ifneq ($(CONFIG_STROLL_UTEST),y)
+else  # ifneq ($(CONFIG_DPACK_UTEST),y)
 
 .PHONY: check
 check checkall:
 
-endif # ifeq ($(CONFIG_STROLL_UTEST),y)
+endif # ifeq ($(CONFIG_DPACK_UTEST),y)
