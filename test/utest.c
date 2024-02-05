@@ -220,6 +220,7 @@ malloc(size_t size)
 		cute_mock_uint_parm(size);
 
 		/* Now simulate a malloc() failure */
+		errno = ENOMEM;
 		return NULL;
 	}
 

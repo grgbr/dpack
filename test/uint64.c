@@ -903,50 +903,6 @@ CUTE_TEST(dpackut_uint64_decode_range_max_maxminus2_maxminus1)
 	dpackut_uint64_decode_range(&data);
 }
 
-#if 0
-};
-
-#if defined(CONFIG_DPACK_ASSERT_API)
-	uint64_t             val;
-	struct dpack_decoder dec = { 0, };
-	int                  ret __unused;
-
-	cute_expect_assertion(ret = dpack_decode_uint64_range(NULL,
-	                                                      1,
-	                                                      2,
-	                                                      &val));
-	cute_expect_assertion(ret = dpack_decode_uint64_range(&dec,
-	                                                      1,
-	                                                      2,
-	                                                      &val));
-
-	dpack_decoder_init_buffer(&dec, data[0].packed, data[0].size);
-	cute_expect_assertion(ret = dpack_decode_uint64_range(&dec,
-	                                                      0,
-	                                                      2,
-	                                                      &val));
-	cute_expect_assertion(ret = dpack_decode_uint64_range(&dec,
-	                                                      1,
-	                                                      UINT64_MAX,
-	                                                      &val));
-	cute_expect_assertion(ret = dpack_decode_uint64_range(&dec,
-	                                                      2,
-	                                                      2,
-	                                                      &val));
-	cute_expect_assertion(ret = dpack_decode_uint64_range(&dec,
-	                                                      1,
-	                                                      2,
-	                                                      NULL));
-	dpack_decoder_fini(&dec);
-#endif
-
-	dpack_scalar_utest_decode(data,
-	                          array_nr(data),
-	                          dpack_scalar_utest_unpack_uint64_range);
-}
-
-#endif
-
 CUTE_GROUP(dpackut_uint64_group) = {
 	CUTE_REF(dpackut_uint64_encode_assert),
 	CUTE_REF(dpackut_uint64_encode_0),
