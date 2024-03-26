@@ -186,7 +186,7 @@ typedef void (dpackut_bin_unpack_fn)(struct dpack_decoder *,
 static void
 dpackut_bin_gen_data(struct dpackut_bin_data * data, size_t size)
 {
-	cute_check_uint(size, lower_equal, array_nr(dpackut_bin_values));
+	cute_check_uint(size, lower_equal, stroll_array_nr(dpackut_bin_values));
 	data->value_size = size;
 	data->value_buff = dpackut_bin_values;
 
@@ -246,7 +246,7 @@ CUTE_TEST(dpackut_bin_encode_null_data)
 	char                 data[8];
 	int                  ret __unused;
 
-	dpack_encoder_init_buffer(&enc, data, array_nr(data));
+	dpack_encoder_init_buffer(&enc, data, stroll_array_nr(data));
 	cute_expect_assertion(ret = dpack_encode_bin(&enc, NULL, 1));
 	dpack_encoder_fini(&enc, DPACK_DONE);
 }
@@ -257,7 +257,7 @@ CUTE_TEST(dpackut_bin_encode_zero)
 	char                 data[8];
 	int                  ret __unused;
 
-	dpack_encoder_init_buffer(&enc, data, array_nr(data));
+	dpack_encoder_init_buffer(&enc, data, stroll_array_nr(data));
 	cute_expect_assertion(ret = dpack_encode_bin(&enc, data, 0));
 	dpack_encoder_fini(&enc, DPACK_DONE);
 }
@@ -268,7 +268,7 @@ CUTE_TEST(dpackut_bin_encode_huge)
 	char                 data[8];
 	int                  ret __unused;
 
-	dpack_encoder_init_buffer(&enc, data, array_nr(data));
+	dpack_encoder_init_buffer(&enc, data, stroll_array_nr(data));
 	cute_expect_assertion(ret = dpack_encode_bin(&enc,
 	                                             data,
 	                                             DPACK_BINSZ_MAX + 1));

@@ -1292,7 +1292,7 @@ CUTE_TEST(dpackut_array_decode_bool)
 	                0);
 	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
 
-	for (v = 0; v < array_nr(xpct); v++)
+	for (v = 0; v < stroll_array_nr(xpct); v++)
 		cute_check_bool(values[v], is, xpct[v]);
 
 	dpack_decoder_fini(&dec);
@@ -1339,7 +1339,7 @@ CUTE_TEST(dpackut_array_decode_int8)
 	                0);
 	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
 
-	for (v = 0; v < array_nr(xpct); v++)
+	for (v = 0; v < stroll_array_nr(xpct); v++)
 		cute_check_sint(values[v], equal, xpct[v]);
 
 	dpack_decoder_fini(&dec);
@@ -1383,7 +1383,7 @@ CUTE_TEST(dpackut_array_decode_uint8)
 	                0);
 	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
 
-	for (v = 0; v < array_nr(xpct); v++)
+	for (v = 0; v < stroll_array_nr(xpct); v++)
 		cute_check_uint(values[v], equal, xpct[v]);
 
 	dpack_decoder_fini(&dec);
@@ -1430,7 +1430,7 @@ CUTE_TEST(dpackut_array_decode_int16)
 	                0);
 	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
 
-	for (v = 0; v < array_nr(xpct); v++)
+	for (v = 0; v < stroll_array_nr(xpct); v++)
 		cute_check_sint(values[v], equal, xpct[v]);
 
 	dpack_decoder_fini(&dec);
@@ -1474,7 +1474,7 @@ CUTE_TEST(dpackut_array_decode_uint16)
 	                0);
 	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
 
-	for (v = 0; v < array_nr(xpct); v++)
+	for (v = 0; v < stroll_array_nr(xpct); v++)
 		cute_check_uint(values[v], equal, xpct[v]);
 
 	dpack_decoder_fini(&dec);
@@ -1521,7 +1521,7 @@ CUTE_TEST(dpackut_array_decode_int32)
 	                0);
 	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
 
-	for (v = 0; v < array_nr(xpct); v++)
+	for (v = 0; v < stroll_array_nr(xpct); v++)
 		cute_check_sint(values[v], equal, xpct[v]);
 
 	dpack_decoder_fini(&dec);
@@ -1565,7 +1565,7 @@ CUTE_TEST(dpackut_array_decode_uint32)
 	                0);
 	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
 
-	for (v = 0; v < array_nr(xpct); v++)
+	for (v = 0; v < stroll_array_nr(xpct); v++)
 		cute_check_uint(values[v], equal, xpct[v]);
 
 	dpack_decoder_fini(&dec);
@@ -1612,7 +1612,7 @@ CUTE_TEST(dpackut_array_decode_int64)
 	                0);
 	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
 
-	for (v = 0; v < array_nr(xpct); v++)
+	for (v = 0; v < stroll_array_nr(xpct); v++)
 		cute_check_sint(values[v], equal, xpct[v]);
 
 	dpack_decoder_fini(&dec);
@@ -1656,7 +1656,7 @@ CUTE_TEST(dpackut_array_decode_uint64)
 	                0);
 	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
 
-	for (v = 0; v < array_nr(xpct); v++)
+	for (v = 0; v < stroll_array_nr(xpct); v++)
 		cute_check_uint(values[v], equal, xpct[v]);
 
 	dpack_decoder_fini(&dec);
@@ -1702,7 +1702,7 @@ CUTE_TEST(dpackut_array_decode_float)
 	                0);
 	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
 
-	for (v = 0; v < array_nr(xpct); v++)
+	for (v = 0; v < stroll_array_nr(xpct); v++)
 		cute_check_flt(values[v], equal, xpct[v]);
 
 	dpack_decoder_fini(&dec);
@@ -1757,7 +1757,7 @@ CUTE_TEST(dpackut_array_decode_double)
 	                0);
 	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
 
-	for (v = 0; v < array_nr(xpct); v++)
+	for (v = 0; v < stroll_array_nr(xpct); v++)
 		cute_check_flt(values[v], equal, xpct[v]);
 
 	dpack_decoder_fini(&dec);
@@ -1815,7 +1815,7 @@ CUTE_TEST(dpackut_array_decode_str)
 	                0);
 	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
 
-	for (v = 0; v < array_nr(xpct); v++) {
+	for (v = 0; v < stroll_array_nr(xpct); v++) {
 		cute_check_str(values[v], equal, xpct[v]);
 		free(values[v]);
 	}
@@ -1872,7 +1872,7 @@ CUTE_TEST(dpackut_array_decode_bin)
 	                0);
 	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
 
-	for (v = 0; v < array_nr(xpct); v++) {
+	for (v = 0; v < stroll_array_nr(xpct); v++) {
 		cute_check_mem(values[v], equal, xpct[v], 3);
 		free(values[v]);
 	}

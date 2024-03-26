@@ -44,7 +44,7 @@ includedir=$${prefix}/include
 
 Name: libdpack
 Description: dpack library
-Version: %%PKG_VERSION%%
+Version: $(VERSION)
 Requires.private: libstroll
 Cflags: -I$${includedir}
 Libs: -L$${libdir} -ldpack
