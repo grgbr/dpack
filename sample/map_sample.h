@@ -54,7 +54,7 @@ struct map_sample {
 
 #define MAP_SAMPLE_INIT \
 	{ \
-		.filled = STROLL_BMAP32_INIT_CLEAR, \
+		.filled = STROLL_BMAP_INIT_CLEAR32, \
 		.astring = STROLL_LVSTR_INIT \
 	}
 
@@ -75,7 +75,7 @@ struct map_sample {
 
 #define map_sample_assert_access(_sample) \
 	map_sample_assert(_sample); \
-	map_sample_assert(!stroll_bmap32_test_mask((_sample)->filled, \
+	map_sample_assert(!stroll_bmap_test_mask32((_sample)->filled, \
 	                                           ~MAP_SAMPLE_VALID_FLD_MSK))
 
 static inline int
@@ -108,7 +108,7 @@ map_sample_set_ashort(struct map_sample * sample, int16_t value)
 	map_sample_assert(!map_sample_check_ashort(value));
 
 	sample->ashort = value;
-	stroll_bmap32_set(&sample->filled, MAP_SAMPLE_ASHORT_FLD);
+	stroll_bmap_set32(&sample->filled, MAP_SAMPLE_ASHORT_FLD);
 }
 
 static inline int
@@ -121,7 +121,7 @@ map_sample_get_ashort(const struct map_sample * sample, int16_t * value)
 	 * Despite being a mandatory field, we still want the caller to be able
 	 * to retrieve the current value. Tell him by returning -EPERM.
 	 */
-	if (!stroll_bmap32_test(sample->filled, MAP_SAMPLE_ASHORT_FLD))
+	if (!stroll_bmap_test32(sample->filled, MAP_SAMPLE_ASHORT_FLD))
 		return -EPERM;
 
 	map_sample_assert(!map_sample_check_ashort(sample->ashort));
@@ -146,7 +146,7 @@ map_sample_set_abool(struct map_sample * sample, bool value)
 	map_sample_assert_access(sample);
 
 	sample->abool = value;
-	stroll_bmap32_set(&sample->filled, MAP_SAMPLE_ABOOL_FLD);
+	stroll_bmap_set32(&sample->filled, MAP_SAMPLE_ABOOL_FLD);
 }
 
 static inline int
@@ -159,7 +159,7 @@ map_sample_get_abool(const struct map_sample * sample, bool * value)
 	 * Despite being a mandatory field, we still want the caller to be able
 	 * to retrieve the current value. Tell him by returning -EPERM.
 	 */
-	if (!stroll_bmap32_test(sample->filled, MAP_SAMPLE_ABOOL_FLD))
+	if (!stroll_bmap_test32(sample->filled, MAP_SAMPLE_ABOOL_FLD))
 		return -EPERM;
 
 	*value = sample->abool;
@@ -174,7 +174,7 @@ map_sample_set_anuint(struct map_sample * sample, uint32_t value)
 	map_sample_assert(!map_sample_check_anuint(value));
 
 	sample->anuint = value;
-	stroll_bmap32_set(&sample->filled, MAP_SAMPLE_ANUINT_FLD);
+	stroll_bmap_set32(&sample->filled, MAP_SAMPLE_ANUINT_FLD);
 }
 
 static inline int
@@ -183,7 +183,7 @@ map_sample_get_anuint(const struct map_sample * sample, unsigned int * value)
 	map_sample_assert_access(sample);
 	map_sample_assert(value);
 
-	if (!stroll_bmap32_test(sample->filled, MAP_SAMPLE_ANUINT_FLD))
+	if (!stroll_bmap_test32(sample->filled, MAP_SAMPLE_ANUINT_FLD))
 		return -EPERM;
 
 	map_sample_assert(!map_sample_check_anuint(sample->anuint));
@@ -198,7 +198,7 @@ map_sample_init(struct map_sample * sample)
 {
 	map_sample_assert(sample);
 
-	stroll_bmap32_setup_clear(&sample->filled);
+	stroll_bmap_setup_clear32(&sample->filled);
 	stroll_lvstr_init(&sample->astring);
 }
 

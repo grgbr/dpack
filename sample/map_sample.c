@@ -26,7 +26,7 @@ map_sample_unpack_ashort(struct dpack_decoder * decoder,
 
 	int err;
 
-	if (stroll_bmap32_test(sample->filled, MAP_SAMPLE_ASHORT_FLD))
+	if (stroll_bmap_test32(sample->filled, MAP_SAMPLE_ASHORT_FLD))
 		return -EEXIST;
 
 	err = dpack_decode_int16(decoder, &sample->ashort);
@@ -37,7 +37,7 @@ map_sample_unpack_ashort(struct dpack_decoder * decoder,
 	if (err)
 		return err;
 
-	stroll_bmap32_set(&sample->filled, MAP_SAMPLE_ASHORT_FLD);
+	stroll_bmap_set32(&sample->filled, MAP_SAMPLE_ASHORT_FLD);
 
 	return 0;
 }
@@ -80,7 +80,7 @@ map_sample_lend_astring(struct map_sample * sample, const char * value)
 			strnlen(value, MAP_SAMPLE_ASTRING_LEN_MAX + 1)));
 
 	stroll_lvstr_lend(&sample->astring, value);
-	stroll_bmap32_set(&sample->filled, MAP_SAMPLE_ASTRING_FLD);
+	stroll_bmap_set32(&sample->filled, MAP_SAMPLE_ASTRING_FLD);
 }
 
 void
@@ -93,7 +93,7 @@ map_sample_cede_astring(struct map_sample * sample, char * value)
 			strnlen(value, MAP_SAMPLE_ASTRING_LEN_MAX + 1)));
 
 	stroll_lvstr_cede(&sample->astring, value);
-	stroll_bmap32_set(&sample->filled, MAP_SAMPLE_ASTRING_FLD);
+	stroll_bmap_set32(&sample->filled, MAP_SAMPLE_ASTRING_FLD);
 }
 
 int
@@ -104,7 +104,7 @@ map_sample_get_astring(const struct map_sample * sample, const char ** value)
 	map_sample_assert(!map_sample_check_intern_astring(&sample->astring));
 
 	/* This field is optional with a default value. */
-	if (!stroll_bmap32_test(sample->filled, MAP_SAMPLE_ASTRING_FLD)) {
+	if (!stroll_bmap_test32(sample->filled, MAP_SAMPLE_ASTRING_FLD)) {
 		extern const char * const map_sample_dflt_astring;
 		*value = map_sample_dflt_astring;
 	}
@@ -125,7 +125,7 @@ map_sample_unpack_astring(struct dpack_decoder * decoder,
 
 	ssize_t ret;
 
-	if (stroll_bmap32_test(sample->filled, MAP_SAMPLE_ASTRING_FLD)) {
+	if (stroll_bmap_test32(sample->filled, MAP_SAMPLE_ASTRING_FLD)) {
 		map_sample_assert(stroll_lvstr_cstr(&sample->astring));
 		return -EEXIST;
 	}
@@ -138,7 +138,7 @@ map_sample_unpack_astring(struct dpack_decoder * decoder,
 	if (ret)
 		goto free;
 
-	stroll_bmap32_set(&sample->filled, MAP_SAMPLE_ASTRING_FLD);
+	stroll_bmap_set32(&sample->filled, MAP_SAMPLE_ASTRING_FLD);
 
 	return 0;
 
@@ -164,7 +164,7 @@ map_sample_unpack_abool(struct dpack_decoder * decoder,
 
 	int err;
 
-	if (stroll_bmap32_test(sample->filled, MAP_SAMPLE_ABOOL_FLD))
+	if (stroll_bmap_test32(sample->filled, MAP_SAMPLE_ABOOL_FLD))
 		return -EEXIST;
 
 	err = dpack_decode_bool(decoder, &sample->abool);
@@ -173,7 +173,7 @@ map_sample_unpack_abool(struct dpack_decoder * decoder,
 
 	/* No need for boolean checker... */
 
-	stroll_bmap32_set(&sample->filled, MAP_SAMPLE_ABOOL_FLD);
+	stroll_bmap_set32(&sample->filled, MAP_SAMPLE_ABOOL_FLD);
 
 	return 0;
 }
@@ -187,7 +187,7 @@ map_sample_unpack_anuint(struct dpack_decoder * decoder,
 
 	int err;
 
-	if (stroll_bmap32_test(sample->filled, MAP_SAMPLE_ANUINT_FLD))
+	if (stroll_bmap_test32(sample->filled, MAP_SAMPLE_ANUINT_FLD))
 		return -EEXIST;
 
 	err = dpack_decode_uint32(decoder, &sample->anuint);
@@ -198,7 +198,7 @@ map_sample_unpack_anuint(struct dpack_decoder * decoder,
 	if (err)
 		return err;
 
-	stroll_bmap32_set(&sample->filled, MAP_SAMPLE_ANUINT_FLD);
+	stroll_bmap_set32(&sample->filled, MAP_SAMPLE_ANUINT_FLD);
 
 	return 0;
 }
@@ -208,11 +208,11 @@ map_sample_check(const struct map_sample * sample)
 {
 	/* Assert that sample has no invalid filled fields. */
 	map_sample_assert(sample);
-	map_sample_assert(!stroll_bmap32_test_mask(sample->filled,
+	map_sample_assert(!stroll_bmap_test_mask32(sample->filled,
 	                                           ~MAP_SAMPLE_VALID_FLD_MSK));
 
 	/* Now ensure all mandatory fields are set. */
-	if (stroll_bmap32_and(sample->filled, MAP_SAMPLE_MAND_FLD_MSK) !=
+	if (stroll_bmap_and32(sample->filled, MAP_SAMPLE_MAND_FLD_MSK) !=
 	    MAP_SAMPLE_MAND_FLD_MSK)
 		return -EPERM;
 
@@ -224,13 +224,13 @@ map_sample_check(const struct map_sample * sample)
 	map_sample_assert(!map_sample_check_ashort(sample->ashort));
 
 	/* Now assert optional fields. Start by checking astring field: */
-	if (stroll_bmap32_test(sample->filled, MAP_SAMPLE_ASTRING_FLD)) {
+	if (stroll_bmap_test32(sample->filled, MAP_SAMPLE_ASTRING_FLD)) {
 		map_sample_assert(
 			!map_sample_check_intern_astring(&sample->astring));
 	}
 
 	/* ... and finish by asserting auint field. */
-	if (stroll_bmap32_test(sample->filled, MAP_SAMPLE_ANUINT_FLD)) {
+	if (stroll_bmap_test32(sample->filled, MAP_SAMPLE_ANUINT_FLD)) {
 		map_sample_assert(!map_sample_check_anuint(sample->anuint));
 	}
 
@@ -239,7 +239,7 @@ map_sample_check(const struct map_sample * sample)
 	 * Let's say we want ashort field to be > 50 if the optional astring
 	 * field is not set:
 	 */
-	if (!stroll_bmap32_test(sample->filled, MAP_SAMPLE_ASTRING_FLD) &&
+	if (!stroll_bmap_test32(sample->filled, MAP_SAMPLE_ASTRING_FLD) &&
 	    sample->ashort <= 50)
 		return -EINVAL;
 
@@ -262,7 +262,7 @@ map_sample_pack(struct dpack_encoder    * encoder,
 	int err;
 
 	err = dpack_map_begin_encode(encoder,
-	                             stroll_bmap32_hweight(sample->filled));
+	                             stroll_bmap_hweight32(sample->filled));
 	if (err)
 		return err;
 
@@ -274,7 +274,7 @@ map_sample_pack(struct dpack_encoder    * encoder,
 		return err;
 
 	/* astring field is optional. */
-	if (stroll_bmap32_test(sample->filled, MAP_SAMPLE_ASTRING_FLD)) {
+	if (stroll_bmap_test32(sample->filled, MAP_SAMPLE_ASTRING_FLD)) {
 		err = dpack_map_encode_lvstr(encoder,
 		                             MAP_SAMPLE_ASTRING_FLD,
 		                             &sample->astring);
@@ -290,7 +290,7 @@ map_sample_pack(struct dpack_encoder    * encoder,
 		return err;
 
 	/* anuint field is optional. */
-	if (stroll_bmap32_test(sample->filled, MAP_SAMPLE_ANUINT_FLD)) {
+	if (stroll_bmap_test32(sample->filled, MAP_SAMPLE_ANUINT_FLD)) {
 		err = dpack_map_encode_uint32(encoder,
 		                              MAP_SAMPLE_ANUINT_FLD,
 		                              sample->anuint);
@@ -312,7 +312,7 @@ map_sample_unpack_field(struct dpack_decoder * decoder,
 
 	map_sample_assert(decoder);
 	map_sample_assert(spl);
-	map_sample_assert(!stroll_bmap32_test_mask(spl->filled,
+	map_sample_assert(!stroll_bmap_test_mask32(spl->filled,
 	                                           ~MAP_SAMPLE_VALID_FLD_MSK));
 
 	switch (fid) {
@@ -339,7 +339,7 @@ map_sample_unpack(struct dpack_decoder * decoder, struct map_sample * sample)
 
 	/* Assert that sample is a freshly initialized object. */
 	map_sample_assert(sample);
-	map_sample_assert(!stroll_bmap32_test_all(sample->filled));
+	map_sample_assert(!stroll_bmap_test_all32(sample->filled));
 
 	int err;
 
