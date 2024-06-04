@@ -2448,7 +2448,7 @@ CUTE_TEST(dpackut_bin_decode_cpy_equ_binsz)
 CUTE_TEST(dpackut_bin_decode_cpy_equ_uninit_dec)
 {
 	struct dpack_decoder dec = { 0, };
-	char *               data = data;
+	char                 data[2];
 	ssize_t              ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_bincpy_equ(&dec, 2, data));
@@ -2920,7 +2920,7 @@ CUTE_TEST(dpackut_bin_decode_cpy_range_binsz)
 CUTE_TEST(dpackut_bin_decode_cpy_range_uninit_dec)
 {
 	struct dpack_decoder dec = { 0, };
-	char *               data = data;
+	char                 data[2];
 	ssize_t              ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_bincpy_range(&dec,
