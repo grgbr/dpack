@@ -20,47 +20,57 @@
 #define _DPACK_CODEC_H
 
 #include <dpack/cdefs.h>
-#include <dpack/mpack.h>
+#include <stdint.h>
+#include <errno.h>
 
 /******************************************************************************
  * Encoder / packer
  ******************************************************************************/
 
+struct dpack_encoder;
+
+typedef size_t dpack_encoder_space_fn(const struct dpack_encoder * __restrict)
+	__dpack_nonull(1) __warn_result;
+
+
+typedef void dpack_encoder_write_fn(struct dpack_encoder * __restrict,
+                                    const uint8_t * __restrict,
+                                    size_t)
+	__dpack_nonull(1, 2);
+
+typedef void dpack_encoder_fini_fn(struct dpack_encoder * __restrict)
+	__dpack_nonull(1);
+
+struct dpack_encoder_ops {
+	dpack_encoder_space_fn * left;
+	dpack_encoder_space_fn * used;
+	dpack_encoder_write_fn * write;
+	dpack_encoder_fini_fn *  fini;
+};
+
+#define dpack_encoder_assert_ops_api(_ops) \
+	dpack_assert_api(_ops); \
+	dpack_assert_api((_ops)->left); \
+	dpack_assert_api((_ops)->used); \
+	dpack_assert_api((_ops)->write); \
+	dpack_assert_api((_ops)->fini)
+
 /**
  * A MessagePack encoder.
  *
- * An opaque structure allowing to encode data into an existing in-memory buffer
- * according to the @rstsubst{MessagePack format}.
+ * An opaque structure allowing to encode data according to the
+ * @rstsubst{MessagePack format}.
  */
 struct dpack_encoder {
-	struct mpack_writer_t mpack;
+	const struct dpack_encoder_ops * ops;
 };
 
-/**
- * Return buffer space used by encoded bytes.
- *
- * @param[in] encoder encoder
- *
- * @return Size of buffer space used in bytes
- *
- * Compute the number of bytes already encoded / packed / serialized into the
- * buffer assigned to @p encoder at initialization time.
- *
- * @warning
- * @p encoder *MUST* have been initialized using dpack_encoder_init_buffer()
- * before calling this function. Result is undefined otherwise.
- *
- * @see
- * - dpack_encoder_space_left()
- * - dpack_encoder_init_buffer()
- */
-extern size_t
-dpack_encoder_space_used(struct dpack_encoder * encoder) __dpack_nonull(1)
-                                                         __dpack_pure
-                                                         __dpack_nothrow
-                                                         __leaf
-                                                         __warn_result
-                                                         __dpack_export;
+#define DPACK_ENCODER_INIT(_ops) \
+	{ .ops = _ops }
+
+#define dpack_encoder_assert_api(_encoder) \
+	dpack_assert_api(_encoder); \
+	dpack_encoder_assert_ops_api((_encoder)->ops)
 
 /**
  * Return buffer space left for encoding purpose.
@@ -80,13 +90,97 @@ dpack_encoder_space_used(struct dpack_encoder * encoder) __dpack_nonull(1)
  * - dpack_encoder_space_used()
  * - dpack_encoder_init_buffer()
  */
-extern size_t
-dpack_encoder_space_left(struct dpack_encoder * encoder) __dpack_nonull(1)
-                                                         __dpack_pure
-                                                         __dpack_nothrow
-                                                         __leaf
-                                                         __warn_result
-                                                         __dpack_export;
+static inline __dpack_nonull(1) __dpack_pure __warn_result
+size_t
+dpack_encoder_space_left(const struct dpack_encoder * __restrict encoder)
+{
+	dpack_encoder_assert_api(encoder);
+
+	return encoder->ops->left(encoder);
+}
+
+/**
+ * Return buffer space used by encoded bytes.
+ *
+ * @param[in] encoder encoder
+ *
+ * @return Size of buffer space used in bytes
+ *
+ * Compute the number of bytes already encoded / packed / serialized into the
+ * buffer assigned to @p encoder at initialization time.
+ *
+ * @warning
+ * @p encoder *MUST* have been initialized using dpack_encoder_init_buffer()
+ * before calling this function. Result is undefined otherwise.
+ *
+ * @see
+ * - dpack_encoder_space_left()
+ * - dpack_encoder_init_buffer()
+ */
+static inline __dpack_nonull(1) __dpack_pure __warn_result
+size_t
+dpack_encoder_space_used(const struct dpack_encoder * __restrict encoder)
+{
+	dpack_encoder_assert_api(encoder);
+
+	return encoder->ops->used(encoder);
+}
+
+static inline __dpack_nonull(1, 2)
+void
+dpack_encoder_init(struct dpack_encoder * __restrict           encoder,
+                   const struct dpack_encoder_ops * __restrict ops)
+{
+	dpack_assert_api(encoder);
+	dpack_encoder_assert_ops_api(ops);
+
+	encoder->ops= ops;
+}
+
+/**
+ * Finalize a MessagePack encoder
+ *
+ * @param[inout] encoder encoder
+ * @param[in]    abort   request abortion
+ *
+ * Release resources allocated for @p encoder.
+ *
+ * When specified as #DPACK_ABORT, @p abort argument request abortion of current
+ * serialization and content of @p buffer previously registered at
+ * dpack_encoder_init_buffer() time is undefined. Passing #DPACK_DONE instead
+ * completes serialization successfully.
+ *
+ * @p buffer previously registered at dpack_encoder_init_buffer() time may
+ * safely be @man{free(3)}'ed once dpack_encoder_fini() has been called only.
+ *
+ * @see
+ * - dpack_encoder_init_buffer()
+ */
+static inline __dpack_nonull(1)
+void
+dpack_encoder_fini(struct dpack_encoder * __restrict encoder)
+{
+	dpack_encoder_assert_api(encoder);
+
+	encoder->ops->fini(encoder);
+}
+
+struct dpack_encoder_buffer {
+	struct dpack_encoder base;
+	size_t               tail;
+	size_t               capa;
+	uint8_t *            buff;
+};
+
+extern const struct dpack_encoder_ops dpack_encoder_buffer_ops;
+
+#define DPACK_ENCODER_INIT_BUFFER(_buff, _size) \
+	{ \
+		.base = DPACK_ENCODER_INIT(&dpack_encoder_buffer_ops), \
+		.tail = 0, \
+		.capa = _size, \
+		.buff = _buff \
+	}
 
 /**
  * Initialize a MessagePack encoder with buffer space
@@ -113,59 +207,179 @@ dpack_encoder_space_left(struct dpack_encoder * encoder) __dpack_nonull(1)
  * dpack_encoder_fini()
  */
 extern void
-dpack_encoder_init_buffer(struct dpack_encoder * encoder,
-                          char *                 buffer,
-                          size_t                 size)
-	__dpack_nonull(1, 2) __dpack_nothrow __leaf __dpack_export;
+dpack_encoder_init_buffer(struct dpack_encoder_buffer * __restrict encoder,
+                          uint8_t * __restrict                     buffer,
+                          size_t                                   size)
+	__dpack_nonull(1, 2) __dpack_export;
+
+/******************************************************************************
+ * Decoder / unpacker
+ ******************************************************************************/
+
+struct dpack_decoder;
+
+typedef size_t dpack_decoder_left_fn(const struct dpack_decoder * __restrict)
+	__dpack_nonull(1) __warn_result;
+
+typedef void dpack_decoder_read_fn(struct dpack_decoder * __restrict,
+                                   uint8_t * __restrict,
+                                   size_t)
+	__dpack_nonull(1, 2);
+
+typedef void dpack_decoder_discard_fn(struct dpack_decoder * __restrict,
+                                      size_t)
+	__dpack_nonull(1);
+
+typedef void dpack_decoder_fini_fn(struct dpack_decoder * __restrict)
+	__dpack_nonull(1);
+
+struct dpack_decoder_ops {
+	dpack_decoder_left_fn *    left;
+	dpack_decoder_read_fn *    read;
+	dpack_decoder_discard_fn * disc;
+	dpack_decoder_fini_fn *    fini;
+};
+
+#define DPACK_DECODER_INIT_OPS(_left, _read, _disc, _fini) \
+	{ .left = _left, .read = _read, .disc = _disc, .fini = _fini }
+
+#define dpack_decoder_assert_ops_api(_ops) \
+	dpack_assert_api(_ops); \
+	dpack_assert_api((_ops)->left); \
+	dpack_assert_api((_ops)->read); \
+	dpack_assert_api((_ops)->disc); \
+	dpack_assert_api((_ops)->fini)
 
 /**
- * Complete current serialization.
+ * A MessagePack decoder.
  *
- * Use #DPACK_DONE to instruct dpack_encoder_fini() to complete current
- * serialization process successfully.
- *
- * @see
- * - #DPACK_ABORT
- * - dpack_encoder_fini()
+ * An opaque structure allowing to decode data packed according to the
+ * @rstsubst{MessagePack format} from an existing in-memory buffer.
  */
-#define DPACK_DONE  (false)
+struct dpack_decoder {
+	const struct dpack_decoder_ops * ops;
+};
+
+#define DPACK_DECODER_INIT(_ops) \
+	{ .ops = _ops }
+
+#define dpack_decoder_assert_api(_decoder) \
+	dpack_assert_api(_decoder); \
+	dpack_decoder_assert_ops_api((_decoder)->ops)
 
 /**
- * Abort current serialization.
+ * Return size of data left to decode.
  *
- * Use #DPACK_ABORT to instruct dpack_encoder_fini() to abort current
- * serialization process.
+ * @param[in] decoder decoder
+ *
+ * @return Size of encoded data left in bytes
+ *
+ * Compute the number of bytes of unconsumed encoded / packed / serialized data
+ * remaining into the buffer assigned to @p decoder at initialization time.
+ *
+ * @warning
+ * @p decoder *MUST* have been initialized using dpack_decoder_init_buffer() or
+ * dpack_decoder_init_skip_buffer() before calling this function. Result is
+ * undefined otherwise.
  *
  * @see
- * - #DPACK_DONE
- * - dpack_encoder_fini()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
  */
-#define DPACK_ABORT (true)
+static inline __dpack_nonull(1) __dpack_pure __warn_result
+size_t
+dpack_decoder_data_left(const struct dpack_decoder * __restrict decoder)
+{
+	dpack_decoder_assert_api(decoder);
+
+	return decoder->ops->left(decoder);
+}
+
+static inline __dpack_nonull(1, 2)
+void
+dpack_decoder_init(struct dpack_decoder * __restrict           decoder,
+                   const struct dpack_decoder_ops * __restrict ops)
+{
+	dpack_assert_api(decoder);
+	dpack_decoder_assert_ops_api(ops);
+
+	decoder->ops= ops;
+}
 
 /**
- * Finalize a MessagePack encoder
+ * Finalize a MessagePack decoder
  *
- * @param[inout] encoder encoder
- * @param[in]    abort   request abortion
+ * @param[inout] decoder decoder
  *
- * Release resources allocated for @p encoder.
+ * Release resources allocated for @p decoder.
  *
- * When specified as #DPACK_ABORT, @p abort argument request abortion of current
- * serialization and content of @p buffer previously registered at
- * dpack_encoder_init_buffer() time is undefined. Passing #DPACK_DONE instead
- * completes serialization successfully.
- *
- * @p buffer previously registered at dpack_encoder_init_buffer() time may
- * safely be @man{free(3)}'ed once dpack_encoder_fini() has been called only.
+ * @p buffer previously registered at dpack_decoder_init_buffer() /
+ * dpack_decoder_init_skip_buffer() time may safely be @man{free(3)}'ed once
+ * dpack_decoder_fini() has been called only.
  *
  * @see
- * - dpack_encoder_init_buffer()
- * - #DPACK_DONE
- * - #DPACK_ABORT
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
+static inline __dpack_nonull(1)
+void
+dpack_decoder_fini(struct dpack_decoder * __restrict decoder)
+{
+	dpack_decoder_assert_api(decoder);
+
+	decoder->ops->fini(decoder);
+}
+
+struct dpack_decoder_buffer {
+	struct dpack_decoder base;
+	size_t               head;
+	size_t               capa;
+	const uint8_t *      buff;
+};
+
+extern const struct dpack_decoder_ops dpack_decoder_buffer_ops;
+
+#define DPACK_DECODER_INIT_BUFFER(_buff, _size) \
+	{ \
+		.base = DPACK_DECODER_INIT(&dpack_decoder_buffer_ops), \
+		.head = 0, \
+		.capa = _size, \
+		.buff = _buff \
+	}
+
+/**
+ * Initialize a MessagePack decoder with buffer space
+ *
+ * @param[inout] decoder decoder
+ * @param[in]    buffer  memory buffer
+ * @param[in]    size of @p buffer
+ *
+ * Initialize a @rstsubst{MessagePack} decoder for decoding / unpacking /
+ * deserialization purpose.
+ *
+ * @p buffer is a previously allocated memory area of size @p size and owned by
+ * the caller. It is the responsibility of the caller to manage allocation and
+ * release of @p buffer.
+ *
+ * Owner of @p buffer *MUST* call dpack_decoder_fini() before @man{free(3)}'ing
+ * it.
+ *
+ * @warning
+ * When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ * @p size is zero, result is undefined. An assertion is triggered otherwise.
+ *
+ * @see
+ * - dpack_decoder_fini()
+ * - dpack_decoder_init_skip_buffer()
  */
 extern void
-dpack_encoder_fini(struct dpack_encoder * encoder, bool abort)
-	__dpack_nonull(1) __dpack_nothrow __leaf __dpack_export;
+dpack_decoder_init_buffer(struct dpack_decoder_buffer * __restrict decoder,
+                          const uint8_t * __restrict               buffer,
+                          size_t                                   size)
+	 __dpack_nonull(1, 2) __dpack_nothrow __leaf __dpack_export;
+
+#if 0
+#include <dpack/mpack.h>
 
 /******************************************************************************
  * Decoder / unpacker
@@ -216,46 +430,6 @@ typedef void dpack_decoder_intr_fn(struct dpack_decoder * decoder,
                                    unsigned int           nr);
 
 /**
- * A MessagePack decoder.
- *
- * An opaque structure allowing to decode data packed according to the
- * @rstsubst{MessagePack format} from an existing in-memory buffer.
- */
-struct dpack_decoder {
-	struct mpack_reader_t   mpack;
-	dpack_decoder_intr_fn * intr;
-};
-
-/**
- * Return size of data left to decode.
- *
- * @param[in] decoder decoder
- *
- * @return Size of encoded data left in bytes
- *
- * Compute the number of bytes of unconsumed encoded / packed / serialized data
- * remaining into the buffer assigned to @p decoder at initialization time.
- *
- * @warning
- * @p decoder *MUST* have been initialized using dpack_decoder_init_buffer() or
- * dpack_decoder_init_skip_buffer() before calling this function. Result is
- * undefined otherwise.
- *
- * @see
- * - dpack_decoder_init_buffer()
- * - dpack_decoder_init_skip_buffer()
- */
-extern size_t
-dpack_decoder_data_left(struct dpack_decoder * decoder) __dpack_nonull(1)
-#if !defined(MPACK_READ_TRACKING) || (MPACK_READ_TRACKING == 0)
-	                                                __dpack_pure
-#endif /* !defined(MPACK_READ_TRACKING) || (MPACK_READ_TRACKING == 0) */
-	                                                __dpack_nothrow
-	                                                __leaf
-	                                                __warn_result
-	                                                __dpack_export;
-
-/**
  * Skip next item of encoded data
  *
  * @param[inout] decoder decoder
@@ -276,37 +450,6 @@ dpack_decoder_data_left(struct dpack_decoder * decoder) __dpack_nonull(1)
 extern int
 dpack_decoder_skip(struct dpack_decoder * decoder)
 	__dpack_nonull(1) __dpack_nothrow __warn_result __dpack_export;
-
-/**
- * Initialize a MessagePack decoder with buffer space
- *
- * @param[inout] decoder decoder
- * @param[in]    buffer  memory buffer
- * @param[in]    size of @p buffer
- *
- * Initialize a @rstsubst{MessagePack} decoder for decoding / unpacking /
- * deserialization purpose.
- *
- * @p buffer is a previously allocated memory area of size @p size and owned by
- * the caller. It is the responsibility of the caller to manage allocation and
- * release of @p buffer.
- *
- * Owner of @p buffer *MUST* call dpack_decoder_fini() before @man{free(3)}'ing
- * it.
- *
- * @warning
- * When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
- * @p size is zero, result is undefined. An assertion is triggered otherwise.
- *
- * @see
- * - dpack_decoder_fini()
- * - dpack_decoder_init_skip_buffer()
- */
-extern void
-dpack_decoder_init_buffer(struct dpack_decoder * decoder,
-                          const char *           buffer,
-                          size_t                 size)
-	__dpack_nonull(1, 2) __dpack_nothrow __leaf __dpack_export;
 
 /**
  * Initialize a MessagePack decoder with buffer space and data skipping ability
@@ -350,25 +493,6 @@ dpack_decoder_init_skip_buffer(struct dpack_decoder * decoder,
                                size_t                 size)
 	__dpack_nonull(1, 2) __dpack_nothrow __leaf __dpack_export;
 
-/**
- * Finalize a MessagePack decoder
- *
- * @param[inout] decoder decoder
- *
- * Release resources allocated for @p decoder.
- *
- * @p buffer previously registered at dpack_decoder_init_buffer() /
- * dpack_decoder_init_skip_buffer() time may safely be @man{free(3)}'ed once
- * dpack_decoder_fini() has been called only.
- *
- * @see
- * - dpack_decoder_init_buffer()
- * - dpack_decoder_init_skip_buffer()
- */
-extern void
-dpack_decoder_fini(struct dpack_decoder * decoder) __dpack_nonull(1)
-                                                   __dpack_nothrow
-                                                   __leaf
-                                                   __dpack_export;
+#endif
 
 #endif /* _DPACK_CODEC_H */

@@ -15,7 +15,7 @@
 
 #define DPACKUT_BOOL(_var, _packed, _error, _value) \
 	const struct dpackut_scalar_data _var = { \
-		.packed        = _packed, \
+		.packed        = (const uint8_t *)(_packed), \
 		.size          = sizeof(_packed) - 1, \
 		.error         = _error, \
 		.value.boolean = _value \
@@ -24,23 +24,23 @@
 static void
 dpackut_bool_encode(const struct dpackut_scalar_data * data)
 {
-	struct dpack_encoder enc = { 0, };
-	size_t               sz = data->size;
-	char                 buff[sz];
+	struct dpack_encoder_buffer enc = { 0, };
+	size_t                      sz = data->size;
+	uint8_t                     buff[sz];
 
 	memset(buff, 0xa5, sz);
 	dpack_encoder_init_buffer(&enc, buff, sz);
 
 	cute_check_uint(data->size, equal, DPACK_BOOL_SIZE);
-	cute_check_sint(dpack_encode_bool(&enc, data->value.boolean),
+	cute_check_sint(dpack_encode_bool(&enc.base, data->value.boolean),
 	                equal,
 	                data->error);
 	cute_check_mem(buff, equal, data->packed, sz);
 
-	cute_check_uint(dpack_encoder_space_used(&enc), equal, sz);
-	cute_check_uint(dpack_encoder_space_left(&enc), equal, 0);
+	cute_check_uint(dpack_encoder_space_used(&enc.base), equal, sz);
+	cute_check_uint(dpack_encoder_space_left(&enc.base), equal, 0);
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 }
 
 #if defined(CONFIG_DPACK_ASSERT_API)
@@ -85,38 +85,38 @@ CUTE_TEST(dpackut_bool_encode_false)
 static void
 dpackut_bool_decode(const struct dpackut_scalar_data * data)
 {
-	struct dpack_decoder dec = { 0, };
-	bool                 val;
+	struct dpack_decoder_buffer dec = { 0, };
+	bool                        val;
 
 	dpack_decoder_init_buffer(&dec, data->packed, data->size);
 
-	cute_check_sint(dpack_decode_bool(&dec, &val), equal, data->error);
+	cute_check_sint(dpack_decode_bool(&dec.base, &val), equal, data->error);
 	if (!data->error) {
 		cute_check_bool(val, is, data->value.boolean);
 		cute_check_uint(data->size, equal, DPACK_BOOL_SIZE);
-		cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+		cute_check_uint(dpack_decoder_data_left(&dec.base), equal, 0);
 	}
 
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #if defined(CONFIG_DPACK_ASSERT_API)
 
 CUTE_TEST(dpackut_bool_decode_assert)
 {
-	bool                 val;
-	struct dpack_decoder dec = { 0, };
-	char                 buff[DPACK_BOOL_SIZE];
-	int                  ret __unused;
+	bool                        val;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     buff[DPACK_BOOL_SIZE];
+	int                         ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_bool(NULL, &val));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_decode_bool(&dec, &val));
+	cute_expect_assertion(ret = dpack_decode_bool(&dec.base, &val));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_decode_bool(&dec, NULL));
-	dpack_decoder_fini(&dec);
+	cute_expect_assertion(ret = dpack_decode_bool(&dec.base, NULL));
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */

@@ -81,8 +81,8 @@ struct dpack_decoder;
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_encode_bool(struct dpack_encoder * encoder, bool value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_encode_bool(struct dpack_encoder * __restrict encoder, bool value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /**
  * Decode a boolean encoded according to the MessagePack format
@@ -115,12 +115,9 @@ dpack_encode_bool(struct dpack_encoder * encoder, bool value)
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_bool(struct dpack_decoder * decoder,
-                  bool * __restrict      value) __dpack_nonull(1, 2)
-                                                __dpack_nothrow
-                                                __leaf
-                                                __warn_result
-                                                __dpack_export;
+dpack_decode_bool(struct dpack_decoder * __restrict decoder,
+                  bool * __restrict                 value)
+	__dpack_nonull(1, 2) __warn_result __dpack_export;
 
 /******************************************************************************
  * 8 bits integers
@@ -169,9 +166,9 @@ dpack_decode_bool(struct dpack_decoder * decoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_encode_uint8(struct dpack_encoder * encoder,
-                   uint8_t                value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_encode_uint8(struct dpack_encoder * __restrict encoder,
+                   uint8_t                           value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /**
  * Decode an 8-bits unsigned integer encoded according to the MessagePack format
@@ -206,12 +203,9 @@ dpack_encode_uint8(struct dpack_encoder * encoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_uint8(struct dpack_decoder * decoder,
-                   uint8_t * __restrict   value) __dpack_nonull(1, 2)
-                                                 __dpack_nothrow
-                                                 __leaf
-                                                 __warn_result
-                                                 __dpack_export;
+dpack_decode_uint8(struct dpack_decoder * __restrict decoder,
+                   uint8_t * __restrict              value)
+	__dpack_nonull(1, 2) __warn_result __dpack_export;
 
 /**
  * Decode an 8-bits unsigned integer encoded according to the MessagePack format
@@ -254,13 +248,10 @@ dpack_decode_uint8(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_uint8_min(struct dpack_decoder * decoder,
-                       uint8_t                low,
-                       uint8_t * __restrict   value) __dpack_nonull(1, 3)
-                                                     __dpack_nothrow
-                                                     __leaf
-                                                     __warn_result
-                                                     __dpack_export;
+dpack_decode_uint8_min(struct dpack_decoder * __restrict decoder,
+                       uint8_t                           low,
+                       uint8_t * __restrict              value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode an 8-bits unsigned integer encoded according to the MessagePack format
@@ -303,13 +294,10 @@ dpack_decode_uint8_min(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_uint8_max(struct dpack_decoder * decoder,
-                       uint8_t                high,
-                       uint8_t * __restrict   value) __dpack_nonull(1, 3)
-                                                     __dpack_nothrow
-                                                     __leaf
-                                                     __warn_result
-                                                     __dpack_export;
+dpack_decode_uint8_max(struct dpack_decoder * __restrict decoder,
+                       uint8_t                           high,
+                       uint8_t * __restrict              value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode an 8-bits unsigned integer encoded according to the MessagePack format
@@ -356,14 +344,11 @@ dpack_decode_uint8_max(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_uint8_range(struct dpack_decoder * decoder,
-                         uint8_t                low,
-                         uint8_t                high,
-                         uint8_t * __restrict   value) __dpack_nonull(1, 4)
-                                                       __dpack_nothrow
-                                                       __leaf
-                                                       __warn_result
-                                                       __dpack_export;
+dpack_decode_uint8_range(struct dpack_decoder * __restrict decoder,
+                         uint8_t                           low,
+                         uint8_t                           high,
+                         uint8_t * __restrict              value)
+	__dpack_nonull(1, 4) __warn_result __dpack_export;
 
 /**
  * Minimum size of a serialized 8-bits signed integer.
@@ -408,9 +393,9 @@ dpack_decode_uint8_range(struct dpack_decoder * decoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_encode_int8(struct dpack_encoder * encoder,
-                  int8_t                 value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_encode_int8(struct dpack_encoder * __restrict encoder,
+                  int8_t                            value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /**
  * Decode an 8-bits signed integer encoded according to the MessagePack format
@@ -445,12 +430,9 @@ dpack_encode_int8(struct dpack_encoder * encoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_int8(struct dpack_decoder * decoder,
-                  int8_t * __restrict    value) __dpack_nonull(1, 2)
-                                                __dpack_nothrow
-                                                __leaf
-                                                __warn_result
-                                                __dpack_export;
+dpack_decode_int8(struct dpack_decoder * __restrict decoder,
+                  int8_t * __restrict               value)
+	__dpack_nonull(1, 2) __warn_result __dpack_export;
 
 /**
  * Decode an 8-bits signed integer encoded according to the MessagePack format
@@ -493,13 +475,10 @@ dpack_decode_int8(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_int8_min(struct dpack_decoder * decoder,
-                      int8_t                 low,
-                      int8_t               * value) __dpack_nonull(1, 3)
-                                                    __dpack_nothrow
-                                                    __leaf
-                                                    __warn_result
-                                                    __dpack_export;
+dpack_decode_int8_min(struct dpack_decoder * __restrict decoder,
+                      int8_t                            low,
+                      int8_t * __restrict               value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode an 8-bits signed integer encoded according to the MessagePack format
@@ -542,13 +521,10 @@ dpack_decode_int8_min(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_int8_max(struct dpack_decoder * decoder,
-                      int8_t                 high,
-                      int8_t * __restrict    value) __dpack_nonull(1, 3)
-                                                    __dpack_nothrow
-                                                    __leaf
-                                                    __warn_result
-                                                    __dpack_export;
+dpack_decode_int8_max(struct dpack_decoder * __restrict decoder,
+                      int8_t                            high,
+                      int8_t * __restrict               value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode an 8-bits signed integer encoded according to the MessagePack format
@@ -596,14 +572,11 @@ dpack_decode_int8_max(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_int8_range(struct dpack_decoder * decoder,
-                        int8_t                 low,
-                        int8_t                 high,
-                        int8_t * __restrict    value) __dpack_nonull(1, 4)
-                                                      __dpack_nothrow
-                                                      __leaf
-                                                      __warn_result
-                                                      __dpack_export;
+dpack_decode_int8_range(struct dpack_decoder * __restrict decoder,
+                        int8_t                            low,
+                        int8_t                            high,
+                        int8_t * __restrict               value)
+	__dpack_nonull(1, 4) __warn_result __dpack_export;
 
 /******************************************************************************
  * 16 bits integers
@@ -652,9 +625,9 @@ dpack_decode_int8_range(struct dpack_decoder * decoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_encode_uint16(struct dpack_encoder * encoder,
-                    uint16_t               value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_encode_uint16(struct dpack_encoder * __restrict encoder,
+                    uint16_t                          value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /**
  * Decode a 16-bits unsigned integer encoded according to the MessagePack
@@ -690,12 +663,9 @@ dpack_encode_uint16(struct dpack_encoder * encoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_uint16(struct dpack_decoder * decoder,
-                    uint16_t * __restrict  value) __dpack_nonull(1, 2)
-                                                  __dpack_nothrow
-                                                  __leaf
-                                                  __warn_result
-                                                  __dpack_export;
+dpack_decode_uint16(struct dpack_decoder * __restrict decoder,
+                    uint16_t * __restrict             value)
+	__dpack_nonull(1, 2) __warn_result __dpack_export;
 
 /**
  * Decode an 16-bits unsigned integer encoded according to the MessagePack
@@ -738,13 +708,10 @@ dpack_decode_uint16(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_uint16_min(struct dpack_decoder * decoder,
-                        uint16_t               low,
-                        uint16_t * __restrict  value) __dpack_nonull(1, 3)
-                                                      __dpack_nothrow
-                                                      __leaf
-                                                      __warn_result
-                                                      __dpack_export;
+dpack_decode_uint16_min(struct dpack_decoder * __restrict decoder,
+                        uint16_t                          low,
+                        uint16_t * __restrict             value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode an 16-bits unsigned integer encoded according to the MessagePack
@@ -787,13 +754,10 @@ dpack_decode_uint16_min(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_uint16_max(struct dpack_decoder * decoder,
-                        uint16_t               high,
-                        uint16_t * __restrict  value) __dpack_nonull(1, 3)
-                                                      __dpack_nothrow
-                                                      __leaf
-                                                      __warn_result
-                                                      __dpack_export;
+dpack_decode_uint16_max(struct dpack_decoder * __restrict decoder,
+                        uint16_t                          high,
+                        uint16_t * __restrict             value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode an 16-bits unsigned integer encoded according to the MessagePack
@@ -840,14 +804,11 @@ dpack_decode_uint16_max(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_uint16_range(struct dpack_decoder * decoder,
-                          uint16_t               low,
-                          uint16_t               high,
-                          uint16_t * __restrict  value) __dpack_nonull(1, 4)
-                                                        __dpack_nothrow
-                                                        __leaf
-                                                        __warn_result
-                                                        __dpack_export;
+dpack_decode_uint16_range(struct dpack_decoder * __restrict decoder,
+                          uint16_t                          low,
+                          uint16_t                          high,
+                          uint16_t * __restrict             value)
+	__dpack_nonull(1, 4) __warn_result __dpack_export;
 
 /**
  * Minimum size of a serialized 16-bits signed integer.
@@ -892,9 +853,9 @@ dpack_decode_uint16_range(struct dpack_decoder * decoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_encode_int16(struct dpack_encoder * encoder,
-                   int16_t                value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_encode_int16(struct dpack_encoder * __restrict encoder,
+                   int16_t                           value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /**
  * Decode an 16-bits signed integer encoded according to the MessagePack format
@@ -929,12 +890,9 @@ dpack_encode_int16(struct dpack_encoder * encoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_int16(struct dpack_decoder * decoder,
-                   int16_t * __restrict   value) __dpack_nonull(1, 2)
-                                                 __dpack_nothrow
-                                                 __leaf
-                                                 __warn_result
-                                                 __dpack_export;
+dpack_decode_int16(struct dpack_decoder * __restrict decoder,
+                   int16_t * __restrict              value)
+	__dpack_nonull(1, 2) __warn_result __dpack_export;
 
 /**
  * Decode an 16-bits signed integer encoded according to the MessagePack format
@@ -977,13 +935,10 @@ dpack_decode_int16(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_int16_min(struct dpack_decoder * decoder,
-                       int16_t                low,
-                       int16_t * __restrict   value) __dpack_nonull(1, 3)
-                                                     __dpack_nothrow
-                                                     __leaf
-                                                     __warn_result
-                                                     __dpack_export;
+dpack_decode_int16_min(struct dpack_decoder * __restrict decoder,
+                       int16_t                           low,
+                       int16_t * __restrict              value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode an 16-bits signed integer encoded according to the MessagePack format
@@ -1026,13 +981,10 @@ dpack_decode_int16_min(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_int16_max(struct dpack_decoder * decoder,
-                       int16_t                high,
-                       int16_t * __restrict   value) __dpack_nonull(1, 3)
-                                                     __dpack_nothrow
-                                                     __leaf
-                                                     __warn_result
-                                                     __dpack_export;
+dpack_decode_int16_max(struct dpack_decoder * __restrict decoder,
+                       int16_t                           high,
+                       int16_t * __restrict              value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode an 16-bits signed integer encoded according to the MessagePack format
@@ -1080,14 +1032,11 @@ dpack_decode_int16_max(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_int16_range(struct dpack_decoder * decoder,
-                         int16_t                low,
-                         int16_t                high,
-                         int16_t * __restrict   value) __dpack_nonull(1, 4)
-                                                       __dpack_nothrow
-                                                       __leaf
-                                                       __warn_result
-                                                       __dpack_export;
+dpack_decode_int16_range(struct dpack_decoder * __restrict decoder,
+                         int16_t                           low,
+                         int16_t                           high,
+                         int16_t * __restrict              value)
+	__dpack_nonull(1, 4) __warn_result __dpack_export;
 
 /******************************************************************************
  * 32 bits integers
@@ -1136,9 +1085,9 @@ dpack_decode_int16_range(struct dpack_decoder * decoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_encode_uint32(struct dpack_encoder * encoder,
-                    uint32_t               value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_encode_uint32(struct dpack_encoder * __restrict encoder,
+                    uint32_t                          value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /**
  * Decode a 32-bits unsigned integer encoded according to the MessagePack
@@ -1174,12 +1123,10 @@ dpack_encode_uint32(struct dpack_encoder * encoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_uint32(struct dpack_decoder * decoder,
-                    uint32_t * __restrict  value) __dpack_nonull(1, 2)
-                                                  __dpack_nothrow
-                                                  __leaf
-                                                  __warn_result
-                                                  __dpack_export;
+dpack_decode_uint32(struct dpack_decoder * __restrict decoder,
+                    uint32_t * __restrict             value)
+	__dpack_nonull(1, 2) __warn_result __dpack_export;
+
 /**
  * Decode an 32-bits unsigned integer encoded according to the MessagePack
  * format with requested minimum value
@@ -1221,13 +1168,10 @@ dpack_decode_uint32(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_uint32_min(struct dpack_decoder * decoder,
-                        uint32_t               low,
-                        uint32_t * __restrict  value) __dpack_nonull(1, 3)
-                                                      __dpack_nothrow
-                                                      __leaf
-                                                      __warn_result
-                                                      __dpack_export;
+dpack_decode_uint32_min(struct dpack_decoder * __restrict decoder,
+                        uint32_t                          low,
+                        uint32_t * __restrict             value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode an 32-bits unsigned integer encoded according to the MessagePack
@@ -1270,13 +1214,10 @@ dpack_decode_uint32_min(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_uint32_max(struct dpack_decoder * decoder,
-                        uint32_t               high,
-                        uint32_t * __restrict  value) __dpack_nonull(1, 3)
-                                                      __dpack_nothrow
-                                                      __leaf
-                                                      __warn_result
-                                                      __dpack_export;
+dpack_decode_uint32_max(struct dpack_decoder * __restrict decoder,
+                        uint32_t                          high,
+                        uint32_t * __restrict             value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode an 32-bits unsigned integer encoded according to the MessagePack
@@ -1323,14 +1264,11 @@ dpack_decode_uint32_max(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_uint32_range(struct dpack_decoder * decoder,
-                          uint32_t               low,
-                          uint32_t               high,
-                          uint32_t * __restrict  value) __dpack_nonull(1, 4)
-                                                        __dpack_nothrow
-                                                        __leaf
-                                                        __warn_result
-                                                        __dpack_export;
+dpack_decode_uint32_range(struct dpack_decoder * __restrict decoder,
+                          uint32_t                          low,
+                          uint32_t                          high,
+                          uint32_t * __restrict             value)
+	__dpack_nonull(1, 4) __warn_result __dpack_export;
 
 /**
  * Minimum size of a serialized unsigned integer.
@@ -1374,8 +1312,9 @@ dpack_decode_uint32_range(struct dpack_decoder * decoder,
  * - dpack_encode_int()
  * - dpack_encoder_init_buffer()
  */
-static inline int __dpack_nonull(1) __dpack_nothrow __warn_result
-dpack_encode_uint(struct dpack_encoder * encoder, unsigned int value)
+static inline __dpack_nonull(1) __warn_result
+int
+dpack_encode_uint(struct dpack_encoder * __restrict encoder, unsigned int value)
 {
 	return dpack_encode_uint32(encoder, value);
 }
@@ -1412,9 +1351,10 @@ dpack_encode_uint(struct dpack_encoder * encoder, unsigned int value)
  * - dpack_decoder_init_buffer()
  * - dpack_decoder_init_skip_buffer()
  */
-static inline int __dpack_nonull(1, 2) __dpack_nothrow __warn_result
-dpack_decode_uint(struct dpack_decoder *    decoder,
-                  unsigned int * __restrict value)
+static inline __dpack_nonull(1, 2) __warn_result
+int
+dpack_decode_uint(struct dpack_decoder * __restrict decoder,
+                  unsigned int * __restrict         value)
 {
 	return dpack_decode_uint32(decoder, value);
 }
@@ -1459,10 +1399,11 @@ dpack_decode_uint(struct dpack_decoder *    decoder,
  * - dpack_decoder_init_buffer()
  * - dpack_decoder_init_skip_buffer()
  */
-static inline int __dpack_nonull(1, 3) __dpack_nothrow __warn_result
-dpack_decode_uint_min(struct dpack_decoder *    decoder,
-                      unsigned int              low,
-                      unsigned int * __restrict value)
+static inline __dpack_nonull(1, 3) __warn_result
+int
+dpack_decode_uint_min(struct dpack_decoder * __restrict decoder,
+                      unsigned int                      low,
+                      unsigned int * __restrict         value)
 {
 	return dpack_decode_uint32_min(decoder, low, value);
 }
@@ -1507,10 +1448,11 @@ dpack_decode_uint_min(struct dpack_decoder *    decoder,
  * - dpack_decoder_init_buffer()
  * - dpack_decoder_init_skip_buffer()
  */
-static inline int __dpack_nonull(1, 3) __dpack_nothrow __warn_result
-dpack_decode_uint_max(struct dpack_decoder *    decoder,
-                      unsigned int              high,
-                      unsigned int * __restrict value)
+static inline __dpack_nonull(1, 3) __warn_result
+int
+dpack_decode_uint_max(struct dpack_decoder * __restrict decoder,
+                      unsigned int                      high,
+                      unsigned int * __restrict         value)
 {
 	return dpack_decode_uint32_max(decoder, high, value);
 }
@@ -1559,11 +1501,12 @@ dpack_decode_uint_max(struct dpack_decoder *    decoder,
  * - dpack_decoder_init_buffer()
  * - dpack_decoder_init_skip_buffer()
  */
-static inline int __dpack_nonull(1, 4) __dpack_nothrow __warn_result
-dpack_decode_uint_range(struct dpack_decoder *    decoder,
-                        unsigned int              low,
-                        unsigned int              high,
-                        unsigned int * __restrict value)
+static inline __dpack_nonull(1, 4) __warn_result
+int
+dpack_decode_uint_range(struct dpack_decoder * __restrict decoder,
+                        unsigned int                      low,
+                        unsigned int                      high,
+                        unsigned int * __restrict         value)
 {
 	return dpack_decode_uint32_range(decoder, low, high, value);
 }
@@ -1611,9 +1554,9 @@ dpack_decode_uint_range(struct dpack_decoder *    decoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_encode_int32(struct dpack_encoder * encoder,
-                   int32_t                value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_encode_int32(struct dpack_encoder * __restrict encoder,
+                   int32_t                           value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /**
  * Decode an 32-bits signed integer encoded according to the MessagePack format
@@ -1648,12 +1591,9 @@ dpack_encode_int32(struct dpack_encoder * encoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_int32(struct dpack_decoder * decoder,
-                   int32_t * __restrict   value) __dpack_nonull(1, 2)
-                                                 __dpack_nothrow
-                                                 __leaf
-                                                 __warn_result
-                                                 __dpack_export;
+dpack_decode_int32(struct dpack_decoder * __restrict decoder,
+                   int32_t * __restrict              value)
+	__dpack_nonull(1, 2) __warn_result __dpack_export;
 
 /**
  * Decode an 32-bits signed integer encoded according to the MessagePack format
@@ -1696,13 +1636,10 @@ dpack_decode_int32(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_int32_min(struct dpack_decoder * decoder,
-                       int32_t                low,
-                       int32_t * __restrict   value) __dpack_nonull(1, 3)
-                                                     __dpack_nothrow
-                                                     __leaf
-                                                     __warn_result
-                                                     __dpack_export;
+dpack_decode_int32_min(struct dpack_decoder * __restrict decoder,
+                       int32_t                           low,
+                       int32_t * __restrict              value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode an 32-bits signed integer encoded according to the MessagePack format
@@ -1745,13 +1682,10 @@ dpack_decode_int32_min(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_int32_max(struct dpack_decoder * decoder,
-                       int32_t                high,
-                       int32_t * __restrict   value) __dpack_nonull(1, 3)
-                                                     __dpack_nothrow
-                                                     __leaf
-                                                     __warn_result
-                                                     __dpack_export;
+dpack_decode_int32_max(struct dpack_decoder * __restrict decoder,
+                       int32_t                           high,
+                       int32_t * __restrict              value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode an 32-bits signed integer encoded according to the MessagePack format
@@ -1799,14 +1733,11 @@ dpack_decode_int32_max(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_int32_range(struct dpack_decoder * decoder,
-                         int32_t                low,
-                         int32_t                high,
-                         int32_t * __restrict   value) __dpack_nonull(1, 4)
-                                                       __dpack_nothrow
-                                                       __leaf
-                                                       __warn_result
-                                                       __dpack_export;
+dpack_decode_int32_range(struct dpack_decoder * __restrict decoder,
+                         int32_t                           low,
+                         int32_t                           high,
+                         int32_t * __restrict              value)
+	__dpack_nonull(1, 4) __warn_result __dpack_export;
 
 /**
  * Minimum size of a serialized signed integer.
@@ -1850,8 +1781,9 @@ dpack_decode_int32_range(struct dpack_decoder * decoder,
  * - dpack_encode_uint()
  * - dpack_encoder_init_buffer()
  */
-static inline int __dpack_nonull(1) __dpack_nothrow __warn_result
-dpack_encode_int(struct dpack_encoder * encoder, int value)
+static inline __dpack_nonull(1) __warn_result
+int
+dpack_encode_int(struct dpack_encoder * __restrict encoder, int value)
 {
 	return dpack_encode_int32(encoder, value);
 }
@@ -1888,8 +1820,10 @@ dpack_encode_int(struct dpack_encoder * encoder, int value)
  * - dpack_decoder_init_buffer()
  * - dpack_decoder_init_skip_buffer()
  */
-static inline int __dpack_nonull(1, 2) __dpack_nothrow __warn_result
-dpack_decode_int(struct dpack_decoder * decoder, int * __restrict value)
+static inline __dpack_nonull(1, 2) __warn_result
+int
+dpack_decode_int(struct dpack_decoder * __restrict decoder,
+                 int * __restrict                  value)
 {
 	return dpack_decode_int32(decoder, value);
 }
@@ -1934,10 +1868,11 @@ dpack_decode_int(struct dpack_decoder * decoder, int * __restrict value)
  * - dpack_decoder_init_buffer()
  * - dpack_decoder_init_skip_buffer()
  */
-static inline int __dpack_nonull(1, 3) __dpack_nothrow __warn_result
-dpack_decode_int_min(struct dpack_decoder * decoder,
-                     int                    low,
-                     int * __restrict       value)
+static inline __dpack_nonull(1, 3) __warn_result
+int
+dpack_decode_int_min(struct dpack_decoder * __restrict decoder,
+                     int                               low,
+                     int * __restrict                  value)
 {
 	return dpack_decode_int32_min(decoder, low, value);
 }
@@ -1982,10 +1917,11 @@ dpack_decode_int_min(struct dpack_decoder * decoder,
  * - dpack_decoder_init_buffer()
  * - dpack_decoder_init_skip_buffer()
  */
-static inline int __dpack_nonull(1, 3) __dpack_nothrow __warn_result
-dpack_decode_int_max(struct dpack_decoder * decoder,
-                     int                    high,
-                     int * __restrict       value)
+static inline __dpack_nonull(1, 3) __warn_result
+int
+dpack_decode_int_max(struct dpack_decoder * __restrict decoder,
+                     int                               high,
+                     int * __restrict                  value)
 {
 	return dpack_decode_int32_max(decoder, high, value);
 }
@@ -2035,11 +1971,12 @@ dpack_decode_int_max(struct dpack_decoder * decoder,
  * - dpack_decoder_init_buffer()
  * - dpack_decoder_init_skip_buffer()
  */
-static inline int __dpack_nonull(1, 4) __dpack_nothrow __warn_result
-dpack_decode_int_range(struct dpack_decoder * decoder,
-                       int                    low,
-                       int                    high,
-                       int * __restrict       value)
+static inline __dpack_nonull(1, 4) __warn_result
+int
+dpack_decode_int_range(struct dpack_decoder * __restrict decoder,
+                       int                               low,
+                       int                               high,
+                       int * __restrict                  value)
 {
 	return dpack_decode_int32_range(decoder, low, high, value);
 }
@@ -2091,9 +2028,9 @@ dpack_decode_int_range(struct dpack_decoder * decoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_encode_uint64(struct dpack_encoder * encoder,
-                    uint64_t               value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_encode_uint64(struct dpack_encoder * __restrict encoder,
+                    uint64_t                          value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /**
  * Decode a 64-bits unsigned integer encoded according to the MessagePack format
@@ -2128,12 +2065,9 @@ dpack_encode_uint64(struct dpack_encoder * encoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_uint64(struct dpack_decoder * decoder,
-                    uint64_t * __restrict  value) __dpack_nonull(1, 2)
-                                                  __dpack_nothrow
-                                                  __leaf
-                                                  __warn_result
-                                                  __dpack_export;
+dpack_decode_uint64(struct dpack_decoder * __restrict decoder,
+                    uint64_t * __restrict             value)
+	__dpack_nonull(1, 2) __warn_result __dpack_export;
 
 /**
  * Decode an 64-bits unsigned integer encoded according to the MessagePack
@@ -2176,13 +2110,10 @@ dpack_decode_uint64(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_uint64_min(struct dpack_decoder * decoder,
-                        uint64_t               low,
-                        uint64_t * __restrict  value) __dpack_nonull(1, 3)
-                                                      __dpack_nothrow
-                                                      __leaf
-                                                      __warn_result
-                                                      __dpack_export;
+dpack_decode_uint64_min(struct dpack_decoder * __restrict decoder,
+                        uint64_t                          low,
+                        uint64_t * __restrict             value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode an 64-bits unsigned integer encoded according to the MessagePack
@@ -2225,13 +2156,10 @@ dpack_decode_uint64_min(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_uint64_max(struct dpack_decoder * decoder,
-                        uint64_t               high,
-                        uint64_t * __restrict  value) __dpack_nonull(1, 3)
-                                                      __dpack_nothrow
-                                                      __leaf
-                                                      __warn_result
-                                                      __dpack_export;
+dpack_decode_uint64_max(struct dpack_decoder * __restrict decoder,
+                        uint64_t                          high,
+                        uint64_t * __restrict             value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode an 64-bits unsigned integer encoded according to the MessagePack
@@ -2278,14 +2206,11 @@ dpack_decode_uint64_max(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_uint64_range(struct dpack_decoder * decoder,
-                          uint64_t               low,
-                          uint64_t               high,
-                          uint64_t * __restrict  value) __dpack_nonull(1, 4)
-                                                        __dpack_nothrow
-                                                        __leaf
-                                                        __warn_result
-                                                        __dpack_export;
+dpack_decode_uint64_range(struct dpack_decoder * __restrict decoder,
+                          uint64_t                          low,
+                          uint64_t                          high,
+                          uint64_t * __restrict             value)
+	__dpack_nonull(1, 4) __warn_result __dpack_export;
 
 /**
  * Minimum size of a serialized 64-bits signed integer.
@@ -2330,9 +2255,9 @@ dpack_decode_uint64_range(struct dpack_decoder * decoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_encode_int64(struct dpack_encoder * encoder,
-                   int64_t                value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_encode_int64(struct dpack_encoder * __restrict encoder,
+                   int64_t                           value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /**
  * Decode an 64-bits signed integer encoded according to the MessagePack format
@@ -2367,12 +2292,9 @@ dpack_encode_int64(struct dpack_encoder * encoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_int64(struct dpack_decoder * decoder,
-                   int64_t * __restrict   value) __dpack_nonull(1, 2)
-                                                 __dpack_nothrow
-                                                 __leaf
-                                                 __warn_result
-                                                 __dpack_export;
+dpack_decode_int64(struct dpack_decoder * __restrict decoder,
+                   int64_t * __restrict              value)
+	__dpack_nonull(1, 2) __warn_result __dpack_export;
 
 /**
  * Decode an 64-bits signed integer encoded according to the MessagePack format
@@ -2415,13 +2337,10 @@ dpack_decode_int64(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_int64_min(struct dpack_decoder * decoder,
-                       int64_t                low,
-                       int64_t * __restrict   value) __dpack_nonull(1, 3)
-                                                     __dpack_nothrow
-                                                     __leaf
-                                                     __warn_result
-                                                     __dpack_export;
+dpack_decode_int64_min(struct dpack_decoder * __restrict decoder,
+                       int64_t                           low,
+                       int64_t * __restrict              value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode an 64-bits signed integer encoded according to the MessagePack format
@@ -2464,13 +2383,10 @@ dpack_decode_int64_min(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_int64_max(struct dpack_decoder * decoder,
-                       int64_t                high,
-                       int64_t * __restrict   value) __dpack_nonull(1, 3)
-                                                     __dpack_nothrow
-                                                     __leaf
-                                                     __warn_result
-                                                     __dpack_export;
+dpack_decode_int64_max(struct dpack_decoder * __restrict decoder,
+                       int64_t                           high,
+                       int64_t * __restrict              value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode an 64-bits signed integer encoded according to the MessagePack format
@@ -2518,14 +2434,11 @@ dpack_decode_int64_max(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_decode_int64_range(struct dpack_decoder * decoder,
-                         int64_t                low,
-                         int64_t                high,
-                         int64_t * __restrict   value) __dpack_nonull(1, 4)
-                                                       __dpack_nothrow
-                                                       __leaf
-                                                       __warn_result
-                                                       __dpack_export;
+dpack_decode_int64_range(struct dpack_decoder * __restrict decoder,
+                         int64_t                           low,
+                         int64_t                           high,
+                         int64_t * __restrict              value)
+	__dpack_nonull(1, 4) __warn_result __dpack_export;
 
 /******************************************************************************
  * Single precision floating point
@@ -2573,8 +2486,8 @@ dpack_decode_int64_range(struct dpack_decoder * decoder,
  * - dpack_encode_double()
  */
 extern int
-dpack_encode_float(struct dpack_encoder * encoder, float value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_encode_float(struct dpack_encoder * __restrict encoder, float value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /**
  * Decode a single precision floating point number encoded according to the
@@ -2611,12 +2524,9 @@ dpack_encode_float(struct dpack_encoder * encoder, float value)
  * - dpack_encode_float()
  */
 extern int
-dpack_decode_float(struct dpack_decoder * decoder,
-                   float * __restrict     value) __dpack_nonull(1, 2)
-                                                 __dpack_nothrow
-                                                 __leaf
-                                                 __warn_result
-                                                 __dpack_export;
+dpack_decode_float(struct dpack_decoder * __restrict decoder,
+                   float * __restrict                value)
+	__dpack_nonull(1, 2) __warn_result __dpack_export;
 
 /**
  * Decode a single precision floating point number encoded according to the
@@ -2661,13 +2571,10 @@ dpack_decode_float(struct dpack_decoder * decoder,
  * - dpack_encode_float()
  */
 extern int
-dpack_decode_float_min(struct dpack_decoder * decoder,
-                       float                  low,
-                       float * __restrict     value) __dpack_nonull(1, 3)
-                                                     __dpack_nothrow
-                                                     __leaf
-                                                     __warn_result
-                                                     __dpack_export;
+dpack_decode_float_min(struct dpack_decoder * __restrict decoder,
+                       float                             low,
+                       float * __restrict                value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode a single precision floating point number encoded according to the
@@ -2712,13 +2619,10 @@ dpack_decode_float_min(struct dpack_decoder * decoder,
  * - dpack_encode_float()
  */
 extern int
-dpack_decode_float_max(struct dpack_decoder * decoder,
-                       float                  high,
-                       float * __restrict     value) __dpack_nonull(1, 3)
-                                                     __dpack_nothrow
-                                                     __leaf
-                                                     __warn_result
-                                                     __dpack_export;
+dpack_decode_float_max(struct dpack_decoder * __restrict decoder,
+                       float                             high,
+                       float * __restrict                value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode a single precision floating point number encoded according to the
@@ -2767,14 +2671,11 @@ dpack_decode_float_max(struct dpack_decoder * decoder,
  * - dpack_encode_float()
  */
 extern int
-dpack_decode_float_range(struct dpack_decoder * decoder,
-                         float                  low,
-                         float                  high,
-                         float * __restrict     value) __dpack_nonull(1, 4)
-                                                       __dpack_nothrow
-                                                       __leaf
-                                                       __warn_result
-                                                       __dpack_export;
+dpack_decode_float_range(struct dpack_decoder * __restrict decoder,
+                         float                             low,
+                         float                             high,
+                         float * __restrict                value)
+	__dpack_nonull(1, 4) __warn_result __dpack_export;
 
 #endif /* defined(CONFIG_DPACK_FLOAT) */
 
@@ -2824,8 +2725,8 @@ dpack_decode_float_range(struct dpack_decoder * decoder,
  * - dpack_encode_float()
  */
 extern int
-dpack_encode_double(struct dpack_encoder * encoder, double value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_encode_double(struct dpack_encoder * __restrict encoder, double value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /**
  * Decode a double precision floating point number encoded according to the
@@ -2862,12 +2763,9 @@ dpack_encode_double(struct dpack_encoder * encoder, double value)
  * - dpack_encode_double()
  */
 extern int
-dpack_decode_double(struct dpack_decoder * decoder,
-                    double * __restrict    value) __dpack_nonull(1, 2)
-                                                  __dpack_nothrow
-                                                  __leaf
-                                                  __warn_result
-                                                  __dpack_export;
+dpack_decode_double(struct dpack_decoder * __restrict decoder,
+                    double * __restrict               value)
+	__dpack_nonull(1, 2) __warn_result __dpack_export;
 
 /**
  * Decode a double precision floating point number encoded according to the
@@ -2912,13 +2810,10 @@ dpack_decode_double(struct dpack_decoder * decoder,
  * - dpack_encode_double()
  */
 extern int
-dpack_decode_double_min(struct dpack_decoder * decoder,
-                        double                 low,
-                        double * __restrict    value) __dpack_nonull(1, 3)
-                                                      __dpack_nothrow
-                                                      __leaf
-                                                      __warn_result
-                                                      __dpack_export;
+dpack_decode_double_min(struct dpack_decoder * __restrict decoder,
+                        double                            low,
+                        double * __restrict               value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode a double precision floating point number encoded according to the
@@ -2963,13 +2858,10 @@ dpack_decode_double_min(struct dpack_decoder * decoder,
  * - dpack_encode_double()
  */
 extern int
-dpack_decode_double_max(struct dpack_decoder * decoder,
-                        double                 high,
-                        double * __restrict    value) __dpack_nonull(1, 3)
-                                                      __dpack_nothrow
-                                                      __leaf
-                                                      __warn_result
-                                                      __dpack_export;
+dpack_decode_double_max(struct dpack_decoder * __restrict decoder,
+                        double                            high,
+                        double * __restrict               value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode a double precision floating point number encoded according to the
@@ -3018,14 +2910,11 @@ dpack_decode_double_max(struct dpack_decoder * decoder,
  * - dpack_encode_double()
  */
 extern int
-dpack_decode_double_range(struct dpack_decoder * decoder,
-                          double                 low,
-                          double                 high,
-                          double * __restrict    value) __dpack_nonull(1, 4)
-                                                        __dpack_nothrow
-                                                        __leaf
-                                                        __warn_result
-                                                        __dpack_export;
+dpack_decode_double_range(struct dpack_decoder * __restrict decoder,
+                          double                            low,
+                          double                            high,
+                          double * __restrict               value)
+	__dpack_nonull(1, 4) __warn_result __dpack_export;
 
 #endif /* defined(CONFIG_DPACK_DOUBLE) */
 
@@ -3065,11 +2954,8 @@ dpack_decode_double_range(struct dpack_decoder * decoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_encode_nil(struct dpack_encoder  * encoder) __dpack_nonull(1)
-                                                  __dpack_nothrow
-                                                  __leaf
-                                                  __warn_result
-                                                  __dpack_export;
+dpack_encode_nil(struct dpack_encoder  * __restrict encoder)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /**
  * Decode a nil encoded according to the MessagePack format.
@@ -3102,10 +2988,7 @@ dpack_encode_nil(struct dpack_encoder  * encoder) __dpack_nonull(1)
  * - dpack_encode_nil()
  */
 extern int
-dpack_decode_nil(struct dpack_decoder * decoder) __dpack_nonull(1)
-                                                 __dpack_nothrow
-                                                 __leaf
-                                                 __warn_result
-                                                 __dpack_export;
+dpack_decode_nil(struct dpack_decoder * __restrict decoder)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 #endif /* _DPACK_SCALAR_H */

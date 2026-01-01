@@ -16,7 +16,7 @@ endif # ($(call kconf_is_enabled,DPACK_HAS_BASIC_ITEMS),)
 endif # ($(realpath $(kconf_config)),)
 
 HEADERDIR   := $(CURDIR)/include
-headers      = $(PACKAGE)/cdefs.h $(PACKAGE)/codec.h $(PACKAGE)/mpack-config.h
+headers      = $(PACKAGE)/cdefs.h $(PACKAGE)/codec.h
 headers     += $(call kconf_enabled,DPACK_SCALAR,$(PACKAGE)/scalar.h)
 headers     += $(call kconf_enabled,DPACK_STRING,$(PACKAGE)/string.h)
 headers     += $(call kconf_enabled,DPACK_LVSTR,$(PACKAGE)/lvstr.h)
@@ -57,7 +57,7 @@ libdpack.pc-tmpl := libdpack_pkgconf_tmpl
 # Source code tags generation
 ################################################################################
 
-tagfiles := $(shell find $(addprefix $(CURDIR)/,$(subdirs) mpack) \
+tagfiles := $(shell find $(addprefix $(CURDIR)/,$(subdirs)) \
                     $(HEADERDIR) \
                     -type f)
 

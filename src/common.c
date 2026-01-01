@@ -7,6 +7,7 @@
 
 #include "common.h"
 
+#if 0
 #if MPACK_CUSTOM_ASSERT == 1
 
 #include <errno.h>
@@ -39,3 +40,4 @@ mpack_assert_fail(const char * __restrict message)
 }
 
 #endif /* defined(MPACK_CUSTOM_ASSERT) */
+#endif

@@ -44,4 +44,17 @@
 #endif /* defined(CONFIG_DPACK_ASSERT_API) || \
           defined(CONFIG_DPACK_ASSERT_INTERN) */
 
+#if defined(CONFIG_DPACK_ASSERT_API)
+
+#include <stroll/assert.h>
+
+#define dpack_assert_api(_cond) \
+	stroll_assert("dpack", _cond)
+
+#else  /* !defined(CONFIG_DPACK_ASSERT_API) */
+
+#define dpack_assert_api(_cond)
+
+#endif /* defined(CONFIG_DPACK_ASSERT_API) */
+
 #endif /* _DPACK_CDEFS_H */

@@ -7,6 +7,181 @@
 
 #include "dpack/codec.h"
 #include "common.h"
+#include <string.h>
+
+/******************************************************************************
+ * Encoder / packer
+ ******************************************************************************/
+
+#define dpack_encoder_assert_buffer_api(_encoder) \
+	dpack_assert_api(_encoder); \
+	dpack_encoder_assert_api(&(_encoder)->base); \
+	dpack_assert_api((_encoder)->capa); \
+	dpack_assert_api((_encoder)->tail <= (_encoder)->capa); \
+	dpack_assert_api((_encoder)->buff)
+
+static __dpack_nonull(1) __dpack_pure __warn_result
+size_t
+dpack_encoder_buffer_left(const struct dpack_encoder * __restrict encoder)
+{
+	const struct dpack_encoder_buffer * enc =
+		(const struct dpack_encoder_buffer *)encoder;
+
+	dpack_encoder_assert_buffer_api(enc);
+
+	return enc->capa - enc->tail;
+}
+
+static __dpack_nonull(1) __dpack_pure __warn_result
+size_t
+dpack_encoder_buffer_used(const struct dpack_encoder * __restrict encoder)
+{
+	const struct dpack_encoder_buffer * enc =
+		(const struct dpack_encoder_buffer *)encoder;
+
+	dpack_encoder_assert_buffer_api(enc);
+
+	return enc->tail;
+}
+
+static __dpack_nonull(1, 2)
+void
+dpack_encoder_buffer_write(struct dpack_encoder * __restrict encoder,
+                           const uint8_t * __restrict        data,
+                           size_t                            size)
+{
+	dpack_assert_intern(data);
+	dpack_assert_intern(size);
+
+	struct dpack_encoder_buffer * enc = (struct dpack_encoder_buffer *)
+	                                    encoder;
+
+	dpack_encoder_assert_buffer_api(enc);
+	dpack_assert_intern(size <= (enc->capa - enc->tail));
+
+	memcpy(&enc->buff[enc->tail], data, size);
+	enc->tail += size;
+}
+
+static __dpack_nonull(1)
+void
+dpack_encoder_buffer_fini(struct dpack_encoder * __restrict encoder __unused)
+{
+	dpack_encoder_assert_buffer_api((const struct dpack_encoder_buffer *)
+	                                encoder);
+}
+
+const struct dpack_encoder_ops dpack_encoder_buffer_ops = {
+	.left  = dpack_encoder_buffer_left,
+	.used  = dpack_encoder_buffer_used,
+	.write = dpack_encoder_buffer_write,
+	.fini  = dpack_encoder_buffer_fini
+};
+
+void
+dpack_encoder_init_buffer(struct dpack_encoder_buffer * __restrict encoder,
+                          uint8_t * __restrict                     buffer,
+                          size_t                                   size)
+{
+	dpack_assert_api(encoder);
+	dpack_assert_api(buffer);
+	dpack_assert_api(size);
+
+	dpack_encoder_init(&encoder->base, &dpack_encoder_buffer_ops);
+	encoder->tail = 0;
+	encoder->capa = size;
+	encoder->buff = buffer;
+}
+
+/******************************************************************************
+ * Decoder / unpacker
+ ******************************************************************************/
+
+#define dpack_decoder_assert_buffer_api(_decoder) \
+	dpack_assert_api(_decoder); \
+	dpack_decoder_assert_api(&(_decoder)->base); \
+	dpack_assert_api((_decoder)->capa); \
+	dpack_assert_api((_decoder)->head <= (_decoder)->capa); \
+	dpack_assert_api((_decoder)->buff)
+
+static __dpack_nonull(1) __dpack_pure __warn_result
+size_t
+dpack_decoder_buffer_left(const struct dpack_decoder * __restrict decoder)
+{
+	const struct dpack_decoder_buffer * dec =
+		(const struct dpack_decoder_buffer *)decoder;
+
+	dpack_decoder_assert_buffer_api(dec);
+
+	return dec->capa - dec->head;
+}
+
+static __dpack_nonull(1, 2)
+void
+dpack_decoder_buffer_read(struct dpack_decoder * __restrict decoder,
+                          uint8_t * __restrict              data,
+                          size_t                            size)
+{
+	dpack_assert_intern(data);
+	dpack_assert_intern(size);
+
+	struct dpack_decoder_buffer * dec = (struct dpack_decoder_buffer *)
+	                                    decoder;
+
+	dpack_decoder_assert_buffer_api(dec);
+	dpack_assert_intern(size <= (dec->capa - dec->head));
+
+	memcpy(data, &dec->buff[dec->head], size);
+	dec->head += size;
+}
+
+static __dpack_nonull(1)
+void
+dpack_decoder_buffer_discard(struct dpack_decoder * __restrict decoder,
+                             size_t                            size)
+{
+	dpack_assert_intern(size);
+
+	struct dpack_decoder_buffer * dec = (struct dpack_decoder_buffer *)
+	                                    decoder;
+
+	dpack_decoder_assert_buffer_api(dec);
+	dpack_assert_intern(size <= (dec->capa - dec->head));
+
+	dec->head += size;
+}
+
+static __dpack_nonull(1)
+void
+dpack_decoder_buffer_fini(struct dpack_decoder * __restrict decoder __unused)
+{
+	dpack_decoder_assert_buffer_api((const struct dpack_decoder_buffer *)
+	                                decoder);
+}
+
+const struct dpack_decoder_ops dpack_decoder_buffer_ops = {
+	.left = dpack_decoder_buffer_left,
+	.read = dpack_decoder_buffer_read,
+	.disc = dpack_decoder_buffer_discard,
+	.fini = dpack_decoder_buffer_fini
+};
+
+void
+dpack_decoder_init_buffer(struct dpack_decoder_buffer * __restrict decoder,
+                          const uint8_t * __restrict               buffer,
+                          size_t                                   size)
+{
+	dpack_assert_api(decoder);
+	dpack_assert_api(buffer);
+	dpack_assert_api(size);
+
+	dpack_decoder_init(&decoder->base, &dpack_decoder_buffer_ops);
+	decoder->head = 0;
+	decoder->capa = size;
+	decoder->buff = buffer;
+}
+
+#if 0
 
 /******************************************************************************
  * Encoder / packer
@@ -155,29 +330,6 @@ dpack_decode_tag(struct mpack_reader_t *         reader,
 	return 0;
 }
 
-/*
- * Watch out !!
- *
- * This function is marked as __leaf for now. However, when mpack read tracking
- * is enabled, it calls mpack_reader_flag_error() which in turn may call a
- * function from the current compilation unit thanks to the reader error_fn()
- * function pointer of mpack.
- *
- * If modifying dpack_decoder_data_left() and / or registering an error
- * function (thanks to mpack_reader_set_error_handler()) is required for
- * internal DPack purposes, MAKE SURE you return to current compilation unit
- * only by return or by exception handling.
- *
- * See Stroll's __leaf documentation for more infos.
- */
-size_t
-dpack_decoder_data_left(struct dpack_decoder * decoder)
-{
-	dpack_assert_api(decoder);
-
-	return mpack_reader_remaining(&decoder->mpack, NULL);
-}
-
 static void __dpack_nonull(1) __dpack_nothrow
 dpack_decoder_discard(struct dpack_decoder * decoder,
                       enum mpack_type_t      type,
@@ -294,3 +446,5 @@ dpack_decoder_fini(struct dpack_decoder * decoder)
 
 	mpack_reader_destroy(&decoder->mpack);
 }
+
+#endif

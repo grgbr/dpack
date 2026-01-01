@@ -38,7 +38,71 @@ dpack_str_size(size_t len)
 }
 
 int
-dpack_encode_str(struct dpack_encoder * encoder, const char * __restrict value)
+dpack_encode_str_fix(struct dpack_encoder *  __restrict encoder,
+                       const char * __restrict          value,
+                       size_t                           length)
+{
+	dpack_encoder_assert_api(encoder);
+	dpack_assert_api(value);
+	dpack_assert_api(value[0]);
+	dpack_assert_api(length);
+	dpack_assert_api(length <= DPACK_STRLEN_MAX);
+	dpack_assert_api(length == strnlen(value, (DPACK_STRLEN_MAX + 1)));
+
+	int err;
+
+	switch (length) {
+	case 1 ... _DPACK_FIXSTR_LEN_MAX:
+		err = dpack_write_tag(encoder,
+		                      _DPACK_FIXSTR_TAG | (uint8_t)length);
+		break;
+#if DPACK_STRLEN_MAX > _DPACK_FIXSTR_LEN_MAX
+	case (_DPACK_FIXSTR_LEN_MAX + 1) ... _DPACK_STR8_LEN_MAX:
+		err = dpack_write_tag(encoder, DPACK_STR8_TAG);
+		if (!err) {
+			uint8_t val = (uint8_t)length;
+
+			err = dpack_encoder_write(encoder, &val, sizeof(val));
+		}
+		break;
+#endif
+#if DPACK_STRLEN_MAX > _DPACK_STR8_LEN_MAX
+	case (_DPACK_STR8_LEN_MAX + 1) ... _DPACK_STR16_LEN_MAX:
+		err = dpack_write_tag(encoder, DPACK_STR16_TAG);
+		if (!err) {
+			uint16_t val = htobe16((uint16_t)length);
+
+			err = dpack_encoder_write(encoder,
+			                          (const uint8_t *)&val,
+			                          sizeof(val));
+		}
+		break;
+#endif
+#if DPACK_STRLEN_MAX > _DPACK_STR16_LEN_MAX
+	case (_DPACK_STR16_LEN_MAX + 1) ... DPACK_STRLEN_MAX:
+		err = dpack_write_tag(encoder, DPACK_STR32_TAG);
+		if (!err) {
+			uint32_t val = htobe32((uint32_t)length);
+
+			err = dpack_encoder_write(encoder, &val,
+			                          (const uint8_t *)&val,
+			                          sizeof(val));
+		}
+		break;
+#endif
+	default:
+		dpack_assert_api(0);
+	}
+
+	if (!err)
+		return dpack_encoder_write(encoder, value, length);
+
+	return err;
+}
+
+int
+dpack_encode_str(struct dpack_encoder * __restrict encoder,
+                 const char * __restrict           value)
 {
 	dpack_assert_api_encoder(encoder);
 	dpack_assert_api(value);
@@ -46,112 +110,150 @@ dpack_encode_str(struct dpack_encoder * encoder, const char * __restrict value)
 	dpack_assert_api(strnlen(value,
 	                         (DPACK_STRLEN_MAX + 1)) <= DPACK_STRLEN_MAX);
 
-	mpack_write_cstr(&encoder->mpack, value);
-
-	return dpack_encoder_error_state(&encoder->mpack);
+	return dpack_encode_str_fix(encoder,
+	                            value,
+	                            strnlen(value, DPACK_STRLEN_MAX));
 }
 
-int
-dpack_encode_str_fix(struct dpack_encoder *  encoder,
-                     const char * __restrict value,
-                     size_t                  len)
+static __dpack_nonull(1) __warn_result
+ssize_t
+dpack_load_str_tag(struct dpack_decoder * __restrict decoder)
 {
-	dpack_assert_api_encoder(encoder);
-	dpack_assert_api(value);
-	dpack_assert_api(value[0]);
-	dpack_assert_api(len);
-	dpack_assert_api(len <= DPACK_STRLEN_MAX);
+	dpack_decoder_assert_intern(decoder);
 
-	mpack_write_str(&encoder->mpack, value, (uint32_t)len);
+	uint8_t tag;
+	int     err;
 
-	return dpack_encoder_error_state(&encoder->mpack);
+	err = dpack_read_tag(decoder, &tag);
+	if (!err) {
+		switch (tag) {
+		case DPACK_FIXSTR_TAG:
+			return (ssize_t)(tag & _DPACK_FIXSTR_LEN_MAX);
+
+		case DPACK_STR8_TAG:
+			{
+				uint8_t len;
+
+				err = dpack_decoder_read(decoder,
+				                         &len,
+				                         sizeof(len));
+				if (!err)
+					return (ssize_t)len;
+				break;
+			}
+
+		case DPACK_STR16_TAG:
+			{
+				uint16_t len;
+
+				err = dpack_decoder_read(decoder,
+				                         (const uint8_t *)&len,
+				                         sizeof(len));
+				if (!err)
+					return (ssize_t)(be16toh(len));
+				break;
+			}
+
+		case DPACK_STR32_TAG:
+			{
+				uint32_t len;
+
+				err = dpack_decoder_read(decoder,
+				                         (const uint8_t *)&len,
+				                         sizeof(len));
+				if (!err)
+					return (ssize_t)(be32toh(len));
+				break;
+			}
+
+		default:
+			err = -ENOMSG;
+		}
+	}
+
+	return err;
 }
 
-static ssize_t __dpack_nonull(1) __dpack_nothrow __warn_result
-dpack_decode_str_tag(struct mpack_reader_t * reader,
-                     size_t                  min_len,
-                     size_t                  max_len)
+static __dpack_nonull(1) __warn_result
+ssize_t
+dpack_decode_str_tag(struct dpack_decoder * __restrict decoder,
+                     size_t                            min_len,
+                     size_t                            max_len)
 {
-	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
+	dpack_decoder_assert_intern(decoder);
 	dpack_assert_intern(min_len);
 	dpack_assert_intern(min_len <= max_len);
 	dpack_assert_intern(max_len <= DPACK_STRLEN_MAX);
 
-	struct mpack_tag_t tag;
-	int                err;
-	uint32_t           len;
+	ssize_t len;
 
-	err = dpack_decode_tag(reader, mpack_type_str, &tag);
-	if (err)
-		return err;
+	len = dpack_load_str_tag(decoder);
+	if ((len < 0) ||
+	    (((size_t)len >= min_len) && ((size_t)len <= max_len)))
+		return len;
+	else if (!len)
+		return -EBADMSG;
 
-	len = mpack_tag_str_length(&tag);
-	if ((len < min_len) || (len > max_len)) {
-		mpack_reader_flag_error(reader, mpack_error_data);
-		return -EMSGSIZE;
-	}
-
-	return (ssize_t)len;
+	return -EMSGSIZE;
 }
 
-static ssize_t __dpack_nonull(1, 2) __dpack_nothrow __warn_result
-dpack_xtract_strdup(struct mpack_reader_t * reader,
-                    char ** __restrict      value,
-                    uint32_t                len)
+static __dpack_nonull(1, 2) __warn_result
+int
+dpack_xtract_strdup(struct dpack_decoder * __restrict decoder,
+                    char ** __restrict                value,
+                    size_t                            len)
 {
-	dpack_assert_intern(reader);
-	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
+	dpack_decoder_assert_intern(decoder);
 	dpack_assert_intern(value);
 	dpack_assert_intern(len);
 	dpack_assert_intern(len <= DPACK_STRLEN_MAX);
 
 	char * str;
 
-	str = mpack_read_bytes_alloc_impl(reader, len, true);
+	str = malloc(len + 1);
 	if (!str)
-		return dpack_decoder_error_state(reader);
+		return -errno;
+
+	dpack_decoder_read(decoder, str, len);
 
 	/*
 	 * Ensure the read string contains no NULL byte since msgpack do not
 	 * serialize terminating NULL byte.
 	 */
-	if (memchr(str, 0, len)) {
-		mpack_reader_flag_error(reader, mpack_error_type);
-		free(str);
-		return -EBADMSG;
+	if (!memchr(str, 0, len)) {
+		*value = str;
+		return 0;
 	}
 
-	*value = str;
+	free(str);
 
-	/*
-	 * Give mpack a chance to track bytes read. This is not required in case
-	 * of reader error since no more operations may be performed with it.
-	 */
-	mpack_done_str(reader);
-
-	return (ssize_t)len;
+	return -EBADMSG;
 }
 
 ssize_t
-dpack_decode_strdup(struct dpack_decoder * decoder, char ** __restrict value)
+dpack_decode_strdup(struct dpack_decoder * __restrict decoder,
+                    char ** __restrict                value)
 {
-	dpack_assert_api_decoder(decoder);
+	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(value);
 
 	ssize_t len;
 
-	len = dpack_decode_str_tag(&decoder->mpack, 1, DPACK_STRLEN_MAX);
+	len = dpack_decode_str_tag(decoder, 1, DPACK_STRLEN_MAX);
+	dpack_assert_intern(len);
 	if (len < 0)
 		return len;
 
-	return dpack_xtract_strdup(&decoder->mpack, value, (uint32_t)len);
+	return dpack_xtract_strdup(decoder, value, (size_t)len);
 }
 
-static int __dpack_nonull(1) __dpack_nothrow __warn_result
-dpack_decode_str_tag_equ(struct mpack_reader_t * reader, size_t len)
+#error finish me!!
+static __dpack_nonull(1) __dpack_nothrow __warn_result
+int
+dpack_decode_str_tag_equ(struct dpack_decoder * __restrict decoder,
+                         size_t                            len)
 {
-	dpack_assert_intern(reader);
-	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
+	dpack_decoder_assert_intern(decoder);
 	dpack_assert_intern(len);
 	dpack_assert_intern(len <= DPACK_STRLEN_MAX);
 

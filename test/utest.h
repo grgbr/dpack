@@ -27,7 +27,7 @@ union dpackut_scalar_value {
 };
 
 struct dpackut_scalar_data {
-	const char *               packed;
+	const uint8_t *            packed;
 	size_t                     size;
 	int                        error;
 	union dpackut_scalar_value value;
