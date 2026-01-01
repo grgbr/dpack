@@ -523,13 +523,13 @@ CUTE_TEST(dpackut_str_assert_sizes)
 
 CUTE_TEST(dpackut_str_encode_assert)
 {
-	struct dpack_encoder enc = { 0, };
-	char *               buff;
-	int                  ret __unused;
+	struct dpack_encoder_buffer enc = { 0, };
+	uint8_t *                   buff;
+	int                         ret __unused;
 
 	cute_expect_assertion(ret = dpack_encode_str(NULL, "test"));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_encode_str(&enc, "test"));
+	cute_expect_assertion(ret = dpack_encode_str(&enc.base, "test"));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	buff = malloc(DPACK_STRLEN_MAX + 2);
@@ -538,10 +538,11 @@ CUTE_TEST(dpackut_str_encode_assert)
 	buff[DPACK_STRLEN_MAX + 1] = '\0';
 
 	dpack_encoder_init_buffer(&enc, buff, DPACK_STRLEN_MAX + 2);
-	cute_expect_assertion(ret = dpack_encode_str(&enc, buff));
-	cute_expect_assertion(ret = dpack_encode_str(&enc, NULL));
-	cute_expect_assertion(ret = dpack_encode_str(&enc, ""));
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	cute_expect_assertion(ret = dpack_encode_str(&enc.base,
+	                                             (const char *)buff));
+	cute_expect_assertion(ret = dpack_encode_str(&enc.base, NULL));
+	cute_expect_assertion(ret = dpack_encode_str(&enc.base, ""));
+	dpack_encoder_fini(&enc.base);
 
 	free(buff);
 }
@@ -559,8 +560,8 @@ static void
 dpackut_str_encode(struct dpackut_str_data * data,
                    dpackut_str_pack_fn *     pack)
 {
-	char *               buff;
-	struct dpack_encoder enc;
+	uint8_t *                   buff;
+	struct dpack_encoder_buffer enc;
 
 	dpackut_str_gen_data(data);
 	if (data->null_term)
@@ -575,13 +576,13 @@ dpackut_str_encode(struct dpackut_str_data * data,
 
 	dpack_encoder_init_buffer(&enc, buff, data->size);
 
-	pack(&enc, data);
+	pack(&enc.base, data);
 	cute_check_mem(buff, equal, data->packed, data->size);
 	cute_check_uint(dpack_str_size(data->len), equal, data->size);
-	cute_check_uint(dpack_encoder_space_used(&enc), equal, data->size);
-	cute_check_uint(dpack_encoder_space_left(&enc), equal, 0);
+	cute_check_uint(dpack_encoder_space_used(&enc.base), equal, data->size);
+	cute_check_uint(dpack_encoder_space_left(&enc.base), equal, 0);
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 
 	free(buff);
 
@@ -723,15 +724,15 @@ dpackut_str_pack_fix(struct dpack_encoder *          encoder,
 
 CUTE_TEST(dpackut_str_encode_fix_assert)
 {
-	struct dpack_encoder enc = { 0, };
-	char *               buff;
-	int                  ret __unused;
-	size_t               len = sizeof("test") - 1;
-	const char *         str = "test";
+	struct dpack_encoder_buffer enc = { 0, };
+	uint8_t *                   buff;
+	int                         ret __unused;
+	size_t                      len = sizeof("test") - 1;
+	const char *                str = "test";
 
 	cute_expect_assertion(ret = dpack_encode_str_fix(NULL, str, len));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_encode_str_fix(&enc, str, len));
+	cute_expect_assertion(ret = dpack_encode_str_fix(&enc.base, str, len));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	buff = malloc(DPACK_STRLEN_MAX + 2);
@@ -740,13 +741,13 @@ CUTE_TEST(dpackut_str_encode_fix_assert)
 	buff[DPACK_STRLEN_MAX + 1] = '\0';
 
 	dpack_encoder_init_buffer(&enc, buff, DPACK_STRLEN_MAX + 2);
-	cute_expect_assertion(ret = dpack_encode_str_fix(&enc, str, 0));
-	cute_expect_assertion(ret = dpack_encode_str_fix(&enc,
-	                                                 buff,
+	cute_expect_assertion(ret = dpack_encode_str_fix(&enc.base, str, 0));
+	cute_expect_assertion(ret = dpack_encode_str_fix(&enc.base,
+	                                                 (const char *)buff,
 	                                                 DPACK_STRLEN_MAX + 1));
-	cute_expect_assertion(ret = dpack_encode_str_fix(&enc, NULL, len));
-	cute_expect_assertion(ret = dpack_encode_str_fix(&enc, "", 0));
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	cute_expect_assertion(ret = dpack_encode_str_fix(&enc.base, NULL, len));
+	cute_expect_assertion(ret = dpack_encode_str_fix(&enc.base, "", 0));
+	dpack_encoder_fini(&enc.base);
 
 	free(buff);
 }
@@ -878,17 +879,18 @@ static void
 dpackut_str_decode(struct dpackut_str_data * data,
                    dpackut_str_unpack_fn *   unpack)
 {
-	struct dpack_decoder dec;
+	struct dpack_decoder_buffer dec;
 
 	dpackut_str_gen_data(data);
 	cute_check_uint(data->len, equal, strlen(data->value));
 
 	cute_check_uint(dpackut_str_size(data->len), equal, data->size);
 
-	dpack_decoder_init_buffer(&dec, data->packed, data->size);
-	unpack(&dec, data);
-	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
-	dpack_decoder_fini(&dec);
+	dpack_decoder_init_buffer(&dec, (uint8_t *)data->packed, data->size);
+	unpack(&dec.base, data);
+	if (!data->error)
+		cute_check_uint(dpack_decoder_data_left(&dec.base), equal, 0);
+	dpack_decoder_fini(&dec.base);
 
 	dpackut_str_fini_data(data);
 }
@@ -919,19 +921,19 @@ dpackut_str_unpack_dup(struct dpack_decoder *          decoder,
 
 CUTE_TEST(dpackut_str_decode_dup_assert)
 {
-	struct dpack_decoder dec = { 0, };
-	char *               str;
-	char                 buff[8];
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	char *                      str;
+	uint8_t                     buff[8];
+	ssize_t                     ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_strdup(NULL, &str));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_decode_strdup(&dec, &str));
+	cute_expect_assertion(ret = dpack_decode_strdup(&dec.base, &str));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_decode_strdup(&dec, NULL));
-	dpack_decoder_fini(&dec);
+	cute_expect_assertion(ret = dpack_decode_strdup(&dec.base, NULL));
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !(defined(CONFIG_DPACK_ASSERT_API)) */
@@ -945,7 +947,7 @@ CUTE_TEST(dpackut_str_decode_dup_assert)
 
 CUTE_TEST(dpackut_str_decode_dup_0)
 {
-	DPACKUT_STR_DEC(data, 0, -EMSGSIZE);
+	DPACKUT_STR_DEC(data, 0, -EBADMSG);
 	dpackut_str_decode(&data, dpackut_str_unpack_dup);
 }
 
@@ -1071,22 +1073,22 @@ CUTE_TEST(dpackut_str_decode_dup_maxplus1)
 
 CUTE_TEST(dpackut_str_decode_dup_fail)
 {
-	struct dpack_decoder dec;
-	char                 buff[] = "\xa1\x30";
-	char *               str;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec;
+	char                        buff[] = "\xa1\x30";
+	char *                      str;
+	ssize_t                     ret __unused;
 
-	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
+	dpack_decoder_init_buffer(&dec, (uint8_t *)buff, sizeof(buff));
 	if (dpackut_expect_malloc()) {
-		cute_check_sint(dpack_decode_strdup(&dec, &str), equal, 1);
+		cute_check_sint(dpack_decode_strdup(&dec.base, &str), equal, 1);
 		cute_check_ptr(str, unequal, NULL);
 		free(str);
 	}
 	else
-		cute_check_sint(dpack_decode_strdup(&dec, &str),
+		cute_check_sint(dpack_decode_strdup(&dec.base, &str),
 		                equal,
 		                -ENOMEM);
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #define DPACKUT_STR_DEC_EQU(_len, _error, _equ) \
@@ -1118,24 +1120,30 @@ dpackut_str_unpack_dup_equ(struct dpack_decoder *          decoder,
 
 CUTE_TEST(dpackut_str_decode_dup_equ_assert)
 {
-	struct dpack_decoder dec = { 0, };
-	char *               str;
-	char                 buff[8];
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	char *                      str;
+	char                        buff[8];
+	ssize_t                     ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_strdup_equ(NULL, 2, &str));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_decode_strdup_equ(&dec, 2, &str));
+	cute_expect_assertion(ret = dpack_decode_strdup_equ(&dec.base,
+	                                                    2,
+	                                                    &str));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
-	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_decode_strdup_equ(&dec, 2, NULL));
-	cute_expect_assertion(ret = dpack_decode_strdup_equ(&dec, 0, &str));
-	cute_expect_assertion(ret = dpack_decode_strdup_equ(&dec,
+	dpack_decoder_init_buffer(&dec, (uint8_t *)buff, sizeof(buff));
+	cute_expect_assertion(ret = dpack_decode_strdup_equ(&dec.base,
+	                                                    2,
+	                                                    NULL));
+	cute_expect_assertion(ret = dpack_decode_strdup_equ(&dec.base,
+	                                                    0,
+	                                                    &str));
+	cute_expect_assertion(ret = dpack_decode_strdup_equ(&dec.base,
 	                                                    DPACK_STRLEN_MAX +
 	                                                    1,
 	                                                    &str));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !(defined(CONFIG_DPACK_ASSERT_API)) */
@@ -1151,7 +1159,7 @@ CUTE_TEST(dpackut_str_decode_dup_equ_2)
 {
 	struct dpackut_str_data data;
 
-	data = DPACKUT_STR_DEC_EQU(0, -EMSGSIZE, 1);
+	data = DPACKUT_STR_DEC_EQU(0, -EBADMSG, 1);
 	dpackut_str_decode(&data, dpackut_str_unpack_dup_equ);
 
 	data = DPACKUT_STR_DEC_EQU(1, 1, 1);
@@ -1360,23 +1368,27 @@ dpackut_str_unpack_dup_max(struct dpack_decoder *          decoder,
 
 CUTE_TEST(dpackut_str_decode_dup_max_assert)
 {
-	struct dpack_decoder dec = { 0, };
-	char *               str;
-	char                 buff[8];
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	char *                      str;
+	char                        buff[8];
+	ssize_t                     ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_strdup_max(NULL, 2, &str));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_decode_strdup_max(&dec, 2, &str));
+	cute_expect_assertion(ret = dpack_decode_strdup_max(&dec.base, 2, &str));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
-	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_decode_strdup_max(&dec, 2, NULL));
-	cute_expect_assertion(ret = dpack_decode_strdup_max(&dec, 1, &str));
-	cute_expect_assertion(ret = dpack_decode_strdup_max(&dec,
+	dpack_decoder_init_buffer(&dec, (uint8_t *)buff, sizeof(buff));
+	cute_expect_assertion(ret = dpack_decode_strdup_max(&dec.base,
+	                                                    2,
+	                                                    NULL));
+	cute_expect_assertion(ret = dpack_decode_strdup_max(&dec.base,
+	                                                    1,
+	                                                    &str));
+	cute_expect_assertion(ret = dpack_decode_strdup_max(&dec.base,
 	                                                    DPACK_STRLEN_MAX + 1,
 	                                                    &str));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !(defined(CONFIG_DPACK_ASSERT_API)) */
@@ -1392,7 +1404,7 @@ CUTE_TEST(dpackut_str_decode_dup_max_2)
 {
 	struct dpackut_str_data data;
 
-	data = DPACKUT_STR_DEC_MAX(0, -EMSGSIZE, 2);
+	data = DPACKUT_STR_DEC_MAX(0, -EBADMSG, 2);
 	dpackut_str_decode(&data, dpackut_str_unpack_dup_max);
 
 	data = DPACKUT_STR_DEC_MAX(2,  2, 2);
@@ -1600,41 +1612,41 @@ dpackut_str_unpack_dup_range(struct dpack_decoder *          decoder,
 
 CUTE_TEST(dpackut_str_decode_dup_range_assert)
 {
-	struct dpack_decoder dec = { 0, };
-	char *               str;
-	char                 buff[8];
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	char *                      str;
+	char                        buff[8];
+	ssize_t                     ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_strdup_range(NULL,
 	                                                      1,
 	                                                      2,
 	                                                      &str));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_decode_strdup_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_strdup_range(&dec.base,
 	                                                      1,
 	                                                      2,
 	                                                      &str));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
-	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_decode_strdup_range(&dec,
+	dpack_decoder_init_buffer(&dec, (uint8_t *)buff, sizeof(buff));
+	cute_expect_assertion(ret = dpack_decode_strdup_range(&dec.base,
 	                                                      1,
 	                                                      2,
 	                                                      NULL));
-	cute_expect_assertion(ret = dpack_decode_strdup_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_strdup_range(&dec.base,
 	                                                      0,
 	                                                      2,
 	                                                      &str));
-	cute_expect_assertion(ret = dpack_decode_strdup_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_strdup_range(&dec.base,
 	                                                      1,
 	                                                      DPACK_STRLEN_MAX +
 	                                                      1,
 	                                                      &str));
-	cute_expect_assertion(ret = dpack_decode_strdup_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_strdup_range(&dec.base,
 	                                                      1,
 	                                                      1,
 	                                                      &str));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !(defined(CONFIG_DPACK_ASSERT_API)) */
@@ -1650,7 +1662,7 @@ CUTE_TEST(dpackut_str_decode_dup_range_1_2)
 {
 	struct dpackut_str_data data;
 
-	data = DPACKUT_STR_DEC_RANGE(0, -EMSGSIZE, 1, 2);
+	data = DPACKUT_STR_DEC_RANGE(0, -EBADMSG, 1, 2);
 	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
 
 	data = DPACKUT_STR_DEC_RANGE(1, 1, 1, 2);
@@ -1889,23 +1901,23 @@ dpackut_str_unpack_strcpy(struct dpack_decoder *          decoder,
 
 CUTE_TEST(dpackut_str_decode_strcpy_assert)
 {
-	struct dpack_decoder dec = { .mpack.error = mpack_error_bug };
-	char *               str = str;
-	char                 buff[8];
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	char *                      str = str;
+	char                        buff[8];
+	ssize_t                     ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_strcpy(NULL, 2, str));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_decode_strcpy(&dec, 2, str));
+	cute_expect_assertion(ret = dpack_decode_strcpy(&dec.base, 2, str));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
-	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_decode_strcpy(&dec, 2, NULL));
-	cute_expect_assertion(ret = dpack_decode_strcpy(&dec, 1, str));
-	cute_expect_assertion(ret = dpack_decode_strcpy(&dec,
+	dpack_decoder_init_buffer(&dec, (uint8_t *)buff, sizeof(buff));
+	cute_expect_assertion(ret = dpack_decode_strcpy(&dec.base, 2, NULL));
+	cute_expect_assertion(ret = dpack_decode_strcpy(&dec.base, 1, str));
+	cute_expect_assertion(ret = dpack_decode_strcpy(&dec.base,
 	                                                DPACK_STRLEN_MAX + 2,
 	                                                str));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !(defined(CONFIG_DPACK_ASSERT_API)) */
@@ -1919,7 +1931,7 @@ CUTE_TEST(dpackut_str_decode_strcpy_assert)
 
 CUTE_TEST(dpackut_str_decode_strcpy_0)
 {
-	DPACKUT_STR_DEC(data, 0, -EMSGSIZE);
+	DPACKUT_STR_DEC(data, 0, -EBADMSG);
 	dpackut_str_decode(&data, dpackut_str_unpack_strcpy);
 }
 
@@ -2072,24 +2084,26 @@ dpackut_str_unpack_strcpy_equ(struct dpack_decoder *          decoder,
 
 CUTE_TEST(dpackut_str_decode_strcpy_equ_assert)
 {
-	struct dpack_decoder dec = { .mpack.error = mpack_error_bug };
-	char *               str = str;
-	char                 buff[8];
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	char *                      str = str;
+	char                        buff[8];
+	ssize_t                     ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_strcpy_equ(NULL, 2, str));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_decode_strcpy_equ(&dec, 2, str));
+	cute_expect_assertion(ret = dpack_decode_strcpy_equ(&dec.base, 2, str));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
-	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_decode_strcpy_equ(&dec, 2, NULL));
-	cute_expect_assertion(ret = dpack_decode_strcpy_equ(&dec, 1, str));
-	cute_expect_assertion(ret = dpack_decode_strcpy_equ(&dec,
+	dpack_decoder_init_buffer(&dec, (uint8_t *)buff, sizeof(buff));
+	cute_expect_assertion(ret = dpack_decode_strcpy_equ(&dec.base,
+	                                                    2,
+	                                                    NULL));
+	cute_expect_assertion(ret = dpack_decode_strcpy_equ(&dec.base, 1, str));
+	cute_expect_assertion(ret = dpack_decode_strcpy_equ(&dec.base,
 	                                                    DPACK_STRLEN_MAX +
 	                                                    2,
 	                                                    str));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !(defined(CONFIG_DPACK_ASSERT_API)) */
@@ -2105,7 +2119,7 @@ CUTE_TEST(dpackut_str_decode_strcpy_equ_1)
 {
 	struct dpackut_str_data data;
 
-	data = DPACKUT_STR_DEC_EQU(0, -EMSGSIZE, 1);
+	data = DPACKUT_STR_DEC_EQU(0, -EBADMSG, 1);
 	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
 
 	data = DPACKUT_STR_DEC_EQU(1,  1, 1);
@@ -2317,41 +2331,41 @@ dpackut_str_unpack_strcpy_range(struct dpack_decoder *          decoder,
 
 CUTE_TEST(dpackut_str_decode_strcpy_range_assert)
 {
-	struct dpack_decoder dec = { .mpack.error = mpack_error_bug };
-	char *               str = str;
-	char                 buff[8];
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	char *                      str = str;
+	char                        buff[8];
+	ssize_t                     ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_strcpy_range(NULL,
 	                                                      1,
 	                                                      3,
 	                                                      str));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_decode_strcpy_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_strcpy_range(&dec.base,
 	                                                      1,
 	                                                      3,
 	                                                      str));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
-	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_decode_strcpy_range(&dec,
+	dpack_decoder_init_buffer(&dec, (uint8_t *)buff, sizeof(buff));
+	cute_expect_assertion(ret = dpack_decode_strcpy_range(&dec.base,
 	                                                      1,
 	                                                      31,
 	                                                      NULL));
-	cute_expect_assertion(ret = dpack_decode_strcpy_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_strcpy_range(&dec.base,
 	                                                      0,
 	                                                      3,
 	                                                      str));
-	cute_expect_assertion(ret = dpack_decode_strcpy_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_strcpy_range(&dec.base,
 	                                                      1,
 	                                                      DPACK_STRLEN_MAX +
 	                                                      2,
 	                                                      str));
-	cute_expect_assertion(ret = dpack_decode_strcpy_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_strcpy_range(&dec.base,
 	                                                      1,
 	                                                      2,
 	                                                      str));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !(defined(CONFIG_DPACK_ASSERT_API)) */
@@ -2367,7 +2381,7 @@ CUTE_TEST(dpackut_str_decode_strcpy_range_1_2)
 {
 	struct dpackut_str_data data;
 
-	data = DPACKUT_STR_DEC_RANGE(0, -EMSGSIZE, 1, 2);
+	data = DPACKUT_STR_DEC_RANGE(0, -EBADMSG, 1, 2);
 	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
 
 	data = DPACKUT_STR_DEC_RANGE(1, 1, 1, 2);
@@ -2697,8 +2711,12 @@ CUTE_GROUP(dpackut_str_group) = {
 	CUTE_REF(dpackut_str_decode_strcpy_range_maxminus1_max)
 };
 
+/*
+ * Setup test timeout to cope with very long strings while running under
+ * Valgrind.
+ */
 CUTE_SUITE_EXTERN(dpackut_str_suite,
                   dpackut_str_group,
                   CUTE_NULL_SETUP,
                   CUTE_NULL_TEARDOWN,
-                  CUTE_DFLT_TMOUT);
+                  60);

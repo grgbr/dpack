@@ -193,11 +193,8 @@ struct dpack_decoder;
  * #DPACK_STR_SIZE
  */
 extern size_t
-dpack_str_size(size_t len) __dpack_const
-                           __dpack_nothrow
-                           __leaf
-                           __warn_result
-                           __dpack_export;
+dpack_str_size(size_t len)
+	__dpack_const __dpack_nothrow __leaf __warn_result __dpack_export;
 
 /**
  * Encode a string according to the MessagePack format
@@ -229,19 +226,16 @@ dpack_str_size(size_t len) __dpack_const
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_encode_str(struct dpack_encoder  * encoder,
-                 const char * __restrict value) __dpack_nonull(1, 2)
-                                                __dpack_nothrow
-                                                __leaf
-                                                __warn_result
-                                                __dpack_export;
+dpack_encode_str(struct dpack_encoder * __restrict encoder,
+                 const char * __restrict           value)
+	__dpack_nonull(1, 2) __warn_result __dpack_export;
 
 /**
  * Encode a string according to the MessagePack format
  *
  * @param[inout] encoder encoder
  * @param[in]    value   string to encode
- * @param[in]    len     length of @p value
+ * @param[in]    length  length of @p value
  *
  * @return an errno like error code
  * @retval 0         Success
@@ -252,8 +246,8 @@ dpack_encode_str(struct dpack_encoder  * encoder,
  * encoder at initialization time according to the
  * @rstsubst{MessagePack string format}.
  *
- * This function is similar to dpack_encode_str() except that @p len bytes of @p
- * value are encoded.
+ * This function is similar to dpack_encode_str() except that @p length bytes of
+ * @p value are encoded.
  *
  * @warning
  * - @p encoder *MUST* have been initialized using dpack_encoder_init_buffer()
@@ -262,10 +256,10 @@ dpack_encode_str(struct dpack_encoder  * encoder,
  *   @p encoder is in error state before calling this function, result is
  *   undefined. An assertion is triggered otherwise.
  * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
- *   @p len is zero or greater than #DPACK_STRLEN_MAX, result is undefined. An
- *   assertion is triggered otherwise.
+ *   @p length is zero or greater than #DPACK_STRLEN_MAX, result is undefined.
+ *   An assertion is triggered otherwise.
  * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
- *   @p value string length is different from @p len argument, result is
+ *   @p value string length is different from @p length argument, result is
  *   undefined. An assertion is triggered otherwise.
  *
  * @see
@@ -273,13 +267,10 @@ dpack_encode_str(struct dpack_encoder  * encoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_encode_str_fix(struct dpack_encoder  * encoder,
-                     const char * __restrict value,
-                     size_t                  len) __dpack_nonull(1, 2)
-                                                  __dpack_nothrow
-                                                  __leaf
-                                                  __warn_result
-                                                  __dpack_export;
+dpack_encode_str_fix(struct dpack_encoder * __restrict encoder,
+                     const char * __restrict           value,
+                     size_t                            length)
+	__dpack_nonull(1, 2) __warn_result __dpack_export;
 
 /**
  * Decode and allocate a string encoded according to the MessagePack format
@@ -323,19 +314,16 @@ dpack_encode_str_fix(struct dpack_encoder  * encoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern ssize_t
-dpack_decode_strdup(struct dpack_decoder * decoder,
-                    char ** __restrict     value) __dpack_nonull(1, 2)
-                                                  __dpack_nothrow
-                                                  __leaf
-                                                  __warn_result
-                                                  __dpack_export;
+dpack_decode_strdup(struct dpack_decoder * __restrict decoder,
+                    char ** __restrict                value)
+	__dpack_nonull(1, 2) __warn_result __dpack_export;
 
 /**
  * Decode and allocate a string encoded according to the MessagePack format
  * with requested length
  *
  * @param[inout] decoder decoder
- * @param[in]    len     expected length of decoded string
+ * @param[in]    length  expected length of decoded string
  * @param[out]   value   location where to store pointer to allocated string
  *
  * @return length of decoded string when successful, an errno like error code
@@ -352,7 +340,7 @@ dpack_decode_strdup(struct dpack_decoder * decoder,
  * assigned to @p decoder at initialization time.
  *
  * Decoding fails with a ``-EMSGSIZE`` error code when length of the decoded
- * string is different from the specified @p len value.
+ * string is different from the specified @p length value.
  *
  * The decoded string will be allocated using @man{malloc(3)}. A pointer to the
  * string is returned via the @p value argument. The allocated string should be
@@ -368,7 +356,7 @@ dpack_decode_strdup(struct dpack_decoder * decoder,
  *   @p decoder is in error state before calling this function, result is
  *   undefined. An assertion is triggered otherwise.
  * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
- *   @p len value is zero or greater than #DPACK_STRLEN_MAX, result is
+ *   @p length value is zero or greater than #DPACK_STRLEN_MAX, result is
  *   undefined. An assertion is triggered otherwise.
  *
  * @see
@@ -377,13 +365,10 @@ dpack_decode_strdup(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern ssize_t
-dpack_decode_strdup_equ(struct dpack_decoder * decoder,
-                        size_t                 len,
-                        char ** __restrict     value) __dpack_nonull(1, 3)
-                                                      __dpack_nothrow
-                                                      __leaf
-                                                      __warn_result
-                                                      __dpack_export;
+dpack_decode_strdup_equ(struct dpack_decoder * __restrict decoder,
+                        size_t                            length,
+                        char ** __restrict                value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode and allocate a string encoded according to the MessagePack format
@@ -432,13 +417,10 @@ dpack_decode_strdup_equ(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern ssize_t
-dpack_decode_strdup_max(struct dpack_decoder * decoder,
-                        size_t                 max_len,
-                        char ** __restrict     value) __dpack_nonull(1, 3)
-                                                      __dpack_nothrow
-                                                      __leaf
-                                                      __warn_result
-                                                      __dpack_export;
+dpack_decode_strdup_max(struct dpack_decoder * __restrict decoder,
+                        size_t                            max_len,
+                        char ** __restrict                value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode and allocate a string encoded according to the MessagePack format
@@ -493,14 +475,11 @@ dpack_decode_strdup_max(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern ssize_t
-dpack_decode_strdup_range(struct dpack_decoder * decoder,
-                          size_t                 min_len,
-                          size_t                 max_len,
-                          char ** __restrict     value) __dpack_nonull(1, 4)
-                                                        __dpack_nothrow
-                                                        __leaf
-                                                        __warn_result
-                                                        __dpack_export;
+dpack_decode_strdup_range(struct dpack_decoder * __restrict decoder,
+                          size_t                            min_len,
+                          size_t                            max_len,
+                          char ** __restrict                value)
+	__dpack_nonull(1, 4) __warn_result __dpack_export;
 
 /**
  * Decode a string encoded according to the MessagePack format
@@ -546,13 +525,10 @@ dpack_decode_strdup_range(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern ssize_t
-dpack_decode_strcpy(struct dpack_decoder * decoder,
-                    size_t                 size,
-                    char *                 value) __dpack_nonull(1, 3)
-                                                  __dpack_nothrow
-                                                  __leaf
-                                                  __warn_result
-                                                  __dpack_export;
+dpack_decode_strcpy(struct dpack_decoder * __restrict decoder,
+                    size_t                            size,
+                    char * __restrict                 value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode a string encoded according to the MessagePack format with requested
@@ -598,13 +574,10 @@ dpack_decode_strcpy(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern ssize_t
-dpack_decode_strcpy_equ(struct dpack_decoder * decoder,
-                        size_t                 size,
-                        char *                 value) __dpack_nonull(1, 3)
-                                                      __dpack_nothrow
-                                                      __leaf
-                                                      __warn_result
-                                                      __dpack_export;
+dpack_decode_strcpy_equ(struct dpack_decoder * __restrict decoder,
+                        size_t                            size,
+                        char *                            value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode a string encoded according to the MessagePack format with requested
@@ -654,13 +627,10 @@ dpack_decode_strcpy_equ(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern ssize_t
-dpack_decode_strcpy_range(struct dpack_decoder * decoder,
-                          size_t                 min_len,
-                          size_t                 max_size,
-                          char *                 value) __dpack_nonull(1, 4)
-                                                        __dpack_nothrow
-                                                        __leaf
-                                                        __warn_result
-                                                        __dpack_export;
+dpack_decode_strcpy_range(struct dpack_decoder * __restrict decoder,
+                          size_t                            min_len,
+                          size_t                            max_size,
+                          char *                            value)
+	__dpack_nonull(1, 4) __warn_result __dpack_export;
 
 #endif /* _DPACK_STRING_H */
