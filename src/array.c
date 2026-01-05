@@ -213,7 +213,7 @@ dpack_array_xtract_range(struct dpack_decoder * decoder,
 			                                nr);
 		}
 
-		return -EMSGSIZE;
+		return nr ? -EMSGSIZE : -EBADMSG;
 	}
 
 	return err;
@@ -249,10 +249,14 @@ dpack_array_decode_equ(struct dpack_decoder * __restrict decoder,
 	int          err;
 
 	err = dpack_load_array_tag(decoder, &cnt);
-	if (!err)
-		return (cnt == nr)
-		       ? dpack_array_decode_elems(decoder, decode, data, nr)
-		       : -EMSGSIZE;
+	if (!err) {
+		if (cnt == nr)
+		       return dpack_array_decode_elems(decoder,
+		                                       decode,
+		                                       data,
+		                                       nr);
+		return cnt ? -EMSGSIZE : -EBADMSG;
+	}
 
 	return err;
 }
