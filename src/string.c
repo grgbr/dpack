@@ -264,8 +264,8 @@ dpack_decode_strdup(struct dpack_decoder * __restrict decoder,
 
 static __dpack_nonull(1) __warn_result
 int
-dpack_decode_str_tag_equ(struct dpack_decoder * __restrict decoder,
-                         size_t                            length)
+dpack_xtract_str_equ(struct dpack_decoder * __restrict decoder,
+                     size_t                            length)
 {
 	dpack_decoder_assert_intern(decoder);
 	dpack_assert_intern(length);
@@ -292,7 +292,7 @@ dpack_decode_strdup_equ(struct dpack_decoder * decoder,
 
 	int err;
 
-	err = dpack_decode_str_tag_equ(decoder, length);
+	err = dpack_xtract_str_equ(decoder, length);
 	if (err)
 		return err;
 
@@ -301,8 +301,8 @@ dpack_decode_strdup_equ(struct dpack_decoder * decoder,
 
 static __dpack_nonull(1) __warn_result
 ssize_t
-dpack_decode_str_tag_max(struct dpack_decoder * __restrict decoder,
-                         size_t                            max_len)
+dpack_xtract_str_max(struct dpack_decoder * __restrict decoder,
+                     size_t                            max_len)
 {
 	dpack_decoder_assert_intern(decoder);
 	dpack_assert_intern(max_len > 1);
@@ -329,7 +329,7 @@ dpack_decode_strdup_max(struct dpack_decoder  * decoder,
 
 	ssize_t len;
 
-	len = dpack_decode_str_tag_max(decoder, max_len);
+	len = dpack_xtract_str_max(decoder, max_len);
 	if (len < 0)
 		return len;
 
@@ -425,7 +425,7 @@ dpack_decode_strcpy_equ(struct dpack_decoder * __restrict decoder,
 
 	int err;
 
-	err = dpack_decode_str_tag_equ(decoder, size - 1);
+	err = dpack_xtract_str_equ(decoder, size - 1);
 	if (err)
 		return err;
 

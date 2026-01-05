@@ -24,7 +24,8 @@
 
 #define DPACK_FIXUINT_TAG   0x00U ... 0x7fU
 #define DPACK_FIXMAP_TAG    0x80U ... 0x8fU
-#define DPACK_FIXARRAY_TAG  0x90U ... 0x9fU
+#define _DPACK_FIXARRAY_TAG 0x90U
+#define DPACK_FIXARRAY_TAG  _DPACK_FIXARRAY_TAG ... 0x9fU
 #define _DPACK_FIXSTR_TAG   0xa0U
 #define DPACK_FIXSTR_TAG    _DPACK_FIXSTR_TAG ... 0xbfU
 #define DPACK_NIL_TAG       0xc0U

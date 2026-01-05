@@ -100,8 +100,10 @@
  * Msgpack fixarray definitions
  ******************************************************************************/
 
+#define DPACK_FIXARRAY_TAG_SIZE 1
+
 #define __DPACK_ARRAY_HEAD_SIZE(_elm_nr) \
-	MPACK_TAG_SIZE_FIXARRAY
+	DPACK_FIXARRAY_TAG_SIZE
 
 /******************************************************************************
  * Msgpack 16 bits array definitions
@@ -109,10 +111,12 @@
 
 #if DPACK_ARRAY_ELMNR_MAX > _DPACK_FIXARRAY_ELMNR_MAX
 
+#define DPACK_ARRAY16_TAG_SIZE 3
+
 #define _DPACK_ARRAY16_HEAD_SIZE(_elm_nr) \
 	(((_elm_nr) > _DPACK_FIXARRAY_ELMNR_MAX) ? \
-	 MPACK_TAG_SIZE_ARRAY16 : \
-	 MPACK_TAG_SIZE_FIXARRAY)
+	 DPACK_ARRAY16_TAG_SIZE : \
+	 DPACK_FIXARRAY_TAG_SIZE)
 
 #undef __DPACK_ARRAY_HEAD_SIZE
 #define __DPACK_ARRAY_HEAD_SIZE(_elm_nr) \
@@ -126,9 +130,11 @@
 
 #if DPACK_ARRAY_ELMNR_MAX > _DPACK_ARRAY16_ELMNR_MAX
 
+#define DPACK_ARRAY32_TAG_SIZE 5
+
 #define _DPACK_ARRAY32_HEAD_SIZE(_elm_nr) \
 	(((_elm_nr) > _DPACK_ARRAY16_ELMNR_MAX) ? \
-	 MPACK_TAG_SIZE_ARRAY32 : \
+	 DPACK_ARRAY32_TAG_SIZE : \
 	 _DPACK_ARRAY16_HEAD_SIZE(_elm_nr))
 
 #undef __DPACK_ARRAY_HEAD_SIZE
@@ -874,9 +880,9 @@ dpack_array_fixed_size(unsigned int elm_nr, size_t elm_size)
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_array_begin_encode(struct dpack_encoder * encoder,
-                         unsigned int           nr)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_array_begin_encode(struct dpack_encoder * __restrict encoder,
+                         unsigned int                      nr)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /**
  * Complete encoding of an array.
@@ -900,9 +906,12 @@ dpack_array_begin_encode(struct dpack_encoder * encoder,
  * - dpack_array_begin_encode()
  * - dpack_encoder_init_buffer()
  */
-extern void
-dpack_array_end_encode(struct dpack_encoder * encoder)
-	__dpack_nonull(1) __dpack_nothrow __leaf __dpack_export;
+static inline __dpack_nonull(1)
+void
+dpack_array_end_encode(struct dpack_encoder * __restrict encoder __unused)
+{
+	dpack_encoder_assert_api(encoder);
+}
 
 /******************************************************************************
  * Array decoding
@@ -957,43 +966,38 @@ dpack_array_end_encode(struct dpack_encoder * encoder)
  * - dpack_decoder_init_skip_buffer()
  */
 extern int
-dpack_array_decode(struct dpack_decoder * decoder,
-                   dpack_decode_item_fn * decode,
-                   void                 * data) __dpack_nonull(1, 2)
-                                                __warn_result
-                                                __dpack_export;
+dpack_array_decode(struct dpack_decoder * __restrict decoder,
+                   dpack_decode_item_fn *            decode,
+                   void * __restrict                 data)
+	__dpack_nonull(1, 2) __warn_result __dpack_export;
 
 extern int
-dpack_array_decode_equ(struct dpack_decoder * decoder,
-                       unsigned int           nr,
-                       dpack_decode_item_fn * decode,
-                       void                 * data) __dpack_nonull(1, 3)
-                                                    __warn_result
-                                                    __dpack_export;
+dpack_array_decode_equ(struct dpack_decoder * __restrict decoder,
+                       unsigned int                      nr,
+                       dpack_decode_item_fn *            decode,
+                       void * __restrict                 data)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 extern int
-dpack_array_decode_min(struct dpack_decoder * decoder,
-                       unsigned int           min_nr,
-                       dpack_decode_item_fn * decode,
-                       void                 * data) __dpack_nonull(1, 3)
-                                                    __warn_result
-                                                    __dpack_export;
+dpack_array_decode_min(struct dpack_decoder * __restrict decoder,
+                       unsigned int                      min_nr,
+                       dpack_decode_item_fn *            decode,
+                       void * __restrict                 data)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 extern int
-dpack_array_decode_max(struct dpack_decoder * decoder,
-                       unsigned int           max_nr,
-                       dpack_decode_item_fn * decode,
-                       void                 * data) __dpack_nonull(1, 3)
-                                                    __warn_result
-                                                    __dpack_export;
+dpack_array_decode_max(struct dpack_decoder * __restrict decoder,
+                       unsigned int                      max_nr,
+                       dpack_decode_item_fn *            decode,
+                       void * __restrict                 data)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 extern int
-dpack_array_decode_range(struct dpack_decoder * decoder,
-                         unsigned int           min_nr,
-                         unsigned int           max_nr,
-                         dpack_decode_item_fn * decode,
-                         void                 * data) __dpack_nonull(1, 4)
-                                                      __warn_result
-                                                      __dpack_export;
+dpack_array_decode_range(struct dpack_decoder * __restrict decoder,
+                         unsigned int                      min_nr,
+                         unsigned int                      max_nr,
+                         dpack_decode_item_fn *            decode,
+                         void * __restrict                 data)
+	__dpack_nonull(1, 4) __warn_result __dpack_export;
 
 #endif /* _DPACK_ARRAY_H */

@@ -218,6 +218,44 @@ dpack_encoder_init_buffer(struct dpack_encoder_buffer * __restrict encoder,
 
 struct dpack_decoder;
 
+/**
+ * MessagePack collection item callback.
+ *
+ * @param[inout] decoder decoder
+ * @param[in]    id      index of collection item
+ * @param[inout] data    arbitrary location to client data
+ *
+ * @return 0 in case of success, a negative errno like error code otherwise.
+ *
+ * Signature of callback functions called by decoding functions to decode items
+ * of @rstref{sect-api-array} or @rstref{sect-api-map} collections.
+ *
+ * @p decoder shall be given as a decoder initialized using
+ * dpack_decoder_init_buffer() or dpack_decoder_init_skip_buffer().
+ *
+ * @p id shall be given as the index of the next item within the current
+ * collection that is being decoded, starting from zero.
+ *
+ * The @p data argument passed to the collection decoding function
+ * (dpack_array_decode(), dpack_map_decode(), ...) shall be given as the @p data
+ * argument to the callback function. It should point to an optional arbitrary
+ * location owned by the client application.
+ *
+ * The callback function should **return** ``0`` in case of success. When
+ * returning a *negative error* code, current collection decoding process is
+ * interrupted and the error code is returned to the caller of the collection
+ * decoding function (dpack_array_decode(), dpack_map_decode(), ...).
+ *
+ * @see
+ * - dpack_array_decode()
+ * - dpack_map_decode()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
+typedef int dpack_decode_item_fn(struct dpack_decoder * __restrict,
+                                 unsigned int,
+                                 void * __restrict);
+
 typedef size_t dpack_decoder_left_fn(const struct dpack_decoder * __restrict)
 	__dpack_nonull(1) __warn_result;
 
@@ -386,44 +424,6 @@ dpack_decoder_init_buffer(struct dpack_decoder_buffer * __restrict decoder,
  ******************************************************************************/
 
 struct dpack_decoder;
-
-/**
- * MessagePack collection item callback.
- *
- * @param[inout] decoder decoder
- * @param[in]    id      index of collection item
- * @param[inout] data    arbitrary location to client data
- *
- * @return 0 in case of success, a negative errno like error code otherwise.
- *
- * Signature of callback functions called by decoding functions to decode items
- * of @rstref{sect-api-array} or @rstref{sect-api-map} collections.
- *
- * @p decoder shall be given as a decoder initialized using
- * dpack_decoder_init_buffer() or dpack_decoder_init_skip_buffer().
- *
- * @p id shall be given as the index of the next item within the current
- * collection that is being decoded, starting from zero.
- *
- * The @p data argument passed to the collection decoding function
- * (dpack_array_decode(), dpack_map_decode(), ...) shall be given as the @p data
- * argument to the callback function. It should point to an optional arbitrary
- * location owned by the client application.
- *
- * The callback function should **return** ``0`` in case of success. When
- * returning a *negative error* code, current collection decoding process is
- * interrupted and the error code is returned to the caller of the collection
- * decoding function (dpack_array_decode(), dpack_map_decode(), ...).
- *
- * @see
- * - dpack_array_decode()
- * - dpack_map_decode()
- * - dpack_decoder_init_buffer()
- * - dpack_decoder_init_skip_buffer()
- */
-typedef int dpack_decode_item_fn(struct dpack_decoder * decoder,
-                                 unsigned int           id,
-                                 void * __restrict      data);
 
 typedef void dpack_decoder_intr_fn(struct dpack_decoder * decoder,
                                    enum mpack_type_t      type,

@@ -21,18 +21,16 @@ dpack_array_mixed_size(unsigned int elm_nr, size_t data_size)
 
 	switch (elm_nr) {
 	case 1 ... _DPACK_FIXARRAY_ELMNR_MAX:
-		head = MPACK_TAG_SIZE_FIXARRAY;
+		head = DPACK_FIXARRAY_TAG_SIZE;
 		break;
-
 #if DPACK_ARRAY_ELMNR_MAX > _DPACK_FIXARRAY_ELMNR_MAX
 	case (_DPACK_FIXARRAY_ELMNR_MAX + 1) ... _DPACK_ARRAY16_ELMNR_MAX:
-		head = MPACK_TAG_SIZE_ARRAY16;
+		head = DPACK_ARRAY16_TAG_SIZE;
 		break;
 #endif
-
 #if DPACK_ARRAY_ELMNR_MAX > _DPACK_ARRAY16_ELMNR_MAX
 	case (_DPACK_ARRAY16_ELMNR_MAX + 1) ... _DPACK_ARRAY32_ELMNR_MAX:
-		head = MPACK_TAG_SIZE_ARRAY32;
+		head = DPACK_ARRAY32_TAG_SIZE;
 		break;
 #endif
 	default:
@@ -62,157 +60,174 @@ dpack_array_mixed_size(unsigned int elm_nr, size_t data_size)
  * See Stroll's __leaf documentation for more infos.
  */
 int
-dpack_array_begin_encode(struct dpack_encoder * encoder, unsigned int nr)
+dpack_array_begin_encode(struct dpack_encoder * __restrict encoder,
+                         unsigned int                      nr)
 {
-	dpack_assert_api_encoder(encoder);
+	dpack_encoder_assert_api(encoder);
 	dpack_assert_api(nr);
 	dpack_assert_api(nr <= DPACK_ARRAY_ELMNR_MAX);
 
-	mpack_start_array(&encoder->mpack, nr);
+	int err;
 
-	return dpack_encoder_error_state(&encoder->mpack);
-}
+	switch (nr) {
+	case 1 ... _DPACK_FIXARRAY_ELMNR_MAX:
+		err = dpack_write_tag(encoder,
+		                      _DPACK_FIXARRAY_TAG | (uint8_t)nr);
+		break;
+#if DPACK_ARRAY_ELMNR_MAX > _DPACK_FIXARRAY_ELMNR_MAX
+	case (_DPACK_FIXARRAY_ELMNR_MAX + 1) ... _DPACK_ARRAY16_ELMNR_MAX:
+		err = dpack_write_tag(encoder, DPACK_ARRAY16_TAG);
+		if (!err) {
+			uint16_t val = htobe16((uint16_t)nr);
 
-/*
- * Watch out !!
- *
- * This function is marked as __leaf for now. However, when built with mpack's
- * write tracking support, it calls mpack_writer_flag_error() which in turn may
- * call a function from the current compilation unit thanks to the writer
- * error_fn() function pointer of mpack.
- *
- * If modifying dpack_encoder_init_buffer() and / or registering an error
- * function (thanks to mpack_writer_set_error_handler()) is required for
- * internal DPack purposes, MAKE SURE you return to current compilation unit
- * only by return or by exception handling.
- *
- * See Stroll's __leaf documentation for more infos.
- */
-void
-dpack_array_end_encode(struct dpack_encoder * encoder)
-{
-	dpack_assert_api_encoder(encoder);
+			err = dpack_encoder_write(encoder,
+			                          (const uint8_t *)&val,
+			                          sizeof(val));
+		}
+		break;
+#endif
+#if DPACK_ARRAY_ELMNR_MAX > _DPACK_ARRAY16_ELMNR_MAX
+	case (_DPACK_ARRAY16_ELMNR_MAX + 1) ... _DPACK_ARRAY32_ELMNR_MAX:
+		err = dpack_write_tag(encoder, DPACK_ARRAY32_TAG);
+		if (!err) {
+			uint32_t val = htobe32((uint32_t)nr);
 
-	mpack_finish_array(&encoder->mpack);
+			err = dpack_encoder_write(encoder,
+			                          (const uint8_t *)&val,
+			                          sizeof(val));
+		}
+		break;
+#endif
+	default:
+		dpack_assert_api(0);
+	}
+
+	return err;
 }
 
 /******************************************************************************
  * Array decoding
  ******************************************************************************/
 
-static int __dpack_nonull(1, 2) __dpack_nothrow __warn_result
-dpack_array_xtract_nr(struct mpack_reader_t *   reader,
-                      unsigned int * __restrict nr)
+static __dpack_nonull(1) __warn_result
+int
+dpack_load_array_tag(struct dpack_decoder * __restrict decoder,
+                     unsigned int * __restrict         nr)
 {
-	dpack_assert_intern(reader);
-	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
+	dpack_decoder_assert_intern(decoder);
 	dpack_assert_intern(nr);
 
-	struct mpack_tag_t tag;
-	int                err;
+	uint8_t tag;
+	int     err;
 
-	err = dpack_decode_tag(reader, mpack_type_array, &tag);
-	if (err)
-		return err;
+	err = dpack_read_tag(decoder, &tag);
+	if (!err) {
+		switch (tag) {
+		case DPACK_FIXARRAY_TAG:
+			*nr = (unsigned int)(tag & _DPACK_FIXARRAY_ELMNR_MAX);
+			return 0;
 
-	*nr = (unsigned int)mpack_tag_array_count(&tag);
+		case DPACK_ARRAY16_TAG:
+			{
+				uint16_t val;
 
-	return 0;
-}
+				err = dpack_decoder_read(decoder,
+				                         (uint8_t *)&val,
+				                         sizeof(val));
+				if (!err) {
+					*nr = (unsigned int)(be16toh(val));
+					return 0;
+				}
+				break;
+			}
 
-static int __dpack_nonull(1, 4) __dpack_nothrow __warn_result
-dpack_array_xtract_range(struct dpack_decoder *    decoder,
-                         unsigned int              min_nr,
-                         unsigned int              max_nr,
-                         unsigned int * __restrict nr)
-{
-	dpack_assert_intern(decoder);
-	dpack_assert_intern(min_nr);
-	dpack_assert_intern(min_nr < max_nr);
-	dpack_assert_intern(max_nr <= DPACK_ARRAY_ELMNR_MAX);
-	dpack_assert_intern(nr);
+		case DPACK_ARRAY32_TAG:
+			{
+				uint32_t val;
 
-	int err;
+				err = dpack_decoder_read(decoder,
+				                         (uint8_t *)&val,
+				                         sizeof(val));
+				if (!err) {
+					*nr = (unsigned int)(be32toh(val));
+					return 0;
+				}
+				break;
+			}
 
-	err = dpack_array_xtract_nr(&decoder->mpack, nr);
-	if (err)
-		return err;
-
-	if ((*nr < min_nr) || (*nr > max_nr)) {
-		dpack_decoder_intr(decoder, mpack_type_array, *nr);
-		return -ENOMSG;
+		default:
+			err = -ENOMSG;
+		}
 	}
 
-	return 0;
+	return err;
 }
 
-static int __dpack_nonull(1) __dpack_nothrow __warn_result
-dpack_array_xtract_equ(struct dpack_decoder * decoder, unsigned int nr)
+static __dpack_nonull(1, 2) __warn_result
+int
+dpack_array_decode_elems(struct dpack_decoder * __restrict decoder,
+                         dpack_decode_item_fn *            decode,
+                         void * __restrict                 data,
+                         unsigned int                      nr)
 {
-	dpack_assert_intern(decoder);
-	dpack_assert_intern(nr);
-	dpack_assert_intern(nr <= DPACK_ARRAY_ELMNR_MAX);
-
-	unsigned int cnt;
-	int          err;
-
-	err = dpack_array_xtract_nr(&decoder->mpack, &cnt);
-	if (err)
-		return err;
-
-	if (cnt != nr) {
-		dpack_decoder_intr(decoder, mpack_type_array, cnt);
-		return -ENOMSG;
-	}
-
-	return 0;
-}
-
-static int __dpack_nonull(1, 2) __warn_result
-dpack_array_decode_elems(struct dpack_decoder * decoder,
-                         dpack_decode_item_fn * decode,
-                         void                 * data,
-                         unsigned int           nr)
-{
-	dpack_assert_intern(decoder);
+	dpack_decoder_assert_intern(decoder);
 	dpack_assert_intern(decode);
 	dpack_assert_intern(nr);
 
-	int          err;
 	unsigned int idx = 0;
 
 	do {
-		err = decode(decoder, idx, data);
-		idx++;
-		if (err)
-			goto intr;
-	} while (idx < nr);
+		int err;
 
-	/*
-	 * Always close current array. This is safe and performs a no-op in case
-	 * the array is in an error state.
-	 * When mpack is built with debugging turned on, this allows it to track
-	 * bytes read.
-	 */
-	mpack_done_array(&decoder->mpack);
+		err = decode(decoder, idx, data);
+		if (err)
+			return err;
+	} while (++idx < nr);
 
 	return 0;
+}
 
-intr:
-	dpack_decoder_intr(decoder, mpack_type_array, nr - idx);
+static __dpack_nonull(1, 4) __warn_result
+int
+dpack_array_xtract_range(struct dpack_decoder * decoder,
+                         unsigned int           min_nr,
+                         unsigned int           max_nr,
+                         dpack_decode_item_fn * decode,
+                         void * __restrict      data)
+{
+	dpack_decoder_assert_intern(decoder);
+	dpack_assert_intern(min_nr);
+	dpack_assert_intern(min_nr < max_nr);
+	dpack_assert_intern(max_nr <= DPACK_ARRAY_ELMNR_MAX);
+	dpack_assert_intern(decode);
+
+	unsigned int nr;
+	int          err;
+
+	err = dpack_load_array_tag(decoder, &nr);
+	if (!err) {
+		if ((nr >= min_nr) && (nr <= max_nr)) {
+			return dpack_array_decode_elems(decoder,
+			                                decode,
+			                                data,
+			                                nr);
+		}
+
+		return -EMSGSIZE;
+	}
 
 	return err;
 }
 
 int
-dpack_array_decode(struct dpack_decoder * decoder,
-                   dpack_decode_item_fn * decode,
-                   void                 * data)
+dpack_array_decode(struct dpack_decoder * __restrict decoder,
+                   dpack_decode_item_fn *            decode,
+                   void * __restrict                 data)
 {
-	dpack_assert_api(decoder);
+	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(decode);
 
-	return dpack_array_decode_range(decoder,
+	return dpack_array_xtract_range(decoder,
 	                                1,
 	                                DPACK_ARRAY_ELMNR_MAX,
 	                                decode,
@@ -220,37 +235,40 @@ dpack_array_decode(struct dpack_decoder * decoder,
 }
 
 int
-dpack_array_decode_equ(struct dpack_decoder * decoder,
-                       unsigned int           nr,
-                       dpack_decode_item_fn * decode,
-                       void                 * data)
+dpack_array_decode_equ(struct dpack_decoder * __restrict decoder,
+                       unsigned int                      nr,
+                       dpack_decode_item_fn *            decode,
+                       void * __restrict                 data)
 {
-	dpack_assert_api_decoder(decoder);
+	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(nr);
 	dpack_assert_api(nr <= DPACK_ARRAY_ELMNR_MAX);
 	dpack_assert_api(decode);
 
-	int err;
+	unsigned int cnt;
+	int          err;
 
-	err = dpack_array_xtract_equ(decoder, nr);
-	if (err)
-		return err;
+	err = dpack_load_array_tag(decoder, &cnt);
+	if (!err)
+		return (cnt == nr)
+		       ? dpack_array_decode_elems(decoder, decode, data, nr)
+		       : -EMSGSIZE;
 
-	return dpack_array_decode_elems(decoder, decode, data, nr);
+	return err;
 }
 
 int
-dpack_array_decode_min(struct dpack_decoder * decoder,
-                     unsigned int           min_nr,
-                     dpack_decode_item_fn * decode,
-                     void                 * data)
+dpack_array_decode_min(struct dpack_decoder * __restrict decoder,
+                     unsigned int                        min_nr,
+                     dpack_decode_item_fn *              decode,
+                     void * __restrict                   data)
 {
-	dpack_assert_api(decoder);
+	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(min_nr);
 	dpack_assert_api(min_nr < DPACK_ARRAY_ELMNR_MAX);
 	dpack_assert_api(decode);
 
-	return dpack_array_decode_range(decoder,
+	return dpack_array_xtract_range(decoder,
 	                                min_nr,
 	                                DPACK_ARRAY_ELMNR_MAX,
 	                                decode,
@@ -258,38 +276,31 @@ dpack_array_decode_min(struct dpack_decoder * decoder,
 }
 
 int
-dpack_array_decode_max(struct dpack_decoder * decoder,
-                       unsigned int           max_nr,
-                       dpack_decode_item_fn * decode,
-                       void                 * data)
+dpack_array_decode_max(struct dpack_decoder * __restrict decoder,
+                       unsigned int                      max_nr,
+                       dpack_decode_item_fn *            decode,
+                       void * __restrict                 data)
 {
-	dpack_assert_api(decoder);
+	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(max_nr);
 	dpack_assert_api(max_nr <= DPACK_ARRAY_ELMNR_MAX);
 	dpack_assert_api(decode);
 
-	return dpack_array_decode_range(decoder, 1, max_nr, decode, data);
+	return dpack_array_xtract_range(decoder, 1, max_nr, decode, data);
 }
 
 int
-dpack_array_decode_range(struct dpack_decoder * decoder,
-                         unsigned int           min_nr,
-                         unsigned int           max_nr,
-                         dpack_decode_item_fn * decode,
-                         void                 * data)
+dpack_array_decode_range(struct dpack_decoder * __restrict decoder,
+                         unsigned int                      min_nr,
+                         unsigned int                      max_nr,
+                         dpack_decode_item_fn *            decode,
+                         void * __restrict                 data)
 {
-	dpack_assert_api_decoder(decoder);
+	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(min_nr);
 	dpack_assert_api(min_nr < max_nr);
 	dpack_assert_api(max_nr <= DPACK_ARRAY_ELMNR_MAX);
 	dpack_assert_api(decode);
 
-	unsigned int nr;
-	int          err;
-
-	err = dpack_array_xtract_range(decoder, min_nr, max_nr, &nr);
-	if (err)
-		return err;
-
-	return dpack_array_decode_elems(decoder, decode, data, nr);
+	return dpack_array_xtract_range(decoder, min_nr, max_nr, decode, data);
 }
