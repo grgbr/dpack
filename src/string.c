@@ -94,12 +94,9 @@ dpack_encode_str_fix(struct dpack_encoder *  __restrict encoder,
 		dpack_assert_api(0);
 	}
 
-	if (!err)
-		return dpack_encoder_write(encoder,
-		                           (const uint8_t *)value,
-		                           length);
-
-	return err;
+	return (!err)
+	       ? dpack_encoder_write(encoder, (const uint8_t *)value, length) :
+	       err;
 }
 
 int
@@ -132,6 +129,7 @@ dpack_load_str_tag(struct dpack_decoder * __restrict decoder)
 		case DPACK_FIXSTR_TAG:
 			return (ssize_t)(tag & _DPACK_FIXSTR_LEN_MAX);
 
+#if DPACK_STRLEN_MAX > _DPACK_FIXSTR_LEN_MAX
 		case DPACK_STR8_TAG:
 			{
 				uint8_t len;
@@ -144,6 +142,8 @@ dpack_load_str_tag(struct dpack_decoder * __restrict decoder)
 				break;
 			}
 
+#endif
+#if DPACK_STRLEN_MAX > _DPACK_STR8_LEN_MAX
 		case DPACK_STR16_TAG:
 			{
 				uint16_t len;
@@ -156,6 +156,8 @@ dpack_load_str_tag(struct dpack_decoder * __restrict decoder)
 				break;
 			}
 
+#endif
+#if DPACK_STRLEN_MAX > _DPACK_STR16_LEN_MAX
 		case DPACK_STR32_TAG:
 			{
 				uint32_t len;
@@ -167,7 +169,7 @@ dpack_load_str_tag(struct dpack_decoder * __restrict decoder)
 					return (ssize_t)(be32toh(len));
 				break;
 			}
-
+#endif
 		default:
 			err = -ENOMSG;
 		}
