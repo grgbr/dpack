@@ -95,8 +95,8 @@ dpack_encode_str_fix(struct dpack_encoder *  __restrict encoder,
 	}
 
 	return (!err)
-	       ? dpack_encoder_write(encoder, (const uint8_t *)value, length) :
-	       err;
+	       ? dpack_encoder_write(encoder, (const uint8_t *)value, length)
+	       : err;
 }
 
 int
@@ -258,10 +258,9 @@ dpack_decode_strdup(struct dpack_decoder * __restrict decoder,
 
 	len = dpack_decode_str_tag(decoder, 1, DPACK_STRLEN_MAX);
 	dpack_assert_intern(len);
-	if (len < 0)
-		return len;
 
-	return dpack_xtract_strdup(decoder, value, (size_t)len);
+	return (len > 0) ? dpack_xtract_strdup(decoder, value, (size_t)len)
+	                 : len;
 }
 
 static __dpack_nonull(1) __warn_result
@@ -295,10 +294,8 @@ dpack_decode_strdup_equ(struct dpack_decoder * decoder,
 	int err;
 
 	err = dpack_xtract_str_equ(decoder, length);
-	if (err)
-		return err;
 
-	return dpack_xtract_strdup(decoder, value, length);
+	return (!err) ? dpack_xtract_strdup(decoder, value, length) : err;
 }
 
 static __dpack_nonull(1) __warn_result
@@ -332,10 +329,10 @@ dpack_decode_strdup_max(struct dpack_decoder  * decoder,
 	ssize_t len;
 
 	len = dpack_xtract_str_max(decoder, max_len);
-	if (len < 0)
-		return len;
+	dpack_assert_intern(len);
 
-	return dpack_xtract_strdup(decoder, value, (size_t)len);
+	return (len > 0) ? dpack_xtract_strdup(decoder, value, (size_t)len)
+	                 : len;
 }
 
 ssize_t
@@ -353,10 +350,10 @@ dpack_decode_strdup_range(struct dpack_decoder * decoder,
 	ssize_t len;
 
 	len = dpack_decode_str_tag(decoder, min_len, max_len);
-	if (len < 0)
-		return len;
+	dpack_assert_intern(len);
 
-	return dpack_xtract_strdup(decoder, value, (size_t)len);
+	return (len > 0) ? dpack_xtract_strdup(decoder, value, (size_t)len)
+	                 : len;
 }
 
 static __dpack_nonull(1, 2) __warn_result
@@ -409,10 +406,10 @@ dpack_decode_strcpy(struct dpack_decoder * __restrict decoder,
 	ssize_t len;
 
 	len = dpack_decode_str_tag(decoder, 1, size - 1);
-	if (len < 0)
-		return len;
+	dpack_assert_intern(len);
 
-	return dpack_xtract_strcpy(decoder, value, (size_t)len);
+	return (len > 0) ? dpack_xtract_strcpy(decoder, value, (size_t)len)
+	                 : len;
 }
 
 ssize_t
@@ -428,10 +425,9 @@ dpack_decode_strcpy_equ(struct dpack_decoder * __restrict decoder,
 	int err;
 
 	err = dpack_xtract_str_equ(decoder, size - 1);
-	if (err)
-		return err;
 
-	return dpack_xtract_strcpy(decoder, value, size - 1);
+	return (!err) ? dpack_xtract_strcpy(decoder, value, size - 1)
+	              : err;
 }
 
 ssize_t
@@ -449,8 +445,8 @@ dpack_decode_strcpy_range(struct dpack_decoder * __restrict decoder,
 	ssize_t len;
 
 	len = dpack_decode_str_tag(decoder, min_len, max_size - 1);
-	if (len < 0)
-		return len;
+	dpack_assert_intern(len);
 
-	return dpack_xtract_strcpy(decoder, value, (size_t)len);
+	return (len > 0) ? dpack_xtract_strcpy(decoder, value, (size_t)len)
+	                 : len;
 }

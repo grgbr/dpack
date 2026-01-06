@@ -33,9 +33,9 @@ dpack_bin_size(size_t size)
 	unreachable();
 }
 
-size_t
+int
 dpack_encode_bin(struct dpack_encoder *  __restrict encoder,
-                 const char * __restrict            value,
+                 const uint8_t * __restrict         value,
                  size_t                             size)
 {
 	dpack_encoder_assert_api(encoder);
@@ -83,8 +83,8 @@ dpack_encode_bin(struct dpack_encoder *  __restrict encoder,
 	}
 
 	return (!err)
-	       ? dpack_encoder_write(encoder, (const uint8_t *)value, size) :
-	       err;
+	       ? dpack_encoder_write(encoder, (const uint8_t *)value, size)
+	       : err;
 }
 
 static __dpack_nonull(1) __warn_result
@@ -171,7 +171,7 @@ dpack_decode_bin_tag(struct dpack_decoder * __restrict decoder,
 static __dpack_nonull(1, 2) __warn_result
 ssize_t
 dpack_xtract_bindup(struct dpack_decoder * __restrict decoder,
-                    char ** __restrict                value,
+                    uint8_t ** __restrict             value,
                     size_t                            size)
 {
 	dpack_decoder_assert_intern(decoder);
@@ -189,7 +189,7 @@ dpack_xtract_bindup(struct dpack_decoder * __restrict decoder,
 	err = dpack_decoder_read(decoder, (uint8_t *)bin, size);
 	if (!err) {
 		*value = bin;
-		return 0;
+		return (ssize_t)size;
 	}
 
 	return err;
@@ -197,7 +197,7 @@ dpack_xtract_bindup(struct dpack_decoder * __restrict decoder,
 
 ssize_t
 dpack_decode_bindup(struct dpack_decoder * __restrict decoder,
-                    char ** __restrict                value)
+                    uint8_t ** __restrict             value)
 {
 	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(value);
@@ -206,109 +206,165 @@ dpack_decode_bindup(struct dpack_decoder * __restrict decoder,
 
 	sz = dpack_decode_bin_tag(decoder, 1, DPACK_BINSZ_MAX);
 	dpack_assert_intern(sz);
-	if (sz < 0)
-		return sz;
 
-	return dpack_xtract_bindup(decoder, value, (size_t)sz);
+	return (sz > 0) ? dpack_xtract_bindup(decoder, value, (size_t)sz)
+	                : sz;
 }
 
-
-FINISH ME!!!!
-static int __dpack_nonull(1) __dpack_nothrow __warn_result
-dpack_decode_bin_tag_equ(struct mpack_reader_t * reader, size_t size)
+static __dpack_nonull(1) __warn_result
+int
+dpack_xtract_bin_equ(struct dpack_decoder * __restrict decoder, size_t size)
 {
-	dpack_assert_intern(reader);
-	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
+	dpack_decoder_assert_intern(decoder);
 	dpack_assert_intern(size);
 	dpack_assert_intern(size <= DPACK_BINSZ_MAX);
 
-	struct mpack_tag_t tag;
-	int                err;
+	ssize_t sz;
 
-	err = dpack_decode_tag(reader, mpack_type_bin, &tag);
-	if (err)
-		return err;
-
-	if (mpack_tag_bin_length(&tag) != size) {
-		mpack_reader_flag_error(reader, mpack_error_data);
-		return -EMSGSIZE;
-	}
-
-	return 0;
+	sz = dpack_load_bin_tag(decoder);
+	if (sz > 0)
+		return ((size_t)sz == size) ? 0 : -EMSGSIZE;
+	else
+		return sz ? (int)sz : -EBADMSG;
 }
 
-static ssize_t __dpack_nonull(1, 2) __dpack_nothrow __warn_result
-dpack_xtract_bincpy(struct mpack_reader_t * reader,
-                    char *                  value,
-                    uint32_t                size)
+ssize_t
+dpack_decode_bindup_equ(struct dpack_decoder * __restrict decoder,
+                        size_t                            size,
+                        uint8_t ** __restrict             value)
 {
-	dpack_assert_intern(reader);
-	dpack_assert_intern(mpack_reader_error(reader) == mpack_ok);
+	dpack_decoder_assert_api(decoder);
+	dpack_assert_api(size);
+	dpack_assert_api(size <= DPACK_BINSZ_MAX);
+	dpack_assert_api(value);
+
+	int err;
+
+	err = dpack_xtract_bin_equ(decoder, size);
+
+	return (!err) ? dpack_xtract_bindup(decoder, value, size) : err;
+}
+
+static __dpack_nonull(1) __warn_result
+ssize_t
+dpack_xtract_bin_max(struct dpack_decoder * __restrict decoder,
+                     size_t                            max_sz)
+{
+	dpack_decoder_assert_intern(decoder);
+	dpack_assert_intern(max_sz > 1);
+	dpack_assert_intern(max_sz <= DPACK_BINSZ_MAX);
+
+	ssize_t sz;
+
+	sz = dpack_load_bin_tag(decoder);
+	if (sz > 0)
+		return ((size_t)sz <= max_sz) ? sz : -EMSGSIZE;
+	else
+		return sz ? sz : -EBADMSG;
+}
+
+ssize_t
+dpack_decode_bindup_max(struct dpack_decoder * __restrict decoder,
+                        size_t                            max_sz,
+                        uint8_t ** __restrict             value)
+{
+	dpack_decoder_assert_api(decoder);
+	dpack_assert_api(max_sz > 1);
+	dpack_assert_api(max_sz <= DPACK_BINSZ_MAX);
+	dpack_assert_api(value);
+
+	ssize_t sz;
+
+	sz = dpack_xtract_bin_max(decoder, max_sz);
+	dpack_assert_intern(sz);
+
+	return (sz > 0) ? dpack_xtract_bindup(decoder, value, (uint32_t)sz)
+	                : sz;
+}
+
+ssize_t
+dpack_decode_bindup_range(struct dpack_decoder * __restrict decoder,
+                          size_t                            min_sz,
+                          size_t                            max_sz,
+                          uint8_t ** __restrict             value)
+{
+	dpack_decoder_assert_api(decoder);
+	dpack_assert_api(min_sz);
+	dpack_assert_api(min_sz < max_sz);
+	dpack_assert_api(max_sz <= DPACK_BINSZ_MAX);
+	dpack_assert_api(value);
+
+	ssize_t sz;
+
+	sz = dpack_decode_bin_tag(decoder, min_sz, max_sz);
+	dpack_assert_intern(sz);
+
+	return (sz > 0) ? dpack_xtract_bindup(decoder, value, (size_t)sz)
+	                : sz;
+}
+
+static __dpack_nonull(1, 2) __warn_result
+ssize_t
+dpack_xtract_bincpy(struct dpack_decoder * __restrict decoder,
+                    uint8_t * __restrict              value,
+                    size_t                            size)
+{
+	dpack_decoder_assert_intern(decoder);
 	dpack_assert_intern(value);
 	dpack_assert_intern(size);
 	dpack_assert_intern(size <= DPACK_BINSZ_MAX);
 
 	int err;
 
-	mpack_read_bytes(reader, value, size);
-	err = dpack_decoder_error_state(reader);
-	if (err)
-		return err;
+	err = dpack_decoder_read(decoder, value, size);
 
-	/*
-	 * Give mpack a chance to track bytes read. This is not required in case
-	 * of reader error since no more operations may be performed with it.
-	 */
-	mpack_done_bin(reader);
-
-	return (ssize_t)size;
+	return (!err) ? (ssize_t)size : err;
 }
 
 ssize_t
-dpack_decode_bindup_equ(struct dpack_decoder * decoder,
-                        size_t                 size,
-                        char ** __restrict     value)
+dpack_decode_bincpy(struct dpack_decoder * __restrict decoder,
+                    size_t                            size,
+                    uint8_t * __restrict              value)
 {
-	dpack_assert_api(decoder);
+	dpack_decoder_assert_api(decoder);
+	dpack_assert_api(size);
+	dpack_assert_api(size <= DPACK_BINSZ_MAX);
+	dpack_assert_api(value);
+
+	ssize_t sz;
+
+	sz = dpack_decode_bin_tag(decoder, 1, size);
+	dpack_assert_intern(sz);
+
+	return (sz > 0) ? dpack_xtract_bincpy(decoder, value, (size_t)sz)
+	                : sz;
+}
+
+ssize_t
+dpack_decode_bincpy_equ(struct dpack_decoder * __restrict decoder,
+                        size_t                            size,
+                        uint8_t * __restrict              value)
+{
+	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(size);
 	dpack_assert_api(size <= DPACK_BINSZ_MAX);
 	dpack_assert_api(value);
 
 	int err;
 
-	err = dpack_decode_bin_tag_equ(&decoder->mpack, size);
-	if (err)
-		return err;
+	err = dpack_xtract_bin_equ(decoder, size);
 
-	return dpack_xtract_bindup(&decoder->mpack, value, (uint32_t)size);
+	return (!err) ? dpack_xtract_bincpy(decoder, value, size)
+	              : err;
 }
 
 ssize_t
-dpack_decode_bindup_max(struct dpack_decoder * decoder,
-                        size_t                 max_sz,
-                        char ** __restrict     value)
+dpack_decode_bincpy_range(struct dpack_decoder * __restrict decoder,
+                          size_t                            min_sz,
+                          size_t                            max_sz,
+                          uint8_t * __restrict              value)
 {
-	dpack_assert_api(decoder);
-	dpack_assert_api(max_sz);
-	dpack_assert_api(max_sz <= DPACK_BINSZ_MAX);
-	dpack_assert_api(value);
-
-	ssize_t sz;
-
-	sz = dpack_decode_bin_tag(&decoder->mpack, 1, max_sz);
-	if (sz < 0)
-		return sz;
-
-	return dpack_xtract_bindup(&decoder->mpack, value, (uint32_t)sz);
-}
-
-ssize_t
-dpack_decode_bindup_range(struct dpack_decoder * decoder,
-                          size_t                 min_sz,
-                          size_t                 max_sz,
-                          char ** __restrict     value)
-{
-	dpack_assert_api(decoder);
+	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(min_sz);
 	dpack_assert_api(min_sz < max_sz);
 	dpack_assert_api(max_sz <= DPACK_BINSZ_MAX);
@@ -316,68 +372,9 @@ dpack_decode_bindup_range(struct dpack_decoder * decoder,
 
 	ssize_t sz;
 
-	sz = dpack_decode_bin_tag(&decoder->mpack, min_sz, max_sz);
-	if (sz < 0)
-		return sz;
+	sz = dpack_decode_bin_tag(decoder, min_sz, max_sz);
+	dpack_assert_intern(sz);
 
-	return dpack_xtract_bindup(&decoder->mpack, value, (uint32_t)sz);
-}
-
-ssize_t
-dpack_decode_bincpy(struct dpack_decoder * decoder,
-                    size_t                 size,
-                    char *                 value)
-{
-	dpack_assert_api(decoder);
-	dpack_assert_api(size);
-	dpack_assert_api(size <= DPACK_BINSZ_MAX);
-	dpack_assert_api(value);
-
-	ssize_t sz;
-
-	sz = dpack_decode_bin_tag(&decoder->mpack, 1, size);
-	if (sz < 0)
-		return sz;
-
-	return dpack_xtract_bincpy(&decoder->mpack, value, (uint32_t)sz);
-}
-
-ssize_t
-dpack_decode_bincpy_equ(struct dpack_decoder * decoder,
-                        size_t                 size,
-                        char *                 value)
-{
-	dpack_assert_api(decoder);
-	dpack_assert_api(size);
-	dpack_assert_api(size <= DPACK_BINSZ_MAX);
-	dpack_assert_api(value);
-
-	int err;
-
-	err = dpack_decode_bin_tag_equ(&decoder->mpack, size);
-	if (err)
-		return err;
-
-	return dpack_xtract_bincpy(&decoder->mpack, value, (uint32_t)size);
-}
-
-ssize_t
-dpack_decode_bincpy_range(struct dpack_decoder * decoder,
-                          size_t                 min_sz,
-                          size_t                 max_sz,
-                          char                 * value)
-{
-	dpack_assert_api(decoder);
-	dpack_assert_api(min_sz);
-	dpack_assert_api(min_sz < max_sz);
-	dpack_assert_api(max_sz <= DPACK_BINSZ_MAX);
-	dpack_assert_api(value);
-
-	ssize_t sz;
-
-	sz = dpack_decode_bin_tag(&decoder->mpack, min_sz, max_sz);
-	if (sz < 0)
-		return sz;
-
-	return dpack_xtract_bincpy(&decoder->mpack, value, (uint32_t)sz);
+	return (sz > 0) ? dpack_xtract_bincpy(decoder, value, (size_t)sz)
+	                : sz;
 }

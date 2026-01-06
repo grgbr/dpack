@@ -165,18 +165,18 @@ dpackut_bin_size(size_t size)
 	unreachable();
 }
 
-static char dpackut_bin_values[DPACK_BINSZ_MAX + 1];
+static uint8_t dpackut_bin_values[DPACK_BINSZ_MAX + 1];
 
 struct dpackut_bin_data {
-	size_t       value_size;
-	const char * value_buff;
-	size_t       pack_size;
-	char *       pack_buff;
+	size_t          value_size;
+	const uint8_t * value_buff;
+	size_t          pack_size;
+	uint8_t *       pack_buff;
 };
 
 typedef void (dpackut_bin_pack_fn)(struct dpack_encoder *,
                                    int,
-                                   const char *,
+                                   const uint8_t *,
                                    size_t);
 
 typedef void (dpackut_bin_unpack_fn)(struct dpack_decoder *,
@@ -196,23 +196,23 @@ dpackut_bin_gen_data(struct dpackut_bin_data * data, size_t size)
 
 	switch (size) {
 	case 0 ... UINT8_MAX:
-		data->pack_buff[0] = (char)0xc4;
-		data->pack_buff[1] = (char)(size);
+		data->pack_buff[0] = 0xc4U;
+		data->pack_buff[1] = (uint8_t)(size);
 		break;
 #if DPACK_BINSZ_MAX > _DPACK_BIN8_SIZE_MAX
 	case (UINT8_MAX + 1) ... UINT16_MAX:
-		data->pack_buff[0] = (char)0xc5;
-		data->pack_buff[1] = (char)((size >> 8) & 0xff);
-		data->pack_buff[2] = (char)(size & 0xff);
+		data->pack_buff[0] = 0xc5U;
+		data->pack_buff[1] = (uint8_t)((size >> 8) & 0xff);
+		data->pack_buff[2] = (uint8_t)(size & 0xff);
 		break;
 #endif
 #if DPACK_BINSZ_MAX > _DPACK_BIN16_SIZE_MAX
 	case (UINT16_MAX + 1) ... UINT32_MAX:
-		data->pack_buff[0] = (char)0xc6;
-		data->pack_buff[1] = (char)((size >> 24) & 0xff);
-		data->pack_buff[2] = (char)((size >> 16) & 0xff);
-		data->pack_buff[3] = (char)((size >> 8) & 0xff);
-		data->pack_buff[4] = (char)(size & 0xff);
+		data->pack_buff[0] = 0xc6U;
+		data->pack_buff[1] = (uint8_t)((size >> 24) & 0xff);
+		data->pack_buff[2] = (uint8_t)((size >> 16) & 0xff);
+		data->pack_buff[3] = (uint8_t)((size >> 8) & 0xff);
+		data->pack_buff[4] = (uint8_t)(size & 0xff);
 		break;
 #endif
 	default:
@@ -234,45 +234,45 @@ dpackut_bin_fini_data(struct dpackut_bin_data * data)
 
 CUTE_TEST(dpackut_bin_encode_null_enc)
 {
-	const char * data = data;
-	int          ret __unused;
+	const uint8_t * data = data;
+	int             ret __unused;
 
 	cute_expect_assertion(ret = dpack_encode_bin(NULL, data, 1));
 }
 
 CUTE_TEST(dpackut_bin_encode_null_data)
 {
-	struct dpack_encoder enc = { 0, };
-	char                 data[8];
-	int                  ret __unused;
+	struct dpack_encoder_buffer enc = { 0, };
+	uint8_t                     data[8];
+	int                         ret __unused;
 
 	dpack_encoder_init_buffer(&enc, data, stroll_array_nr(data));
-	cute_expect_assertion(ret = dpack_encode_bin(&enc, NULL, 1));
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	cute_expect_assertion(ret = dpack_encode_bin(&enc.base, NULL, 1));
+	dpack_encoder_fini(&enc.base);
 }
 
 CUTE_TEST(dpackut_bin_encode_zero)
 {
-	struct dpack_encoder enc = { 0, };
-	char                 data[8];
-	int                  ret __unused;
+	struct dpack_encoder_buffer enc = { 0, };
+	uint8_t                     data[8];
+	int                         ret __unused;
 
 	dpack_encoder_init_buffer(&enc, data, stroll_array_nr(data));
-	cute_expect_assertion(ret = dpack_encode_bin(&enc, data, 0));
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	cute_expect_assertion(ret = dpack_encode_bin(&enc.base, data, 0));
+	dpack_encoder_fini(&enc.base);
 }
 
 CUTE_TEST(dpackut_bin_encode_huge)
 {
-	struct dpack_encoder enc = { 0, };
-	char                 data[8];
-	int                  ret __unused;
+	struct dpack_encoder_buffer enc = { 0, };
+	uint8_t                     data[8];
+	int                         ret __unused;
 
 	dpack_encoder_init_buffer(&enc, data, stroll_array_nr(data));
-	cute_expect_assertion(ret = dpack_encode_bin(&enc,
+	cute_expect_assertion(ret = dpack_encode_bin(&enc.base,
 	                                             data,
 	                                             DPACK_BINSZ_MAX + 1));
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 }
 
 #else /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -303,11 +303,11 @@ CUTE_TEST(dpackut_bin_encode_huge)
 
 CUTE_TEST(dpackut_bin_encode_uninit_enc)
 {
-	struct dpack_encoder enc = { 0, };
-	const char *         data = (const char *)&enc;
-	int                  ret __unused;
+	struct dpack_encoder_buffer enc = { 0, };
+	const uint8_t *             data = (const uint8_t *)data;
+	int                         ret __unused;
 
-	cute_expect_assertion(ret = dpack_encode_bin(&enc, data, 1));
+	cute_expect_assertion(ret = dpack_encode_bin(&enc.base, data, 1));
 }
 
 #else /* !defined(CONFIG_DPACK_DEBUG) */
@@ -325,9 +325,9 @@ dpackut_bin_enc(const struct dpackut_bin_data * data,
                 size_t                          size,
                 dpackut_bin_pack_fn *           pack)
 {
-	char *               buff = NULL;
-	unsigned int         b;
-	struct dpack_encoder enc;
+	uint8_t *                   buff = NULL;
+	unsigned int                b;
+	struct dpack_encoder_buffer enc;
 
 	buff = malloc(data->pack_size + 128);
 	cute_check_ptr(buff, unequal, NULL);
@@ -335,27 +335,29 @@ dpackut_bin_enc(const struct dpackut_bin_data * data,
 
 	dpack_encoder_init_buffer(&enc, buff + 64, data->pack_size);
 
-	pack(&enc, ret, data->value_buff, size);
+	pack(&enc.base, ret, data->value_buff, size);
 	if (ret < 0)
 		goto fini;
 
 	for (b = 0; b < 64; b++)
-		cute_check_sint(buff[b], equal, (char)0xa5);
+		cute_check_sint(buff[b], equal, (uint8_t)0xa5U);
 
 	cute_check_mem(buff + 64, equal, data->pack_buff, data->pack_size);
 	cute_check_uint(dpack_bin_size(data->value_size),
 	                equal,
 	                data->pack_size);
-	cute_check_uint(dpack_encoder_space_used(&enc), equal, data->pack_size);
-	cute_check_uint(dpack_encoder_space_left(&enc), equal, 0);
+	cute_check_uint(dpack_encoder_space_used(&enc.base),
+	                equal,
+	                data->pack_size);
+	cute_check_uint(dpack_encoder_space_left(&enc.base), equal, 0);
 
 	for (b = 0; b < 64; b++)
 		cute_check_sint(buff[64 + data->pack_size + b],
 		                equal,
-		                (char)0xa5);
+		                (uint8_t)0xa5U);
 
 fini:
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 
 	free(buff);
 }
@@ -363,7 +365,7 @@ fini:
 static void
 dpackut_bin_pack(struct dpack_encoder * encoder,
                  int                    ret,
-                 const char *           buffer,
+                 const uint8_t *        buffer,
                  size_t                 size)
 {
 	cute_check_sint(dpack_encode_bin(encoder, buffer, size), equal, ret);
@@ -546,21 +548,21 @@ CUTE_TEST(dpackut_bin_encode_nok_max)
 
 CUTE_TEST(dpackut_bin_decode_dup_null_dec)
 {
-	char *  data;
-	ssize_t ret __unused;
+	uint8_t * data;
+	ssize_t   ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_bindup(NULL, &data));
 }
 
 CUTE_TEST(dpackut_bin_decode_dup_null_data)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data[8] = { 0, };
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     data[8] = { 0, };
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, data, 1);
-	cute_expect_assertion(ret = dpack_decode_bindup(&dec, NULL));
-	dpack_decoder_fini(&dec);
+	cute_expect_assertion(ret = dpack_decode_bindup(&dec.base, NULL));
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -581,11 +583,11 @@ CUTE_TEST(dpackut_bin_decode_dup_null_data)
 
 CUTE_TEST(dpackut_bin_decode_dup_uninit_dec)
 {
-	struct dpack_decoder dec = { 0, };
-	char *               data;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t *                   data;
+	ssize_t                     ret __unused;
 
-	cute_expect_assertion(ret = dpack_decode_bindup(&dec, &data));
+	cute_expect_assertion(ret = dpack_decode_bindup(&dec.base, &data));
 }
 
 #else  /* !defined(CONFIG_DPACK_DEBUG) */
@@ -615,8 +617,8 @@ dpackut_bin_decode_dup(ssize_t ret, size_t ref_size, size_t test_size)
 	                                                     DPACK_BINSZ_MAX +
 	                                                     1);
 	struct dpackut_bin_data      data;
-	struct dpack_decoder         dec;
-	char *                       val;
+	struct dpack_decoder_buffer  dec;
+	uint8_t *                    val;
 	ssize_t                      sz;
 
 	cute_check_uint_range(ref_size, in, range);
@@ -628,7 +630,7 @@ dpackut_bin_decode_dup(ssize_t ret, size_t ref_size, size_t test_size)
 	                          data.pack_buff,
 	                          dpack_bin_size(test_size));
 
-	sz = dpack_decode_bindup(&dec, &val);
+	sz = dpack_decode_bindup(&dec.base, &val);
 	cute_check_sint(sz, equal, ret);
 
 	if (sz >= 0) {
@@ -640,7 +642,7 @@ dpackut_bin_decode_dup(ssize_t ret, size_t ref_size, size_t test_size)
 		free(val);
 	}
 
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 
 	dpackut_bin_fini_data(&data);
 }
@@ -652,7 +654,7 @@ CUTE_TEST(dpackut_bin_decode_dup_ok_1)
 
 CUTE_TEST(dpackut_bin_decode_dup_nok_2_short)
 {
-	dpackut_bin_decode_dup(-EPROTO, 2, 1);
+	dpackut_bin_decode_dup(-ENODATA, 2, 1);
 }
 
 CUTE_TEST(dpackut_bin_decode_dup_ok_2)
@@ -662,7 +664,7 @@ CUTE_TEST(dpackut_bin_decode_dup_ok_2)
 
 CUTE_TEST(dpackut_bin_decode_dup_nok_3_short)
 {
-	dpackut_bin_decode_dup(-EPROTO, 3, 2);
+	dpackut_bin_decode_dup(-ENODATA, 3, 2);
 }
 
 #if DPACK_BINSZ_MAX >= (UINT8_MAX)
@@ -685,7 +687,7 @@ CUTE_TEST(dpackut_bin_decode_dup_ok_uint8)
 
 CUTE_TEST(dpackut_bin_decode_dup_nok_uint8plus_short)
 {
-	dpackut_bin_decode_dup(-EPROTO, UINT8_MAX + 1, UINT8_MAX);
+	dpackut_bin_decode_dup(-ENODATA, UINT8_MAX + 1, UINT8_MAX);
 }
 
 CUTE_TEST(dpackut_bin_decode_dup_ok_uint8plus)
@@ -727,7 +729,7 @@ CUTE_TEST(dpackut_bin_decode_dup_ok_uint16)
 
 CUTE_TEST(dpackut_bin_decode_dup_nok_uint16plus_short)
 {
-	dpackut_bin_decode_dup(-EPROTO, UINT16_MAX + 1, UINT16_MAX);
+	dpackut_bin_decode_dup(-ENODATA, UINT16_MAX + 1, UINT16_MAX);
 }
 
 CUTE_TEST(dpackut_bin_decode_dup_ok_uint16plus)
@@ -758,54 +760,58 @@ CUTE_TEST(dpackut_bin_decode_dup_ok_max)
 
 CUTE_TEST(dpackut_bin_decode_dup_nok_max_short)
 {
-	dpackut_bin_decode_dup(-EPROTO, DPACK_BINSZ_MAX, DPACK_BINSZ_MAX - 1);
+	dpackut_bin_decode_dup(-ENODATA, DPACK_BINSZ_MAX, DPACK_BINSZ_MAX - 1);
 }
 
 #if defined(CONFIG_DPACK_ASSERT_API)
 
 CUTE_TEST(dpackut_bin_decode_dup_equ_null_dec)
 {
-	char *  data;
-	ssize_t ret __unused;
+	uint8_t * data;
+	ssize_t   ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_bindup_equ(NULL, 2, &data));
 }
 
 CUTE_TEST(dpackut_bin_decode_dup_equ_null_data)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data[8] = { 0, };
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     data[8] = { 0, };
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, data, 1);
-	cute_expect_assertion(ret = dpack_decode_bindup_equ(&dec, 2, NULL));
-	dpack_decoder_fini(&dec);
+	cute_expect_assertion(ret = dpack_decode_bindup_equ(&dec.base,
+	                                                    2,
+	                                                    NULL));
+	dpack_decoder_fini(&dec.base);
 }
 
 CUTE_TEST(dpackut_bin_decode_dup_equ_0)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data[8] = { 0, };
-	char *               bin;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     data[8] = { 0, };
+	uint8_t *                   bin;
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, data, 1);
-	cute_expect_assertion(ret = dpack_decode_bindup_equ(&dec, 0, &bin));
-	dpack_decoder_fini(&dec);
+	cute_expect_assertion(ret = dpack_decode_bindup_equ(&dec.base,
+	                                                    0,
+	                                                    &bin));
+	dpack_decoder_fini(&dec.base);
 }
 
 CUTE_TEST(dpackut_bin_decode_dup_equ_binsz)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data[8] = { 0, };
-	char *               bin;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     data[8] = { 0, };
+	uint8_t *                   bin;
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, data, 1);
-	cute_expect_assertion(ret = dpack_decode_bindup_equ(&dec,
+	cute_expect_assertion(ret = dpack_decode_bindup_equ(&dec.base,
 	                                                    DPACK_BINSZ_MAX + 1,
 	                                                    &bin));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -836,11 +842,13 @@ CUTE_TEST(dpackut_bin_decode_dup_equ_binsz)
 
 CUTE_TEST(dpackut_bin_decode_dup_equ_uninit_dec)
 {
-	struct dpack_decoder dec = { 0, };
-	char *               data;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t *                   data;
+	ssize_t                     ret __unused;
 
-	cute_expect_assertion(ret = dpack_decode_bindup_equ(&dec, 2, &data));
+	cute_expect_assertion(ret = dpack_decode_bindup_equ(&dec.base,
+	                                                    2,
+	                                                    &data));
 }
 
 #else  /* !defined(CONFIG_DPACK_DEBUG) */
@@ -875,10 +883,10 @@ dpackut_bin_decode_dup_equ(ssize_t ret,
 	const struct cute_uint_range range = CUTE_UINT_RANGE(1,
 	                                                     DPACK_BINSZ_MAX +
 	                                                     1);
-	struct dpackut_bin_data      data;
-	struct dpack_decoder         dec;
-	char *                       val;
-	ssize_t                      sz;
+	struct dpackut_bin_data     data;
+	struct dpack_decoder_buffer dec;
+	uint8_t *                   val;
+	ssize_t                     sz;
 
 	cute_check_uint_range(ref_size, in, range);
 	cute_check_uint_range(test_size, in, range);
@@ -892,7 +900,7 @@ dpackut_bin_decode_dup_equ(ssize_t ret,
 	                          data.pack_buff,
 	                          dpack_bin_size(test_size));
 
-	sz = dpack_decode_bindup_equ(&dec, equ_size, &val);
+	sz = dpack_decode_bindup_equ(&dec.base, equ_size, &val);
 	cute_check_sint(sz, equal, ret);
 
 	if (sz >= 0) {
@@ -904,7 +912,7 @@ dpackut_bin_decode_dup_equ(ssize_t ret,
 		free(val);
 	}
 
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 
 	dpackut_bin_fini_data(&data);
 }
@@ -926,7 +934,7 @@ CUTE_TEST(dpackut_bin_decode_dup_equ_nok_2_short_inf)
 
 CUTE_TEST(dpackut_bin_decode_dup_equ_nok_2_short_equ)
 {
-	dpackut_bin_decode_dup_equ(-EPROTO, 2, 1, 2);
+	dpackut_bin_decode_dup_equ(-ENODATA, 2, 1, 2);
 }
 
 CUTE_TEST(dpackut_bin_decode_dup_equ_nok_2_short_sup)
@@ -961,7 +969,7 @@ CUTE_TEST(dpackut_bin_decode_dup_equ_nok_uint8_short_inf)
 
 CUTE_TEST(dpackut_bin_decode_dup_equ_nok_uint8_short_equ)
 {
-	dpackut_bin_decode_dup_equ(-EPROTO,
+	dpackut_bin_decode_dup_equ(-ENODATA,
 	                           UINT8_MAX,
 	                           UINT8_MAX - 1,
 	                           UINT8_MAX);
@@ -1051,7 +1059,7 @@ CUTE_TEST(dpackut_bin_decode_dup_equ_nok_uint16_short_inf)
 
 CUTE_TEST(dpackut_bin_decode_dup_equ_nok_uint16_short_equ)
 {
-	dpackut_bin_decode_dup_equ(-EPROTO,
+	dpackut_bin_decode_dup_equ(-ENODATA,
 	                           UINT16_MAX,
 	                           UINT16_MAX - 1,
 	                           UINT16_MAX);
@@ -1155,7 +1163,7 @@ CUTE_TEST(dpackut_bin_decode_dup_equ_nok_binsz_short_inf)
 
 CUTE_TEST(dpackut_bin_decode_dup_equ_nok_binsz_short_equ)
 {
-	dpackut_bin_decode_dup_equ(-EPROTO,
+	dpackut_bin_decode_dup_equ(-ENODATA,
 	                           DPACK_BINSZ_MAX,
 	                           DPACK_BINSZ_MAX - 1,
 	                           DPACK_BINSZ_MAX);
@@ -1181,47 +1189,51 @@ CUTE_TEST(dpackut_bin_decode_dup_equ_ok_binsz)
 
 CUTE_TEST(dpackut_bin_decode_dup_max_null_dec)
 {
-	char *  data;
-	ssize_t ret __unused;
+	uint8_t * data;
+	ssize_t   ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_bindup_max(NULL, 2, &data));
 }
 
 CUTE_TEST(dpackut_bin_decode_dup_max_null_data)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data[8] = { 0, };
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     data[8] = { 0, };
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, data, 1);
-	cute_expect_assertion(ret = dpack_decode_bindup_max(&dec, 2, NULL));
-	dpack_decoder_fini(&dec);
+	cute_expect_assertion(ret = dpack_decode_bindup_max(&dec.base,
+	                                                    2,
+	                                                    NULL));
+	dpack_decoder_fini(&dec.base);
 }
 
 CUTE_TEST(dpackut_bin_decode_dup_max_0)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data[8] = { 0, };
-	char *               bin;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     data[8] = { 0, };
+	uint8_t *                   bin;
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, data, 1);
-	cute_expect_assertion(ret = dpack_decode_bindup_max(&dec, 0, &bin));
-	dpack_decoder_fini(&dec);
+	cute_expect_assertion(ret = dpack_decode_bindup_max(&dec.base,
+	                                                    0,
+	                                                    &bin));
+	dpack_decoder_fini(&dec.base);
 }
 
 CUTE_TEST(dpackut_bin_decode_dup_max_binsz)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data[8] = { 0, };
-	char *               bin;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     data[8] = { 0, };
+	uint8_t *                   bin;
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, data, 1);
-	cute_expect_assertion(ret = dpack_decode_bindup_max(&dec,
+	cute_expect_assertion(ret = dpack_decode_bindup_max(&dec.base,
 	                                                    DPACK_BINSZ_MAX + 1,
 	                                                    &bin));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -1252,11 +1264,13 @@ CUTE_TEST(dpackut_bin_decode_dup_max_binsz)
 
 CUTE_TEST(dpackut_bin_decode_dup_max_uninit_dec)
 {
-	struct dpack_decoder dec = { 0, };
-	char *               data;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t *                   data;
+	ssize_t                     ret __unused;
 
-	cute_expect_assertion(ret = dpack_decode_bindup_max(&dec, 2, &data));
+	cute_expect_assertion(ret = dpack_decode_bindup_max(&dec.base,
+	                                                    2,
+	                                                    &data));
 }
 
 #else  /* !defined(CONFIG_DPACK_DEBUG) */
@@ -1291,10 +1305,10 @@ dpackut_bin_decode_dup_max(ssize_t ret,
 	const struct cute_uint_range range = CUTE_UINT_RANGE(1,
 	                                                     DPACK_BINSZ_MAX +
 	                                                     1);
-	struct dpackut_bin_data      data;
-	struct dpack_decoder         dec;
-	char *                       val;
-	ssize_t                      sz;
+	struct dpackut_bin_data     data;
+	struct dpack_decoder_buffer dec;
+	uint8_t *                   val;
+	ssize_t                     sz;
 
 	cute_check_uint_range(ref_size, in, range);
 	cute_check_uint_range(test_size, in, range);
@@ -1308,7 +1322,7 @@ dpackut_bin_decode_dup_max(ssize_t ret,
 	                          data.pack_buff,
 	                          dpack_bin_size(test_size));
 
-	sz = dpack_decode_bindup_max(&dec, max_size, &val);
+	sz = dpack_decode_bindup_max(&dec.base, max_size, &val);
 	cute_check_sint(sz, equal, ret);
 
 	if (sz >= 0) {
@@ -1320,7 +1334,7 @@ dpackut_bin_decode_dup_max(ssize_t ret,
 		free(val);
 	}
 
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 
 	dpackut_bin_fini_data(&data);
 }
@@ -1337,7 +1351,7 @@ CUTE_TEST(dpackut_bin_decode_dup_max_ok_2_equ)
 
 CUTE_TEST(dpackut_bin_decode_dup_max_nok_2_short_equ)
 {
-	dpackut_bin_decode_dup_max(-EPROTO, 2, 1, 2);
+	dpackut_bin_decode_dup_max(-ENODATA, 2, 1, 2);
 }
 
 CUTE_TEST(dpackut_bin_decode_dup_max_ok_2_sup)
@@ -1347,7 +1361,7 @@ CUTE_TEST(dpackut_bin_decode_dup_max_ok_2_sup)
 
 CUTE_TEST(dpackut_bin_decode_dup_max_nok_2_short_sup)
 {
-	dpackut_bin_decode_dup_max(-EPROTO, 2, 1, 3);
+	dpackut_bin_decode_dup_max(-ENODATA, 2, 1, 3);
 }
 
 CUTE_TEST(dpackut_bin_decode_dup_max_nok_3_inf)
@@ -1367,7 +1381,7 @@ CUTE_TEST(dpackut_bin_decode_dup_max_ok_3_equ)
 
 CUTE_TEST(dpackut_bin_decode_dup_max_nok_3_short_equ)
 {
-	dpackut_bin_decode_dup_max(-EPROTO, 3, 2, 3);
+	dpackut_bin_decode_dup_max(-ENODATA, 3, 2, 3);
 }
 
 CUTE_TEST(dpackut_bin_decode_dup_max_ok_3_sup)
@@ -1377,7 +1391,7 @@ CUTE_TEST(dpackut_bin_decode_dup_max_ok_3_sup)
 
 CUTE_TEST(dpackut_bin_decode_dup_max_nok_3_short_sup)
 {
-	dpackut_bin_decode_dup_max(-EPROTO, 3, 2, 4);
+	dpackut_bin_decode_dup_max(-ENODATA, 3, 2, 4);
 }
 
 #if DPACK_BINSZ_MAX >= UINT8_MAX
@@ -1408,7 +1422,7 @@ CUTE_TEST(dpackut_bin_decode_dup_max_ok_uint8_equ)
 
 CUTE_TEST(dpackut_bin_decode_dup_max_nok_uint8_short_equ)
 {
-	dpackut_bin_decode_dup_max(-EPROTO,
+	dpackut_bin_decode_dup_max(-ENODATA,
 	                           UINT8_MAX,
 	                           UINT8_MAX - 1,
 	                           UINT8_MAX);
@@ -1450,7 +1464,7 @@ CUTE_TEST(dpackut_bin_decode_dup_max_ok_uint8_sup)
 
 CUTE_TEST(dpackut_bin_decode_dup_max_nok_uint8_short_sup)
 {
-	dpackut_bin_decode_dup_max(-EPROTO,
+	dpackut_bin_decode_dup_max(-ENODATA,
 	                           UINT8_MAX,
 	                           UINT8_MAX - 1,
 	                           UINT8_MAX + 1);
@@ -1498,7 +1512,7 @@ CUTE_TEST(dpackut_bin_decode_dup_max_ok_uint16_equ)
 
 CUTE_TEST(dpackut_bin_decode_dup_max_nok_uint16_short_equ)
 {
-	dpackut_bin_decode_dup_max(-EPROTO,
+	dpackut_bin_decode_dup_max(-ENODATA,
 	                           UINT16_MAX,
 	                           UINT16_MAX - 1,
 	                           UINT16_MAX);
@@ -1540,7 +1554,7 @@ CUTE_TEST(dpackut_bin_decode_dup_max_ok_uint16_sup)
 
 CUTE_TEST(dpackut_bin_decode_dup_max_nok_uint16_short_sup)
 {
-	dpackut_bin_decode_dup_max(-EPROTO,
+	dpackut_bin_decode_dup_max(-ENODATA,
 	                           UINT16_MAX,
 	                           UINT16_MAX - 1,
 	                           UINT16_MAX + 1);
@@ -1570,7 +1584,7 @@ CUTE_TEST(dpackut_bin_decode_dup_max_ok_binsz_sup)
 
 CUTE_TEST(dpackut_bin_decode_dup_max_nok_binsz_short_sup)
 {
-	dpackut_bin_decode_dup_max(-EPROTO,
+	dpackut_bin_decode_dup_max(-ENODATA,
 	                           DPACK_BINSZ_MAX - 1,
 	                           DPACK_BINSZ_MAX - 2,
 	                           DPACK_BINSZ_MAX);
@@ -1602,7 +1616,7 @@ CUTE_TEST(dpackut_bin_decode_dup_max_ok_binsz_equ)
 
 CUTE_TEST(dpackut_bin_decode_dup_max_nok_binsz_short_equ)
 {
-	dpackut_bin_decode_dup_max(-EPROTO,
+	dpackut_bin_decode_dup_max(-ENODATA,
 	                           DPACK_BINSZ_MAX,
 	                           DPACK_BINSZ_MAX - 1,
 	                           DPACK_BINSZ_MAX);
@@ -1612,8 +1626,8 @@ CUTE_TEST(dpackut_bin_decode_dup_max_nok_binsz_short_equ)
 
 CUTE_TEST(dpackut_bin_decode_dup_range_null_dec)
 {
-	char *  data;
-	ssize_t ret __unused;
+	uint8_t * data;
+	ssize_t   ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_bindup_range(NULL,
 	                                                      1,
@@ -1623,77 +1637,77 @@ CUTE_TEST(dpackut_bin_decode_dup_range_null_dec)
 
 CUTE_TEST(dpackut_bin_decode_dup_range_null_data)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data[8] = { 0, };
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     data[8] = { 0, };
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, data, 1);
-	cute_expect_assertion(ret = dpack_decode_bindup_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_bindup_range(&dec.base,
 	                                                      1,
 	                                                      2,
 	                                                      NULL));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 CUTE_TEST(dpackut_bin_decode_dup_range_02)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data[8] = { 0, };
-	char *               bin;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     data[8] = { 0, };
+	uint8_t *                   bin;
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, data, 1);
-	cute_expect_assertion(ret = dpack_decode_bindup_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_bindup_range(&dec.base,
 	                                                      0,
 	                                                      2,
 	                                                      &bin));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 CUTE_TEST(dpackut_bin_decode_dup_range_10)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data[8] = { 0, };
-	char *               bin;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     data[8] = { 0, };
+	uint8_t *                   bin;
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, data, 1);
-	cute_expect_assertion(ret = dpack_decode_bindup_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_bindup_range(&dec.base,
 	                                                      1,
 	                                                      0,
 	                                                      &bin));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 CUTE_TEST(dpackut_bin_decode_dup_range_21)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data[8] = { 0, };
-	char *               bin;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     data[8] = { 0, };
+	uint8_t *                   bin;
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, data, 1);
-	cute_expect_assertion(ret = dpack_decode_bindup_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_bindup_range(&dec.base,
 	                                                      2,
 	                                                      1,
 	                                                      &bin));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 CUTE_TEST(dpackut_bin_decode_dup_range_binsz)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data[8] = { 0, };
-	char *               bin;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     data[8] = { 0, };
+	uint8_t *                   bin;
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, data, 1);
-	cute_expect_assertion(ret = dpack_decode_bindup_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_bindup_range(&dec.base,
 	                                                      1,
 	                                                      DPACK_BINSZ_MAX +
 	                                                      1,
 	                                                      &bin));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -1734,11 +1748,11 @@ CUTE_TEST(dpackut_bin_decode_dup_range_binsz)
 
 CUTE_TEST(dpackut_bin_decode_dup_range_uninit_dec)
 {
-	struct dpack_decoder dec = { 0, };
-	char *               data;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t *                   data;
+	ssize_t                     ret __unused;
 
-	cute_expect_assertion(ret = dpack_decode_bindup_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_bindup_range(&dec.base,
 	                                                      1,
 	                                                      2,
 	                                                      &data));
@@ -1781,10 +1795,10 @@ dpackut_bin_decode_dup_range(ssize_t ret,
 	const struct cute_uint_range range = CUTE_UINT_RANGE(1,
 	                                                     DPACK_BINSZ_MAX +
 	                                                     1);
-	struct dpackut_bin_data data;
-	struct dpack_decoder    dec;
-	char *                  val;
-	ssize_t                 sz;
+	struct dpackut_bin_data     data;
+	struct dpack_decoder_buffer dec;
+	uint8_t *                   val;
+	ssize_t                     sz;
 
 	cute_check_uint_range(ref_size, in, range);
 	cute_check_uint_range(test_size, in, range);
@@ -1800,7 +1814,7 @@ dpackut_bin_decode_dup_range(ssize_t ret,
 	                          data.pack_buff,
 	                          dpack_bin_size(test_size));
 
-	sz = dpack_decode_bindup_range(&dec, min_size, max_size, &val);
+	sz = dpack_decode_bindup_range(&dec.base, min_size, max_size, &val);
 	cute_check_sint(sz, equal, ret);
 
 	if (sz >= 0) {
@@ -1812,7 +1826,7 @@ dpackut_bin_decode_dup_range(ssize_t ret,
 		free(val);
 	}
 
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 
 	dpackut_bin_fini_data(&data);
 }
@@ -1824,7 +1838,7 @@ CUTE_TEST(dpackut_bin_decode_dup_range_ok_1)
 
 CUTE_TEST(dpackut_bin_decode_dup_range_nok_1_short)
 {
-	dpackut_bin_decode_dup_range(-EPROTO, 2, 1, 1, 2);
+	dpackut_bin_decode_dup_range(-ENODATA, 2, 1, 1, 2);
 }
 
 CUTE_TEST(dpackut_bin_decode_dup_range_nok_1)
@@ -1839,7 +1853,7 @@ CUTE_TEST(dpackut_bin_decode_dup_range_ok_2)
 
 CUTE_TEST(dpackut_bin_decode_dup_range_nok_2_short)
 {
-	dpackut_bin_decode_dup_range(-EPROTO, 2, 1, 2, 3);
+	dpackut_bin_decode_dup_range(-ENODATA, 2, 1, 2, 3);
 }
 
 CUTE_TEST(dpackut_bin_decode_dup_range_ok_3)
@@ -1849,7 +1863,7 @@ CUTE_TEST(dpackut_bin_decode_dup_range_ok_3)
 
 CUTE_TEST(dpackut_bin_decode_dup_range_nok_3_short)
 {
-	dpackut_bin_decode_dup_range(-EPROTO, 3, 2, 2, 3);
+	dpackut_bin_decode_dup_range(-ENODATA, 3, 2, 2, 3);
 }
 
 CUTE_TEST(dpackut_bin_decode_dup_range_nok_4)
@@ -1884,7 +1898,7 @@ CUTE_TEST(dpackut_bin_decode_dup_range_ok_uint8minus_sup)
 
 CUTE_TEST(dpackut_bin_decode_dup_range_nok_uint8minus_short_sup)
 {
-	dpackut_bin_decode_dup_range(-EPROTO,
+	dpackut_bin_decode_dup_range(-ENODATA,
 	                             UINT8_MAX - 1,
 	                             UINT8_MAX - 2,
 	                             UINT8_MAX - 1,
@@ -1902,7 +1916,7 @@ CUTE_TEST(dpackut_bin_decode_dup_range_ok_uint8)
 
 CUTE_TEST(dpackut_bin_decode_dup_range_nok_uint8_short)
 {
-	dpackut_bin_decode_dup_range(-EPROTO,
+	dpackut_bin_decode_dup_range(-ENODATA,
 	                             UINT8_MAX,
 	                             UINT8_MAX - 1,
 	                             UINT8_MAX - 1,
@@ -1994,7 +2008,7 @@ CUTE_TEST(dpackut_bin_decode_dup_range_ok_uint16minus_sup)
 
 CUTE_TEST(dpackut_bin_decode_dup_range_nok_uint16minus_short_sup)
 {
-	dpackut_bin_decode_dup_range(-EPROTO,
+	dpackut_bin_decode_dup_range(-ENODATA,
 	                             UINT16_MAX - 1,
 	                             UINT16_MAX - 2,
 	                             UINT16_MAX - 1,
@@ -2012,7 +2026,7 @@ CUTE_TEST(dpackut_bin_decode_dup_range_ok_uint16)
 
 CUTE_TEST(dpackut_bin_decode_dup_range_nok_uint16_short)
 {
-	dpackut_bin_decode_dup_range(-EPROTO,
+	dpackut_bin_decode_dup_range(-ENODATA,
 	                             UINT16_MAX,
 	                             UINT16_MAX - 1,
 	                             UINT16_MAX - 1,
@@ -2102,7 +2116,7 @@ CUTE_TEST(dpackut_bin_decode_dup_range_ok_binszminus_sup)
 
 CUTE_TEST(dpackut_bin_decode_dup_range_nok_binszminus_short_sup)
 {
-	dpackut_bin_decode_dup_range(-EPROTO,
+	dpackut_bin_decode_dup_range(-ENODATA,
 	                             DPACK_BINSZ_MAX - 1,
 	                             DPACK_BINSZ_MAX - 2,
 	                             DPACK_BINSZ_MAX - 1,
@@ -2120,7 +2134,7 @@ CUTE_TEST(dpackut_bin_decode_dup_range_ok_binsz)
 
 CUTE_TEST(dpackut_bin_decode_dup_range_nok_binsz_short)
 {
-	dpackut_bin_decode_dup_range(-EPROTO,
+	dpackut_bin_decode_dup_range(-ENODATA,
 	                             DPACK_BINSZ_MAX,
 	                             DPACK_BINSZ_MAX - 1,
 	                             DPACK_BINSZ_MAX - 1,
@@ -2140,45 +2154,45 @@ CUTE_TEST(dpackut_bin_decode_dup_range_nok_binszplus_short_sup)
 
 CUTE_TEST(dpackut_bin_decode_cpy_null_dec)
 {
-	char *  data = data;
-	ssize_t ret __unused;
+	uint8_t * data = data;
+	ssize_t   ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_bincpy(NULL, 2, data));
 }
 
 CUTE_TEST(dpackut_bin_decode_cpy_null_data)
 {
-	struct dpack_decoder dec;
-	char                 data = data;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec;
+	uint8_t                     data = data;
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, &data, 1);
-	cute_expect_assertion(ret = dpack_decode_bincpy(&dec, 1, NULL));
-	dpack_decoder_fini(&dec);
+	cute_expect_assertion(ret = dpack_decode_bincpy(&dec.base, 1, NULL));
+	dpack_decoder_fini(&dec.base);
 }
 
 CUTE_TEST(dpackut_bin_decode_cpy_zero)
 {
-	struct dpack_decoder dec;
-	char                 data = data;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec;
+	uint8_t                     data = data;
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, &data, 1);
-	cute_expect_assertion(ret = dpack_decode_bincpy(&dec, 0, &data));
-	dpack_decoder_fini(&dec);
+	cute_expect_assertion(ret = dpack_decode_bincpy(&dec.base, 0, &data));
+	dpack_decoder_fini(&dec.base);
 }
 
 CUTE_TEST(dpackut_bin_decode_cpy_huge)
 {
-	struct dpack_decoder dec;
-	char                 data = data;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec;
+	uint8_t                     data = data;
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, &data, 1);
-	cute_expect_assertion(ret = dpack_decode_bincpy(&dec,
+	cute_expect_assertion(ret = dpack_decode_bincpy(&dec.base,
 	                                                DPACK_BINSZ_MAX + 1,
 	                                                &data));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !(defined(CONFIG_DPACK_ASSERT_API)) */
@@ -2221,10 +2235,10 @@ dpackut_bin_decode_cpy(ssize_t ret, size_t ref_size, size_t test_size)
 {
 	const struct cute_uint_range range = CUTE_UINT_RANGE(1,
 	                                                     DPACK_BINSZ_MAX);
-	struct dpackut_bin_data      data;
-	struct dpack_decoder         dec;
-	char *                       val;
-	ssize_t                      sz;
+	struct dpackut_bin_data     data;
+	struct dpack_decoder_buffer dec;
+	uint8_t *                   val;
+	ssize_t                     sz;
 
 	cute_check_uint_range(ref_size, in, range);
 	cute_check_uint_range(test_size, in, range);
@@ -2238,7 +2252,7 @@ dpackut_bin_decode_cpy(ssize_t ret, size_t ref_size, size_t test_size)
 	                          data.pack_buff,
 	                          dpack_bin_size(test_size));
 
-	sz = dpack_decode_bincpy(&dec, test_size, val);
+	sz = dpack_decode_bincpy(&dec.base, test_size, val);
 	cute_check_sint(sz, equal, ret);
 
 	if (sz >= 0) {
@@ -2249,7 +2263,7 @@ dpackut_bin_decode_cpy(ssize_t ret, size_t ref_size, size_t test_size)
 		                data.pack_size);
 	}
 
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 
 	free(val);
 
@@ -2376,47 +2390,49 @@ CUTE_TEST(dpackut_bin_decode_cpy_nok_max_short)
 
 CUTE_TEST(dpackut_bin_decode_cpy_equ_null_dec)
 {
-	char *  data = data;
-	ssize_t ret __unused;
+	uint8_t * data = data;
+	ssize_t   ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_bincpy_equ(NULL, 2, data));
 }
 
 CUTE_TEST(dpackut_bin_decode_cpy_equ_null_data)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data = data;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     data = data;
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, &data, 1);
-	cute_expect_assertion(ret = dpack_decode_bincpy_equ(&dec, 2, NULL));
-	dpack_decoder_fini(&dec);
+	cute_expect_assertion(ret = dpack_decode_bincpy_equ(&dec.base,
+	                                                    2,
+	                                                    NULL));
+	dpack_decoder_fini(&dec.base);
 }
 
 CUTE_TEST(dpackut_bin_decode_cpy_equ_0)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data = data;
-	char *               bin = bin;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     data = data;
+	uint8_t *                   bin = bin;
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, &data, 1);
-	cute_expect_assertion(ret = dpack_decode_bincpy_equ(&dec, 0, bin));
-	dpack_decoder_fini(&dec);
+	cute_expect_assertion(ret = dpack_decode_bincpy_equ(&dec.base, 0, bin));
+	dpack_decoder_fini(&dec.base);
 }
 
 CUTE_TEST(dpackut_bin_decode_cpy_equ_binsz)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data = data;
-	char *               bin = bin;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     data = data;
+	uint8_t *                   bin = bin;
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, &data, 1);
-	cute_expect_assertion(ret = dpack_decode_bincpy_equ(&dec,
+	cute_expect_assertion(ret = dpack_decode_bincpy_equ(&dec.base,
 	                                                    DPACK_BINSZ_MAX + 1,
 	                                                    bin));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -2447,11 +2463,13 @@ CUTE_TEST(dpackut_bin_decode_cpy_equ_binsz)
 
 CUTE_TEST(dpackut_bin_decode_cpy_equ_uninit_dec)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data[2];
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     data[2];
+	ssize_t                     ret __unused;
 
-	cute_expect_assertion(ret = dpack_decode_bincpy_equ(&dec, 2, data));
+	cute_expect_assertion(ret = dpack_decode_bincpy_equ(&dec.base,
+	                                                    2,
+	                                                    data));
 }
 
 #else  /* !defined(CONFIG_DPACK_DEBUG) */
@@ -2485,11 +2503,11 @@ dpackut_bin_decode_cpy_equ(ssize_t ret,
 {
 	const struct cute_uint_range range = CUTE_UINT_RANGE(1,
 	                                                     DPACK_BINSZ_MAX);
-	struct dpackut_bin_data      data;
-	struct dpack_decoder         dec;
-	char *                       val;
-	ssize_t                      sz;
-	size_t                       alloc;
+	struct dpackut_bin_data     data;
+	struct dpack_decoder_buffer dec;
+	uint8_t *                   val;
+	ssize_t                     sz;
+	size_t                      alloc;
 
 	cute_check_uint_range(ref_size, in, range);
 	cute_check_uint_range(test_size, in, range);
@@ -2507,7 +2525,7 @@ dpackut_bin_decode_cpy_equ(ssize_t ret,
 	                          data.pack_buff,
 	                          dpack_bin_size(test_size));
 
-	sz = dpack_decode_bincpy_equ(&dec, equ_size, val);
+	sz = dpack_decode_bincpy_equ(&dec.base, equ_size, val);
 	cute_check_sint(sz, equal, ret);
 
 	if (sz >= 0) {
@@ -2518,7 +2536,7 @@ dpackut_bin_decode_cpy_equ(ssize_t ret,
 		                data.pack_size);
 	}
 
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 
 	free(val);
 
@@ -2542,7 +2560,7 @@ CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_2_short_inf)
 
 CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_2_short_equ)
 {
-	dpackut_bin_decode_cpy_equ(-EPROTO, 2, 1, 2);
+	dpackut_bin_decode_cpy_equ(-ENODATA, 2, 1, 2);
 }
 
 CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_2_short_sup)
@@ -2577,7 +2595,7 @@ CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint8_short_inf)
 
 CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint8_short_equ)
 {
-	dpackut_bin_decode_cpy_equ(-EPROTO,
+	dpackut_bin_decode_cpy_equ(-ENODATA,
 	                           UINT8_MAX,
 	                           UINT8_MAX - 1,
 	                           UINT8_MAX);
@@ -2667,7 +2685,7 @@ CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint16_short_inf)
 
 CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_uint16_short_equ)
 {
-	dpackut_bin_decode_cpy_equ(-EPROTO,
+	dpackut_bin_decode_cpy_equ(-ENODATA,
 	                           UINT16_MAX,
 	                           UINT16_MAX - 1,
 	                           UINT16_MAX);
@@ -2771,7 +2789,7 @@ CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_binsz_short_inf)
 
 CUTE_TEST(dpackut_bin_decode_cpy_equ_nok_binsz_short_equ)
 {
-	dpackut_bin_decode_cpy_equ(-EPROTO,
+	dpackut_bin_decode_cpy_equ(-ENODATA,
 	                           DPACK_BINSZ_MAX,
 	                           DPACK_BINSZ_MAX - 1,
 	                           DPACK_BINSZ_MAX);
@@ -2797,8 +2815,8 @@ CUTE_TEST(dpackut_bin_decode_cpy_equ_ok_binsz)
 
 CUTE_TEST(dpackut_bin_decode_cpy_range_null_dec)
 {
-	char *  data = data;
-	ssize_t ret __unused;
+	uint8_t * data = data;
+	ssize_t   ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_bincpy_range(NULL,
 	                                                      1,
@@ -2808,77 +2826,77 @@ CUTE_TEST(dpackut_bin_decode_cpy_range_null_dec)
 
 CUTE_TEST(dpackut_bin_decode_cpy_range_null_data)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data = data;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     data = data;
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, &data, 1);
-	cute_expect_assertion(ret = dpack_decode_bincpy_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_bincpy_range(&dec.base,
 	                                                      1,
 	                                                      2,
 	                                                      NULL));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 CUTE_TEST(dpackut_bin_decode_cpy_range_02)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data = data;
-	char *               bin = bin;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     data = data;
+	uint8_t *                   bin = bin;
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, &data, 1);
-	cute_expect_assertion(ret = dpack_decode_bincpy_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_bincpy_range(&dec.base,
 	                                                      0,
 	                                                      2,
 	                                                      bin));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 CUTE_TEST(dpackut_bin_decode_cpy_range_10)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data = data;
-	char *               bin = bin;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     data = data;
+	uint8_t *                   bin = bin;
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, &data, 1);
-	cute_expect_assertion(ret = dpack_decode_bincpy_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_bincpy_range(&dec.base,
 	                                                      1,
 	                                                      0,
 	                                                      bin));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 CUTE_TEST(dpackut_bin_decode_cpy_range_21)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data[8] = { 0, };
-	char *               bin = bin;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     data[8] = { 0, };
+	uint8_t *                   bin = bin;
+	ssize_t                     ret __unused;
 
 	dpack_decoder_init_buffer(&dec, data, 1);
-	cute_expect_assertion(ret = dpack_decode_bincpy_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_bincpy_range(&dec.base,
 	                                                      2,
 	                                                      1,
 	                                                      bin));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 CUTE_TEST(dpackut_bin_decode_cpy_range_binsz)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data[8] = { 0, };
-	char *               bin = bin;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t              data[8] = { 0, };
+	uint8_t *            bin = bin;
 	ssize_t              ret __unused;
 
 	dpack_decoder_init_buffer(&dec, data, 1);
-	cute_expect_assertion(ret = dpack_decode_bincpy_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_bincpy_range(&dec.base,
 	                                                      1,
 	                                                      DPACK_BINSZ_MAX +
 	                                                      1,
 	                                                      bin));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -2919,11 +2937,11 @@ CUTE_TEST(dpackut_bin_decode_cpy_range_binsz)
 
 CUTE_TEST(dpackut_bin_decode_cpy_range_uninit_dec)
 {
-	struct dpack_decoder dec = { 0, };
-	char                 data[2];
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     data[2];
+	ssize_t                     ret __unused;
 
-	cute_expect_assertion(ret = dpack_decode_bincpy_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_bincpy_range(&dec.base,
 	                                                      1,
 	                                                      2,
 	                                                      data));
@@ -2965,11 +2983,11 @@ dpackut_bin_decode_cpy_range(ssize_t ret,
 {
 	const struct cute_uint_range range = CUTE_UINT_RANGE(1,
 	                                                     DPACK_BINSZ_MAX);
-	struct dpackut_bin_data data;
-	struct dpack_decoder    dec;
-	char *                  val;
-	ssize_t                 sz;
-	size_t                  alloc;
+	struct dpackut_bin_data     data;
+	struct dpack_decoder_buffer dec;
+	uint8_t *                   val;
+	ssize_t                     sz;
+	size_t                      alloc;
 
 	cute_check_uint_range(ref_size, in, range);
 	cute_check_uint_range(test_size, in, range);
@@ -2989,7 +3007,7 @@ dpackut_bin_decode_cpy_range(ssize_t ret,
 	                          data.pack_buff,
 	                          dpack_bin_size(test_size));
 
-	sz = dpack_decode_bincpy_range(&dec, min_size, max_size, val);
+	sz = dpack_decode_bincpy_range(&dec.base, min_size, max_size, val);
 	cute_check_sint(sz, equal, ret);
 
 	if (sz >= 0) {
@@ -3000,7 +3018,7 @@ dpackut_bin_decode_cpy_range(ssize_t ret,
 		                data.pack_size);
 	}
 
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 
 	free(val);
 
@@ -3014,7 +3032,7 @@ CUTE_TEST(dpackut_bin_decode_cpy_range_ok_1)
 
 CUTE_TEST(dpackut_bin_decode_cpy_range_nok_1_short)
 {
-	dpackut_bin_decode_cpy_range(-EPROTO, 2, 1, 1, 2);
+	dpackut_bin_decode_cpy_range(-ENODATA, 2, 1, 1, 2);
 }
 
 CUTE_TEST(dpackut_bin_decode_cpy_range_nok_1)
@@ -3029,7 +3047,7 @@ CUTE_TEST(dpackut_bin_decode_cpy_range_ok_2)
 
 CUTE_TEST(dpackut_bin_decode_cpy_range_nok_2_short)
 {
-	dpackut_bin_decode_cpy_range(-EPROTO, 2, 1, 2, 3);
+	dpackut_bin_decode_cpy_range(-ENODATA, 2, 1, 2, 3);
 }
 
 CUTE_TEST(dpackut_bin_decode_cpy_range_ok_3)
@@ -3039,7 +3057,7 @@ CUTE_TEST(dpackut_bin_decode_cpy_range_ok_3)
 
 CUTE_TEST(dpackut_bin_decode_cpy_range_nok_3_short)
 {
-	dpackut_bin_decode_cpy_range(-EPROTO, 3, 2, 2, 3);
+	dpackut_bin_decode_cpy_range(-ENODATA, 3, 2, 2, 3);
 }
 
 CUTE_TEST(dpackut_bin_decode_cpy_range_nok_4)
@@ -3074,7 +3092,7 @@ CUTE_TEST(dpackut_bin_decode_cpy_range_ok_uint8minus_sup)
 
 CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint8minus_short_sup)
 {
-	dpackut_bin_decode_cpy_range(-EPROTO,
+	dpackut_bin_decode_cpy_range(-ENODATA,
 	                             UINT8_MAX - 1,
 	                             UINT8_MAX - 2,
 	                             UINT8_MAX - 1,
@@ -3092,7 +3110,7 @@ CUTE_TEST(dpackut_bin_decode_cpy_range_ok_uint8)
 
 CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint8_short)
 {
-	dpackut_bin_decode_cpy_range(-EPROTO,
+	dpackut_bin_decode_cpy_range(-ENODATA,
 	                             UINT8_MAX,
 	                             UINT8_MAX - 1,
 	                             UINT8_MAX - 1,
@@ -3184,7 +3202,7 @@ CUTE_TEST(dpackut_bin_decode_cpy_range_ok_uint16minus_sup)
 
 CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint16minus_short_sup)
 {
-	dpackut_bin_decode_cpy_range(-EPROTO,
+	dpackut_bin_decode_cpy_range(-ENODATA,
 	                             UINT16_MAX - 1,
 	                             UINT16_MAX - 2,
 	                             UINT16_MAX - 1,
@@ -3202,7 +3220,7 @@ CUTE_TEST(dpackut_bin_decode_cpy_range_ok_uint16)
 
 CUTE_TEST(dpackut_bin_decode_cpy_range_nok_uint16_short)
 {
-	dpackut_bin_decode_cpy_range(-EPROTO,
+	dpackut_bin_decode_cpy_range(-ENODATA,
 	                             UINT16_MAX,
 	                             UINT16_MAX - 1,
 	                             UINT16_MAX - 1,
@@ -3292,7 +3310,7 @@ CUTE_TEST(dpackut_bin_decode_cpy_range_ok_binszminus_sup)
 
 CUTE_TEST(dpackut_bin_decode_cpy_range_nok_binszminus_short_sup)
 {
-	dpackut_bin_decode_cpy_range(-EPROTO,
+	dpackut_bin_decode_cpy_range(-ENODATA,
 	                             DPACK_BINSZ_MAX - 1,
 	                             DPACK_BINSZ_MAX - 2,
 	                             DPACK_BINSZ_MAX - 1,
@@ -3310,7 +3328,7 @@ CUTE_TEST(dpackut_bin_decode_cpy_range_ok_binsz)
 
 CUTE_TEST(dpackut_bin_decode_cpy_range_nok_binsz_short)
 {
-	dpackut_bin_decode_cpy_range(-EPROTO,
+	dpackut_bin_decode_cpy_range(-ENODATA,
 	                             DPACK_BINSZ_MAX,
 	                             DPACK_BINSZ_MAX - 1,
 	                             DPACK_BINSZ_MAX - 1,

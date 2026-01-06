@@ -204,13 +204,10 @@ dpack_bin_size(size_t size) __dpack_const
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_encode_bin(struct dpack_encoder *  encoder,
-                 const char * __restrict value,
-                 size_t                  size) __dpack_nonull(1, 2)
-                                               __dpack_nothrow
-                                               __leaf
-                                               __warn_result
-                                               __dpack_export;
+dpack_encode_bin(struct dpack_encoder * __restrict encoder,
+                 const uint8_t * __restrict        value,
+                 size_t                            size)
+	__dpack_nonull(1, 2) __warn_result __dpack_export;
 
 /**
  * Decode and allocate a bin encoded according to the MessagePack format
@@ -251,12 +248,9 @@ dpack_encode_bin(struct dpack_encoder *  encoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern ssize_t
-dpack_decode_bindup(struct dpack_decoder * decoder,
-                    char ** __restrict     value) __dpack_nonull(1, 2)
-                                                  __dpack_nothrow
-                                                  __leaf
-                                                  __warn_result
-                                                  __dpack_export;
+dpack_decode_bindup(struct dpack_decoder * __restrict decoder,
+                    uint8_t ** __restrict             value)
+	__dpack_nonull(1, 2) __warn_result __dpack_export;
 
 /**
  * Decode and allocate a bin encoded according to the MessagePack format
@@ -302,13 +296,10 @@ dpack_decode_bindup(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern ssize_t
-dpack_decode_bindup_equ(struct dpack_decoder * decoder,
-                        size_t                 size,
-                        char ** __restrict     value) __dpack_nonull(1, 3)
-                                                      __dpack_nothrow
-                                                      __leaf
-                                                      __warn_result
-                                                      __dpack_export;
+dpack_decode_bindup_equ(struct dpack_decoder * __restrict decoder,
+                        size_t                            size,
+                        uint8_t ** __restrict             value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode and allocate a bin encoded according to the MessagePack format with
@@ -354,13 +345,10 @@ dpack_decode_bindup_equ(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern ssize_t
-dpack_decode_bindup_max(struct dpack_decoder * decoder,
-                        size_t                 max_sz,
-                        char ** __restrict     value) __dpack_nonull(1, 3)
-                                                      __dpack_nothrow
-                                                      __leaf
-                                                      __warn_result
-                                                      __dpack_export;
+dpack_decode_bindup_max(struct dpack_decoder * __restrict decoder,
+                        size_t                            max_sz,
+                        uint8_t ** __restrict             value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode and allocate a bin encoded according to the MessagePack format
@@ -412,14 +400,11 @@ dpack_decode_bindup_max(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern ssize_t
-dpack_decode_bindup_range(struct dpack_decoder * decoder,
-                          size_t                 min_sz,
-                          size_t                 max_sz,
-                          char ** __restrict     value) __dpack_nonull(1, 4)
-                                                        __dpack_nothrow
-                                                        __leaf
-                                                        __warn_result
-                                                        __dpack_export;
+dpack_decode_bindup_range(struct dpack_decoder * __restrict decoder,
+                          size_t                            min_sz,
+                          size_t                            max_sz,
+                          uint8_t ** __restrict             value)
+	__dpack_nonull(1, 4) __warn_result __dpack_export;
 
 /**
  * Decode a bin encoded according to the MessagePack format
@@ -463,13 +448,10 @@ dpack_decode_bindup_range(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern ssize_t
-dpack_decode_bincpy(struct dpack_decoder * decoder,
-                    size_t                 size,
-                    char *                 value) __dpack_nonull(1, 3)
-                                                  __dpack_nothrow
-                                                  __leaf
-                                                  __warn_result
-                                                  __dpack_export;
+dpack_decode_bincpy(struct dpack_decoder * __restrict decoder,
+                    size_t                            size,
+                    uint8_t * __restrict              value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode a bin encoded according to the MessagePack format with requested size.
@@ -512,13 +494,10 @@ dpack_decode_bincpy(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern ssize_t
-dpack_decode_bincpy_equ(struct dpack_decoder * decoder,
-                        size_t                 size,
-                        char *                 value) __dpack_nonull(1, 3)
-                                                      __dpack_nothrow
-                                                      __leaf
-                                                      __warn_result
-                                                      __dpack_export;
+dpack_decode_bincpy_equ(struct dpack_decoder * __restrict decoder,
+                        size_t                            size,
+                        uint8_t * __restrict              value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode a bin encoded according to the MessagePack format with requested
@@ -566,13 +545,10 @@ dpack_decode_bincpy_equ(struct dpack_decoder * decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern ssize_t
-dpack_decode_bincpy_range(struct dpack_decoder * decoder,
-                          size_t                 min_sz,
-                          size_t                 max_sz,
-                          char *                 value) __dpack_nonull(1, 4)
-                                                        __dpack_nothrow
-                                                        __leaf
-                                                        __warn_result
-                                                        __dpack_export;
+dpack_decode_bincpy_range(struct dpack_decoder * __restrict decoder,
+                          size_t                            min_sz,
+                          size_t                            max_sz,
+                          uint8_t * __restrict              value)
+	__dpack_nonull(1, 4) __warn_result __dpack_export;
 
 #endif /* _DPACK_BIN_H */
