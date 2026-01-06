@@ -16,7 +16,7 @@
 
 #define DPACKUT_FLOAT(_var, _packed, _error, _value) \
 	const struct dpackut_scalar_data _var = { \
-		.packed    = _packed, \
+		.packed    = (const uint8_t *)_packed, \
 		.size      = sizeof(_packed) - 1, \
 		.error     = _error, \
 		.value.f32 = _value \
@@ -25,40 +25,40 @@
 static void
 dpackut_float_encode(const struct dpackut_scalar_data * data)
 {
-	struct dpack_encoder enc = { 0, };
-	size_t               sz = data->size;
-	char                 buff[sz];
+	struct dpack_encoder_buffer enc = { 0, };
+	size_t                      sz = data->size;
+	uint8_t                     buff[sz];
 
 	memset(buff, 0xa5, sz);
 	dpack_encoder_init_buffer(&enc, buff, sz);
 
 	cute_check_uint(data->size, equal, DPACK_FLOAT_SIZE);
-	cute_check_sint(dpack_encode_float(&enc, data->value.f32),
+	cute_check_sint(dpack_encode_float(&enc.base, data->value.f32),
 	                equal,
 	                data->error);
 	cute_check_mem(buff, equal, data->packed, sz);
 
-	cute_check_uint(dpack_encoder_space_used(&enc), equal, sz);
-	cute_check_uint(dpack_encoder_space_left(&enc), equal, 0);
+	cute_check_uint(dpack_encoder_space_used(&enc.base), equal, sz);
+	cute_check_uint(dpack_encoder_space_left(&enc.base), equal, 0);
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 }
 
 #if defined(CONFIG_DPACK_ASSERT_API)
 
 CUTE_TEST(dpackut_float_encode_assert)
 {
-	float                val = NAN;
-	struct dpack_encoder enc = { 0, };
-	int                  ret __unused;
-	char                 buff[DPACK_FLOAT_SIZE];
+	float                       val = NAN;
+	struct dpack_encoder_buffer enc = { 0, };
+	int                         ret __unused;
+	uint8_t                     buff[DPACK_FLOAT_SIZE];
 
 	cute_expect_assertion(ret = dpack_encode_float(NULL, val));
-	cute_expect_assertion(ret = dpack_encode_float(&enc, val));
+	cute_expect_assertion(ret = dpack_encode_float(&enc.base, val));
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_encode_float(&enc, NAN));
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	cute_expect_assertion(ret = dpack_encode_float(&enc.base, NAN));
+	dpack_encoder_fini(&enc.base);
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -130,38 +130,40 @@ CUTE_TEST(dpackut_float_encode_pos_inf)
 static void
 dpackut_float_decode(const struct dpackut_scalar_data * data)
 {
-	struct dpack_decoder dec = { 0, };
-	float                val;
+	struct dpack_decoder_buffer dec = { 0, };
+	float                       val;
 
 	dpack_decoder_init_buffer(&dec, data->packed, data->size);
 
-	cute_check_sint(dpack_decode_float(&dec, &val), equal, data->error);
+	cute_check_sint(dpack_decode_float(&dec.base, &val),
+	                equal,
+	                data->error);
 	if (!data->error) {
 		cute_check_flt(val, equal, data->value.f32);
 		cute_check_uint(data->size, equal, DPACK_FLOAT_SIZE);
-		cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+		cute_check_uint(dpack_decoder_data_left(&dec.base), equal, 0);
 	}
 
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #if defined(CONFIG_DPACK_ASSERT_API)
 
 CUTE_TEST(dpackut_float_decode_assert)
 {
-	float                val;
-	struct dpack_decoder dec = { 0, };
-	char                 buff[DPACK_FLOAT_SIZE];
-	int                  ret __unused;
+	float                       val;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     buff[DPACK_FLOAT_SIZE];
+	int                         ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_float(NULL, &val));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_decode_float(&dec, &val));
+	cute_expect_assertion(ret = dpack_decode_float(&dec.base, &val));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_decode_float(&dec, NULL));
-	dpack_decoder_fini(&dec);
+	cute_expect_assertion(ret = dpack_decode_float(&dec.base, NULL));
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -176,7 +178,7 @@ CUTE_TEST(dpackut_float_decode_assert)
 CUTE_TEST(dpackut_float_decode_neg_nan)
 {
 	/* -Not A Number: dpack-utest-gen.py -s "float('-nan')" */
-	DPACKUT_FLOAT(data, "\xca\xff\xc0\x00\x00", -ENOMSG, -NAN);
+	DPACKUT_FLOAT(data, "\xca\xff\xc0\x00\x00", -EBADMSG, -NAN);
 	dpackut_float_decode(&data);
 }
 
@@ -239,7 +241,7 @@ CUTE_TEST(dpackut_float_decode_pos_inf)
 CUTE_TEST(dpackut_float_decode_pos_nan)
 {
 	/* +Not A Number: dpack-utest-gen.py -s "float('nan')" */
-	DPACKUT_FLOAT(data, "\xca\x7f\xc0\x00\x00", -ENOMSG, NAN);
+	DPACKUT_FLOAT(data, "\xca\x7f\xc0\x00\x00", -EBADMSG, NAN);
 	dpackut_float_decode(&data);
 }
 
@@ -252,7 +254,7 @@ CUTE_TEST(dpackut_float_decode_pos_zero_dbl)
 
 #define DPACKUT_FLOAT_MIN(_var, _packed, _error, _value, _low) \
 	const struct dpackut_scalar_data _var = { \
-		.packed    = _packed, \
+		.packed    = (const uint8_t *)_packed, \
 		.size      = sizeof(_packed) - 1, \
 		.error     = _error, \
 		.value.f32 = _value, \
@@ -262,48 +264,56 @@ CUTE_TEST(dpackut_float_decode_pos_zero_dbl)
 static void
 dpackut_float_decode_min(const struct dpackut_scalar_data * data)
 {
-	struct dpack_decoder dec = { 0, };
-	float                val;
+	struct dpack_decoder_buffer dec = { 0, };
+	float                       val;
 
 	dpack_decoder_init_buffer(&dec, data->packed, data->size);
 
-	cute_check_sint(dpack_decode_float_min(&dec, data->low.f32, &val),
+	cute_check_sint(dpack_decode_float_min(&dec.base, data->low.f32, &val),
 	                equal,
 	                data->error);
 	if (!data->error) {
 		cute_check_flt(val, equal, data->value.f32);
 		cute_check_uint(data->size, equal, DPACK_FLOAT_SIZE);
-		cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+		cute_check_uint(dpack_decoder_data_left(&dec.base), equal, 0);
 	}
 
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #if defined(CONFIG_DPACK_ASSERT_API)
 
 CUTE_TEST(dpackut_float_decode_min_assert)
 {
-	float                val;
-	struct dpack_decoder dec = { 0, };
-	char                 buff[DPACK_FLOAT_SIZE];
-	int                  ret __unused;
+	float                       val;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     buff[DPACK_FLOAT_SIZE];
+	int                         ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_float_min(NULL, 1.0f, &val));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_decode_float_min(&dec, 1.0f, &val));
+	cute_expect_assertion(ret = dpack_decode_float_min(&dec.base,
+							   1.0f,
+							   &val));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_decode_float_min(&dec,
+	cute_expect_assertion(ret = dpack_decode_float_min(&dec.base,
 	                                                   -INFINITY,
 	                                                   &val));
-	cute_expect_assertion(ret = dpack_decode_float_min(&dec,
+	cute_expect_assertion(ret = dpack_decode_float_min(&dec.base,
 	                                                   INFINITY,
 	                                                   &val));
-	cute_expect_assertion(ret = dpack_decode_float_min(&dec, NAN, &val));
-	cute_expect_assertion(ret = dpack_decode_float_min(&dec, -NAN, &val));
-	cute_expect_assertion(ret = dpack_decode_float_min(&dec, 1.0f, NULL));
-	dpack_decoder_fini(&dec);
+	cute_expect_assertion(ret = dpack_decode_float_min(&dec.base,
+							   NAN,
+							   &val));
+	cute_expect_assertion(ret = dpack_decode_float_min(&dec.base,
+							   -NAN,
+							   &val));
+	cute_expect_assertion(ret = dpack_decode_float_min(&dec.base,
+							   1.0f,
+							   NULL));
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -318,7 +328,7 @@ CUTE_TEST(dpackut_float_decode_min_assert)
 CUTE_TEST(dpackut_float_decode_min_neg_nan_pos_zero)
 {
 	/* -Not A Number: dpack-utest-gen.py -s "float('-nan')" */
-	DPACKUT_FLOAT_MIN(data, "\xca\xff\xc0\x00\x00", -ENOMSG, -NAN, 0.0f);
+	DPACKUT_FLOAT_MIN(data, "\xca\xff\xc0\x00\x00", -EBADMSG, -NAN, 0.0f);
 	dpackut_float_decode_min(&data);
 }
 
@@ -503,7 +513,7 @@ CUTE_TEST(dpackut_float_decode_min_pos_nan_pos_zero)
 	/* +Not A Number: dpack-utest-gen.py -s "float('nan')" */
 	DPACKUT_FLOAT_MIN(data,
 	                  "\xca\x7f\xc0\x00\x00",
-	                  -ENOMSG,
+	                  -EBADMSG,
 	                  NAN,
 	                  0.0f);
 	dpackut_float_decode_min(&data);
@@ -610,7 +620,7 @@ CUTE_TEST(dpackut_float_decode_min_pos_zero_pos_zero_flt)
 
 #define DPACKUT_FLOAT_MAX(_var, _packed, _error, _value, _high) \
 	const struct dpackut_scalar_data _var = { \
-		.packed     = _packed, \
+		.packed    = (const uint8_t *)_packed, \
 		.size       = sizeof(_packed) - 1, \
 		.error      = _error, \
 		.value.f32  = _value, \
@@ -620,48 +630,56 @@ CUTE_TEST(dpackut_float_decode_min_pos_zero_pos_zero_flt)
 static void
 dpackut_float_decode_max(const struct dpackut_scalar_data * data)
 {
-	struct dpack_decoder dec = { 0, };
-	float                val;
+	struct dpack_decoder_buffer dec = { 0, };
+	float                       val;
 
 	dpack_decoder_init_buffer(&dec, data->packed, data->size);
 
-	cute_check_sint(dpack_decode_float_max(&dec, data->high.f32, &val),
+	cute_check_sint(dpack_decode_float_max(&dec.base, data->high.f32, &val),
 	                equal,
 	                data->error);
 	if (!data->error) {
 		cute_check_flt(val, equal, data->value.f32);
 		cute_check_uint(data->size, equal, DPACK_FLOAT_SIZE);
-		cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+		cute_check_uint(dpack_decoder_data_left(&dec.base), equal, 0);
 	}
 
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #if defined(CONFIG_DPACK_ASSERT_API)
 
 CUTE_TEST(dpackut_float_decode_max_assert)
 {
-	float                val;
-	struct dpack_decoder dec = { 0, };
-	char                 buff[DPACK_FLOAT_SIZE];
-	int                  ret __unused;
+	float                       val;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     buff[DPACK_FLOAT_SIZE];
+	int                         ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_float_max(NULL, 1.0f, &val));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_decode_float_max(&dec, 1.0f, &val));
+	cute_expect_assertion(ret = dpack_decode_float_max(&dec.base,
+							   1.0f,
+							   &val));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_decode_float_max(&dec,
+	cute_expect_assertion(ret = dpack_decode_float_max(&dec.base,
 	                                                   -INFINITY,
 	                                                   &val));
-	cute_expect_assertion(ret = dpack_decode_float_max(&dec,
+	cute_expect_assertion(ret = dpack_decode_float_max(&dec.base,
 	                                                   INFINITY,
 	                                                   &val));
-	cute_expect_assertion(ret = dpack_decode_float_max(&dec, NAN, &val));
-	cute_expect_assertion(ret = dpack_decode_float_max(&dec, -NAN, &val));
-	cute_expect_assertion(ret = dpack_decode_float_max(&dec, 1.0f, NULL));
-	dpack_decoder_fini(&dec);
+	cute_expect_assertion(ret = dpack_decode_float_max(&dec.base,
+							   NAN,
+							   &val));
+	cute_expect_assertion(ret = dpack_decode_float_max(&dec.base,
+							   -NAN,
+							   &val));
+	cute_expect_assertion(ret = dpack_decode_float_max(&dec.base,
+							   1.0f,
+							   NULL));
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -676,7 +694,7 @@ CUTE_TEST(dpackut_float_decode_max_assert)
 CUTE_TEST(dpackut_float_decode_max_neg_nan_pos_zero)
 {
 	/* -Not A Number: dpack-utest-gen.py -s "float('-nan')" */
-	DPACKUT_FLOAT_MAX(data, "\xca\xff\xc0\x00\x00", -ENOMSG, -NAN, 0.0f);
+	DPACKUT_FLOAT_MAX(data, "\xca\xff\xc0\x00\x00", -EBADMSG, -NAN, 0.0f);
 	dpackut_float_decode_max(&data);
 }
 
@@ -949,7 +967,7 @@ CUTE_TEST(dpackut_float_decode_max_pos_nan_pos_zero)
 	/* +Not A Number: dpack-utest-gen.py -s "float('nan')" */
 	DPACKUT_FLOAT_MAX(data,
 	                  "\xca\x7f\xc0\x00\x00",
-	                  -ENOMSG,
+	                  -EBADMSG,
 	                  NAN,
 	                  0.0f);
 	dpackut_float_decode_max(&data);
@@ -968,7 +986,7 @@ CUTE_TEST(dpackut_float_decode_max_pos_zero_pos_zero_dbl)
 
 #define DPACKUT_FLOAT_RANGE(_var, _packed, _error, _value, _low, _high) \
 	const struct dpackut_scalar_data _var = { \
-		.packed     = _packed, \
+		.packed    = (const uint8_t *)_packed, \
 		.size       = sizeof(_packed) - 1, \
 		.error      = _error, \
 		.value.f32  = _value, \
@@ -979,12 +997,12 @@ CUTE_TEST(dpackut_float_decode_max_pos_zero_pos_zero_dbl)
 static void
 dpackut_float_decode_range(const struct dpackut_scalar_data * data)
 {
-	struct dpack_decoder dec = { 0, };
-	float                val;
+	struct dpack_decoder_buffer dec = { 0, };
+	float                       val;
 
 	dpack_decoder_init_buffer(&dec, data->packed, data->size);
 
-	cute_check_sint(dpack_decode_float_range(&dec,
+	cute_check_sint(dpack_decode_float_range(&dec.base,
 	                                         data->low.f32,
 	                                         data->high.f32,
 	                                         &val),
@@ -993,62 +1011,62 @@ dpackut_float_decode_range(const struct dpackut_scalar_data * data)
 	if (!data->error) {
 		cute_check_flt(val, equal, data->value.f32);
 		cute_check_uint(data->size, equal, DPACK_FLOAT_SIZE);
-		cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+		cute_check_uint(dpack_decoder_data_left(&dec.base), equal, 0);
 	}
 
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #if defined(CONFIG_DPACK_ASSERT_API)
 
 CUTE_TEST(dpackut_float_decode_range_assert)
 {
-	float                val;
-	struct dpack_decoder dec = { 0, };
-	char                 buff[DPACK_FLOAT_SIZE];
-	int                  ret __unused;
+	float                       val;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     buff[DPACK_FLOAT_SIZE];
+	int                         ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_float_range(NULL,
 	                                                     1.0f,
 	                                                     2.0f,
 	                                                     &val));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_decode_float_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_float_range(&dec.base,
 	                                                     1.0f,
 	                                                     2.0f,
 	                                                     &val));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_decode_float_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_float_range(&dec.base,
 	                                                     -INFINITY,
 	                                                     2.0f,
 	                                                     &val));
-	cute_expect_assertion(ret = dpack_decode_float_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_float_range(&dec.base,
 	                                                     1.0f,
 	                                                     INFINITY,
 	                                                     &val));
-	cute_expect_assertion(ret = dpack_decode_float_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_float_range(&dec.base,
 	                                                     NAN,
 	                                                     2.0f,
 	                                                     &val));
-	cute_expect_assertion(ret = dpack_decode_float_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_float_range(&dec.base,
 	                                                     -NAN,
 	                                                     2.0f,
 	                                                     &val));
-	cute_expect_assertion(ret = dpack_decode_float_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_float_range(&dec.base,
 	                                                     1.0f,
 	                                                     NAN,
 	                                                     &val));
-	cute_expect_assertion(ret = dpack_decode_float_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_float_range(&dec.base,
 	                                                     1.0f,
 	                                                     -NAN,
 	                                                     &val));
-	cute_expect_assertion(ret = dpack_decode_float_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_float_range(&dec.base,
 	                                                     1.0f,
 	                                                     2.0f,
 	                                                     NULL));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -1065,7 +1083,7 @@ CUTE_TEST(dpackut_float_decode_range_neg_nan_pos_zero_one)
 	/* -Not A Number: dpack-utest-gen.py -s "float('-nan')" */
 	DPACKUT_FLOAT_RANGE(data,
 	                    "\xca\xff\xc0\x00\x00",
-	                    -ENOMSG,
+	                    -EBADMSG,
 	                    -NAN,
 	                    0.0f,
 	                    1.0f);
@@ -1269,7 +1287,7 @@ CUTE_TEST(dpackut_float_decode_range_pos_nan_pos_zero_pos_max)
 	/* +Not A Number: dpack-utest-gen.py -s "float('nan')" */
 	DPACKUT_FLOAT_RANGE(data,
 	                    "\xca\x7f\xc0\x00\x00",
-	                    -ENOMSG,
+	                    -EBADMSG,
 	                    NAN,
 	                    0.0f,
 	                    MAXFLOAT);
@@ -1413,7 +1431,7 @@ CUTE_TEST(dpackut_float_decode_range_pos_nan_pos_zero_one)
 	/* +Not A Number: dpack-utest-gen.py -s "float('nan')" */
 	DPACKUT_FLOAT_RANGE(data,
 	                    "\xca\x7f\xc0\x00\x00",
-	                    -ENOMSG,
+	                    -EBADMSG,
 	                    NAN,
 	                    0.0f,
 	                    1.0f);

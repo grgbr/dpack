@@ -16,7 +16,7 @@
 
 #define DPACKUT_DOUBLE(_var, _packed, _error, _value) \
 	const struct dpackut_scalar_data _var = { \
-		.packed    = _packed, \
+		.packed    = (const uint8_t *)_packed, \
 		.size      = sizeof(_packed) - 1, \
 		.error     = _error, \
 		.value.f64 = _value \
@@ -25,40 +25,40 @@
 static void
 dpackut_double_encode(const struct dpackut_scalar_data * data)
 {
-	struct dpack_encoder enc = { 0, };
-	size_t               sz = data->size;
-	char                 buff[sz];
+	struct dpack_encoder_buffer enc = { 0, };
+	size_t                      sz = data->size;
+	uint8_t                     buff[sz];
 
 	memset(buff, 0xa5, sz);
 	dpack_encoder_init_buffer(&enc, buff, sz);
 
 	cute_check_uint(data->size, equal, DPACK_DOUBLE_SIZE);
-	cute_check_sint(dpack_encode_double(&enc, data->value.f64),
+	cute_check_sint(dpack_encode_double(&enc.base, data->value.f64),
 	                equal,
 	                data->error);
 	cute_check_mem(buff, equal, data->packed, sz);
 
-	cute_check_uint(dpack_encoder_space_used(&enc), equal, sz);
-	cute_check_uint(dpack_encoder_space_left(&enc), equal, 0);
+	cute_check_uint(dpack_encoder_space_used(&enc.base), equal, sz);
+	cute_check_uint(dpack_encoder_space_left(&enc.base), equal, 0);
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 }
 
 #if defined(CONFIG_DPACK_ASSERT_API)
 
 CUTE_TEST(dpackut_double_encode_assert)
 {
-	double               val = NAN;
-	struct dpack_encoder enc = { 0, };
-	int                  ret __unused;
-	char                 buff[DPACK_DOUBLE_SIZE];
+	double                      val = NAN;
+	struct dpack_encoder_buffer enc = { 0, };
+	int                         ret __unused;
+	uint8_t                     buff[DPACK_DOUBLE_SIZE];
 
 	cute_expect_assertion(ret = dpack_encode_double(NULL, val));
-	cute_expect_assertion(ret = dpack_encode_double(&enc, val));
+	cute_expect_assertion(ret = dpack_encode_double(&enc.base, val));
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_encode_double(&enc, NAN));
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	cute_expect_assertion(ret = dpack_encode_double(&enc.base, NAN));
+	dpack_encoder_fini(&enc.base);
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -161,38 +161,43 @@ CUTE_TEST(dpackut_double_encode_pos_inf)
 static void
 dpackut_double_decode(const struct dpackut_scalar_data * data)
 {
-	struct dpack_decoder dec = { 0, };
-	double               val;
+	struct dpack_decoder_buffer dec = { 0, };
+	double                      val;
 
 	dpack_decoder_init_buffer(&dec, data->packed, data->size);
 
-	cute_check_sint(dpack_decode_double(&dec, &val), equal, data->error);
+	cute_check_sint(dpack_decode_double(&dec.base, &val),
+			equal,
+			data->error);
 	if (!data->error) {
+		bool sz_ok = (data->size == DPACK_FLOAT_SIZE) ||
+		             (data->size == DPACK_DOUBLE_SIZE);
+
 		cute_check_flt(val, equal, data->value.f64);
-		cute_check_uint(data->size, equal, DPACK_DOUBLE_SIZE);
-		cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+		cute_check_bool(sz_ok, is, true);
+		cute_check_uint(dpack_decoder_data_left(&dec.base), equal, 0);
 	}
 
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #if defined(CONFIG_DPACK_ASSERT_API)
 
 CUTE_TEST(dpackut_double_decode_assert)
 {
-	double               val;
-	struct dpack_decoder dec = { 0, };
-	int                  ret __unused;
-	char                 buff[DPACK_DOUBLE_SIZE];
+	double                      val;
+	struct dpack_decoder_buffer dec = { 0, };
+	int                         ret __unused;
+	uint8_t                     buff[DPACK_DOUBLE_SIZE];
 
 	cute_expect_assertion(ret = dpack_decode_double(NULL, &val));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_decode_double(&dec, &val));
+	cute_expect_assertion(ret = dpack_decode_double(&dec.base, &val));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_decode_double(&dec, NULL));
-	dpack_decoder_fini(&dec);
+	cute_expect_assertion(ret = dpack_decode_double(&dec.base, NULL));
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -209,7 +214,7 @@ CUTE_TEST(dpackut_double_decode_neg_nan)
 	/* -Not A Number: dpack-utest-gen.py "float('-nan')" */
 	DPACKUT_DOUBLE(data,
 	               "\xcb\xff\xf8\x00\x00\x00\x00\x00\x00",
-	               -ENOMSG,
+	               -EBADMSG,
 	               -NAN);
 
 	dpackut_double_decode(&data);
@@ -306,7 +311,7 @@ CUTE_TEST(dpackut_double_decode_pos_inf)
 CUTE_TEST(dpackut_double_decode_pos_nan)
 {
 	/* +Not A Number: dpack-utest-gen.py -s "float('nan')" */
-	DPACKUT_DOUBLE(data, "\xca\x7f\xc0\x00\x00", -ENOMSG, NAN);
+	DPACKUT_DOUBLE(data, "\xca\x7f\xc0\x00\x00", -EBADMSG, NAN);
 
 	dpackut_double_decode(&data);
 }
@@ -314,14 +319,14 @@ CUTE_TEST(dpackut_double_decode_pos_nan)
 CUTE_TEST(dpackut_double_decode_pos_zero_flt)
 {
 	/* +0 (float): dpack-utest-gen.py -s "0.0" */
-	DPACKUT_DOUBLE(data, "\xca\x00\x00\x00\x00", -ENOMSG, 0);
+	DPACKUT_DOUBLE(data, "\xca\x00\x00\x00\x00", 0, 0.0);
 
 	dpackut_double_decode(&data);
 }
 
 #define DPACKUT_DOUBLE_MIN(_var, _packed, _error, _value, _low) \
 	const struct dpackut_scalar_data _var = { \
-		.packed    = _packed, \
+		.packed    = (const uint8_t *)_packed, \
 		.size      = sizeof(_packed) - 1, \
 		.error     = _error, \
 		.value.f64 = _value, \
@@ -331,48 +336,59 @@ CUTE_TEST(dpackut_double_decode_pos_zero_flt)
 static void
 dpackut_double_decode_min(const struct dpackut_scalar_data * data)
 {
-	struct dpack_decoder dec = { 0, };
-	double               val;
+	struct dpack_decoder_buffer dec = { 0, };
+	double                      val;
 
 	dpack_decoder_init_buffer(&dec, data->packed, data->size);
 
-	cute_check_sint(dpack_decode_double_min(&dec, data->low.f64, &val),
+	cute_check_sint(dpack_decode_double_min(&dec.base, data->low.f64, &val),
 	                equal,
 	                data->error);
 	if (!data->error) {
+		bool sz_ok = (data->size == DPACK_FLOAT_SIZE) ||
+		             (data->size == DPACK_DOUBLE_SIZE);
+
 		cute_check_flt(val, equal, data->value.f64);
-		cute_check_uint(data->size, equal, DPACK_DOUBLE_SIZE);
-		cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+		cute_check_bool(sz_ok, is, true);
+		cute_check_uint(dpack_decoder_data_left(&dec.base), equal, 0);
 	}
 
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #if defined(CONFIG_DPACK_ASSERT_API)
 
 CUTE_TEST(dpackut_double_decode_min_assert)
 {
-	double               val;
-	struct dpack_decoder dec = { 0, };
-	char                 buff[DPACK_DOUBLE_SIZE];
-	int                  ret __unused;
+	double                      val;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     buff[DPACK_DOUBLE_SIZE];
+	int                         ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_double_min(NULL, 1.0, &val));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_decode_double_min(&dec, 1.0, &val));
+	cute_expect_assertion(ret = dpack_decode_double_min(&dec.base,
+							    1.0,
+							    &val));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_decode_double_min(&dec,
+	cute_expect_assertion(ret = dpack_decode_double_min(&dec.base,
 	                                                    -INFINITY,
 	                                                    &val));
-	cute_expect_assertion(ret = dpack_decode_double_min(&dec,
+	cute_expect_assertion(ret = dpack_decode_double_min(&dec.base,
 	                                                    INFINITY,
 	                                                    &val));
-	cute_expect_assertion(ret = dpack_decode_double_min(&dec, NAN, &val));
-	cute_expect_assertion(ret = dpack_decode_double_min(&dec, -NAN, &val));
-	cute_expect_assertion(ret = dpack_decode_double_min(&dec, 1.0, NULL));
-	dpack_decoder_fini(&dec);
+	cute_expect_assertion(ret = dpack_decode_double_min(&dec.base,
+							    NAN,
+							    &val));
+	cute_expect_assertion(ret = dpack_decode_double_min(&dec.base,
+							    -NAN,
+							    &val));
+	cute_expect_assertion(ret = dpack_decode_double_min(&dec.base,
+							    1.0,
+							    NULL));
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -389,7 +405,7 @@ CUTE_TEST(dpackut_double_decode_min_neg_nan_zero)
 	/* -Not A Number: dpack-utest-gen.py "float('-nan')" */
 	DPACKUT_DOUBLE_MIN(data,
 	                   "\xcb\xff\xf8\x00\x00\x00\x00\x00\x00",
-	                   -ENOMSG,
+	                   -EBADMSG,
 	                   -NAN,
 	                   0.0);
 
@@ -577,7 +593,7 @@ CUTE_TEST(dpackut_double_decode_min_pos_nan_pos_zero)
 	/* +Not A Number: dpack-utest-gen.py "float('nan')" */
 	DPACKUT_DOUBLE_MIN(data,
 	                   "\xcb\x7f\xf8\x00\x00\x00\x00\x00\x00",
-	                   -ENOMSG,
+	                   -EBADMSG,
 	                   NAN,
 	                   0.0);
 	dpackut_double_decode_min(&data);
@@ -674,20 +690,20 @@ CUTE_TEST(dpackut_double_decode_min_pos_inf_pos_max)
 CUTE_TEST(dpackut_double_decode_min_pos_nan_pos_zero_flt)
 {
 	/* +Not A Number (float): dpack-utest-gen.py -s "float('nan')" */
-	DPACKUT_DOUBLE_MIN(data, "\xca\x7f\xc0\x00\x00", -ENOMSG, NAN, 0.0);
+	DPACKUT_DOUBLE_MIN(data, "\xca\x7f\xc0\x00\x00", -EBADMSG, NAN, 0.0);
 	dpackut_double_decode_min(&data);
 }
 
 CUTE_TEST(dpackut_double_decode_min_pos_zero_pos_zero_flt)
 {
 	/* +0 (float): dpack-utest-gen.py -s "0.0" */
-	DPACKUT_DOUBLE_MIN(data, "\xca\x00\x00\x00\x00", -ENOMSG, 0.0, 0.0);
+	DPACKUT_DOUBLE_MIN(data, "\xca\x00\x00\x00\x00", 0, 0.0, 0.0);
 	dpackut_double_decode_min(&data);
 }
 
 #define DPACKUT_DOUBLE_MAX(_var, _packed, _error, _value, _high) \
 	const struct dpackut_scalar_data _var = { \
-		.packed     = _packed, \
+		.packed    = (const uint8_t *)_packed, \
 		.size       = sizeof(_packed) - 1, \
 		.error      = _error, \
 		.value.f64  = _value, \
@@ -697,48 +713,59 @@ CUTE_TEST(dpackut_double_decode_min_pos_zero_pos_zero_flt)
 static void
 dpackut_double_decode_max(const struct dpackut_scalar_data * data)
 {
-	struct dpack_decoder dec = { 0, };
-	double               val;
+	struct dpack_decoder_buffer dec = { 0, };
+	double                      val;
 
 	dpack_decoder_init_buffer(&dec, data->packed, data->size);
 
-	cute_check_sint(dpack_decode_double_max(&dec, data->high.f64, &val),
+	cute_check_sint(dpack_decode_double_max(&dec.base, data->high.f64, &val),
 	                equal,
 	                data->error);
 	if (!data->error) {
+		bool sz_ok = (data->size == DPACK_FLOAT_SIZE) ||
+		             (data->size == DPACK_DOUBLE_SIZE);
+
 		cute_check_flt(val, equal, data->value.f64);
-		cute_check_uint(data->size, equal, DPACK_DOUBLE_SIZE);
-		cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+		cute_check_bool(sz_ok, is, true);
+		cute_check_uint(dpack_decoder_data_left(&dec.base), equal, 0);
 	}
 
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #if defined(CONFIG_DPACK_ASSERT_API)
 
 CUTE_TEST(dpackut_double_decode_max_assert)
 {
-	double               val;
-	struct dpack_decoder dec = { 0, };
-	char                 buff[DPACK_DOUBLE_SIZE];
-	int                  ret __unused;
+	double                      val;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     buff[DPACK_DOUBLE_SIZE];
+	int                         ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_double_max(NULL, 1.0, &val));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_decode_double_max(&dec, 1.0, &val));
+	cute_expect_assertion(ret = dpack_decode_double_max(&dec.base,
+							    1.0,
+							    &val));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_decode_double_max(&dec,
+	cute_expect_assertion(ret = dpack_decode_double_max(&dec.base,
 	                                                    -INFINITY,
 	                                                    &val));
-	cute_expect_assertion(ret = dpack_decode_double_max(&dec,
+	cute_expect_assertion(ret = dpack_decode_double_max(&dec.base,
 	                                                    INFINITY,
 	                                                    &val));
-	cute_expect_assertion(ret = dpack_decode_double_max(&dec, NAN, &val));
-	cute_expect_assertion(ret = dpack_decode_double_max(&dec, -NAN, &val));
-	cute_expect_assertion(ret = dpack_decode_double_max(&dec, 1.0, NULL));
-	dpack_decoder_fini(&dec);
+	cute_expect_assertion(ret = dpack_decode_double_max(&dec.base,
+							    NAN,
+							    &val));
+	cute_expect_assertion(ret = dpack_decode_double_max(&dec.base,
+							    -NAN,
+							    &val));
+	cute_expect_assertion(ret = dpack_decode_double_max(&dec.base,
+							    1.0,
+							    NULL));
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -754,7 +781,7 @@ CUTE_TEST(dpackut_double_decode_max_neg_nan_pos_zero)
 {
 	DPACKUT_DOUBLE_MAX(data,
 	                   "\xcb\xff\xf8\x00\x00\x00\x00\x00\x00",
-	                   -ENOMSG,
+	                   -EBADMSG,
 	                   -NAN,
 	                   0.0);
 	dpackut_double_decode_max(&data);
@@ -941,7 +968,7 @@ CUTE_TEST(dpackut_double_decode_max_pos_nan_pos_zero)
 	/* +Not A Number: dpack-utest-gen.py "float('nan')" */
 	DPACKUT_DOUBLE_MAX(data,
 	                   "\xcb\x7f\xf8\x00\x00\x00\x00\x00\x00",
-	                   -ENOMSG,
+	                   -EBADMSG,
 	                   NAN,
 	                   0.0);
 	dpackut_double_decode_max(&data);
@@ -1040,7 +1067,7 @@ CUTE_TEST(dpackut_double_decode_max_pos_nan_pos_zero_flt)
 	/* +Not A Number (float): dpack-utest-gen.py -s "float('nan')" */
 	DPACKUT_DOUBLE_MAX(data,
 	                   "\xca\x7f\xc0\x00\x00",
-	                   -ENOMSG,
+	                   -EBADMSG,
 	                   NAN,
 	                   0.0);
 	dpackut_double_decode_max(&data);
@@ -1051,7 +1078,7 @@ CUTE_TEST(dpackut_double_decode_max_pos_zero_pos_zero_flt)
 	/* +0 (float): dpack-utest-gen.py -s "0.0" */
 	DPACKUT_DOUBLE_MAX(data,
 	                   "\xca\x00\x00\x00\x00",
-	                   -ENOMSG,
+	                   0,
 	                   0.0,
 	                   0.0);
 	dpackut_double_decode_max(&data);
@@ -1059,7 +1086,7 @@ CUTE_TEST(dpackut_double_decode_max_pos_zero_pos_zero_flt)
 
 #define DPACKUT_DOUBLE_RANGE(_var, _packed, _error, _value, _low, _high) \
 	const struct dpackut_scalar_data _var = { \
-		.packed     = _packed, \
+		.packed    = (const uint8_t *)_packed, \
 		.size       = sizeof(_packed) - 1, \
 		.error      = _error, \
 		.value.f64  = _value, \
@@ -1070,76 +1097,79 @@ CUTE_TEST(dpackut_double_decode_max_pos_zero_pos_zero_flt)
 static void
 dpackut_double_decode_range(const struct dpackut_scalar_data * data)
 {
-	struct dpack_decoder dec = { 0, };
-	double               val;
+	struct dpack_decoder_buffer dec = { 0, };
+	double                      val;
 
 	dpack_decoder_init_buffer(&dec, data->packed, data->size);
 
-	cute_check_sint(dpack_decode_double_range(&dec,
+	cute_check_sint(dpack_decode_double_range(&dec.base,
 	                                          data->low.f64,
 	                                          data->high.f64,
 	                                          &val),
 	                equal,
 	                data->error);
 	if (!data->error) {
+		bool sz_ok = (data->size == DPACK_FLOAT_SIZE) ||
+		             (data->size == DPACK_DOUBLE_SIZE);
+
 		cute_check_flt(val, equal, data->value.f64);
-		cute_check_uint(data->size, equal, DPACK_DOUBLE_SIZE);
-		cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
+		cute_check_bool(sz_ok, is, true);
+		cute_check_uint(dpack_decoder_data_left(&dec.base), equal, 0);
 	}
 
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #if defined(CONFIG_DPACK_ASSERT_API)
 
 CUTE_TEST(dpackut_double_decode_range_assert)
 {
-	double               val;
-	struct dpack_decoder dec = { 0, };
-	char                 buff[DPACK_DOUBLE_SIZE];
-	int                  ret __unused;
+	double                      val;
+	struct dpack_decoder_buffer dec = { 0, };
+	uint8_t                     buff[DPACK_DOUBLE_SIZE];
+	int                         ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_double_range(NULL,
 	                                                      1.0,
 	                                                      2.0,
 	                                                      &val));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_decode_double_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_double_range(&dec.base,
 	                                                      1.0,
 	                                                      2.0,
 	                                                      &val));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_decode_double_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_double_range(&dec.base,
 	                                                      -INFINITY,
 	                                                      2.0,
 	                                                      &val));
-	cute_expect_assertion(ret = dpack_decode_double_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_double_range(&dec.base,
 	                                                      1.0,
 	                                                      INFINITY,
 	                                                      &val));
-	cute_expect_assertion(ret = dpack_decode_double_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_double_range(&dec.base,
 	                                                      NAN,
 	                                                      2.0,
 	                                                      &val));
-	cute_expect_assertion(ret = dpack_decode_double_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_double_range(&dec.base,
 	                                                      -NAN,
 	                                                      2.0,
 	                                                      &val));
-	cute_expect_assertion(ret = dpack_decode_double_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_double_range(&dec.base,
 	                                                      1.0,
 	                                                      NAN,
 	                                                      &val));
-	cute_expect_assertion(ret = dpack_decode_double_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_double_range(&dec.base,
 	                                                      1.0,
 	                                                      -NAN,
 	                                                      &val));
-	cute_expect_assertion(ret = dpack_decode_double_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_double_range(&dec.base,
 	                                                      1.0,
 	                                                      2.0,
 	                                                      NULL));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -1156,7 +1186,7 @@ CUTE_TEST(dpackut_double_decode_range_neg_nan_pos_zero_one)
 	/* -Not A Number: dpack-utest-gen.py "float('-nan')" */
 	DPACKUT_DOUBLE_RANGE(data,
 	                     "\xcb\xff\xf8\x00\x00\x00\x00\x00\x00",
-	                     -ENOMSG,
+	                     -EBADMSG,
 	                     -NAN,
 	                     0.0,
 	                     1.0);
@@ -1360,7 +1390,7 @@ CUTE_TEST(dpackut_double_decode_range_pos_nan_pos_zero_pos_max)
 	/* +Not A Number: dpack-utest-gen.py "float('nan')" */
 	DPACKUT_DOUBLE_RANGE(data,
 	                     "\xcb\x7f\xf8\x00\x00\x00\x00\x00\x00",
-	                     -ENOMSG,
+	                     -EBADMSG,
 	                     NAN,
 	                     0.0,
 	                     MAXDOUBLE);
@@ -1504,7 +1534,7 @@ CUTE_TEST(dpackut_double_decode_range_pos_nan_pos_zero_one)
 	/* +Not A Number: dpack-utest-gen.py -s "float('nan')" */
 	DPACKUT_DOUBLE_RANGE(data,
 	                     "\xca\x7f\xc0\x00\x00",
-	                     -ENOMSG,
+	                     -EBADMSG,
 	                     NAN,
 	                     0.0,
 	                     1.0);
@@ -1516,7 +1546,7 @@ CUTE_TEST(dpackut_double_decode_range_pos_zero_pos_zero_one)
 	/* +0 (float): dpack-utest-gen.py "0.0" */
 	DPACKUT_DOUBLE_RANGE(data,
 	                     "\xca\x00\x00\x00\x00",
-	                     -ENOMSG,
+	                     0,
 	                     0.0,
 	                     0.0,
 	                     1.0);

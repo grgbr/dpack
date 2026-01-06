@@ -1363,40 +1363,76 @@ dpack_decode_int64_range(struct dpack_decoder * __restrict decoder,
 #if defined(CONFIG_DPACK_FLOAT)
 
 int
-dpack_encode_float(struct dpack_encoder * encoder, float value)
+dpack_encode_float(struct dpack_encoder * __restrict encoder, float value)
 {
 	dpack_encoder_assert_api(encoder);
-	dpack_assert_api(!isnan(value));
+	dpack_assert_api(!isnanf(value));
 
-	mpack_write_float(&encoder->mpack, value);
+	int err;
 
-	return dpack_encoder_error_state(&encoder->mpack);
+	err = dpack_write_tag(encoder, DPACK_FLOAT32_TAG);
+	if (!err) {
+		union { float f; uint32_t u; } val = { .f = value };
+
+		val.u = htobe32(val.u);
+
+		return dpack_encoder_write(encoder,
+		                           (const uint8_t *)&val.u,
+		                           sizeof(val.u));
+	}
+
+	return err;
 }
 
+static __dpack_nonull(1, 3) __warn_result
 int
-dpack_decode_float(struct dpack_decoder * decoder, float * __restrict value)
+dpack_load_float(struct dpack_decoder * __restrict decoder,
+                 uint8_t                           tag,
+                 float * __restrict                value)
 {
 	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(value);
 
-	struct mpack_tag_t tag;
-	int                err;
+	if (tag == DPACK_FLOAT32_TAG) {
+		union { uint32_t u; float f; } val;
+		int                            err;
 
-	err = dpack_decode_tag(&decoder->mpack, mpack_type_float, &tag);
-	if (err)
+		err = dpack_decoder_read(decoder,
+		                         (uint8_t *)&val.u,
+		                         sizeof(val.u));
+		if (!err) {
+			val.u = be32toh(val.u);
+			if (isnanf(val.f))
+				return -EBADMSG;
+			*value = val.f;
+			return 0;
+		}
+
 		return err;
+	}
 
-	*value = mpack_tag_float_value(&tag);
-	if (isnan(*value))
-		return -ENOMSG;
-
-	return 0;
+	return -ENOMSG;
 }
 
 int
-dpack_decode_float_min(struct dpack_decoder * decoder,
-                       float                  low,
-                       float * __restrict     value)
+dpack_decode_float(struct dpack_decoder * __restrict decoder,
+                   float * __restrict                value)
+{
+	dpack_decoder_assert_api(decoder);
+	dpack_assert_api(value);
+
+	uint8_t tag;
+	int     err;
+
+	err = dpack_read_tag(decoder, &tag);
+
+	return (!err) ? dpack_load_float(decoder, tag, value) : err;
+}
+
+int
+dpack_decode_float_min(struct dpack_decoder * __restrict decoder,
+                       float                             low,
+                       float * __restrict                value)
 {
 	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(isfinite(low));
@@ -1405,19 +1441,16 @@ dpack_decode_float_min(struct dpack_decoder * decoder,
 	int err;
 
 	err = dpack_decode_float(decoder, value);
-	if (err)
-		return err;
+	if (!err)
+		return (*value >= low) ? 0 : -ERANGE;
 
-	if (*value < low)
-		return -ERANGE;
-
-	return 0;
+	return err;
 }
 
 int
-dpack_decode_float_max(struct dpack_decoder * decoder,
-                       float                  high,
-                       float * __restrict     value)
+dpack_decode_float_max(struct dpack_decoder * __restrict decoder,
+                       float                             high,
+                       float * __restrict                value)
 {
 	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(isfinite(high));
@@ -1426,20 +1459,17 @@ dpack_decode_float_max(struct dpack_decoder * decoder,
 	int err;
 
 	err = dpack_decode_float(decoder, value);
-	if (err)
-		return err;
+	if (!err)
+		return (*value <= high) ? 0 : -ERANGE;
 
-	if (*value > high)
-		return -ERANGE;
-
-	return 0;
+	return err;
 }
 
 int
-dpack_decode_float_range(struct dpack_decoder * decoder,
-                         float                  low,
-                         float                  high,
-                         float * __restrict     value)
+dpack_decode_float_range(struct dpack_decoder * __restrict decoder,
+                         float                             low,
+                         float                             high,
+                         float * __restrict                value)
 {
 	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(isfinite(low));
@@ -1450,13 +1480,10 @@ dpack_decode_float_range(struct dpack_decoder * decoder,
 	int err;
 
 	err = dpack_decode_float(decoder, value);
-	if (err)
-		return err;
+	if (!err)
+		return ((*value >= low) && (*value <= high)) ? 0 : -ERANGE;
 
-	if ((*value < low) || (*value > high))
-		return -ERANGE;
-
-	return 0;
+	return err;
 }
 
 #endif /* defined(CONFIG_DPACK_FLOAT) */
@@ -1468,40 +1495,90 @@ dpack_decode_float_range(struct dpack_decoder * decoder,
 #if defined(CONFIG_DPACK_DOUBLE)
 
 int
-dpack_encode_double(struct dpack_encoder * encoder, double value)
+dpack_encode_double(struct dpack_encoder * __restrict encoder, double value)
 {
 	dpack_encoder_assert_api(encoder);
 	dpack_assert_api(!isnan(value));
 
-	mpack_write_double(&encoder->mpack, value);
+	int err;
 
-	return dpack_encoder_error_state(&encoder->mpack);
+	err = dpack_write_tag(encoder, DPACK_FLOAT64_TAG);
+	if (!err) {
+		union { double d; uint64_t u; } val = { .d = value };
+
+		val.u = htobe64(val.u);
+
+		return dpack_encoder_write(encoder,
+		                           (const uint8_t *)&val.u,
+		                           sizeof(val.u));
+	}
+
+	return err;
 }
 
+static __dpack_nonull(1, 3) __warn_result
 int
-dpack_decode_double(struct dpack_decoder * decoder, double * __restrict value)
+dpack_load_double(struct dpack_decoder * __restrict decoder,
+                  uint8_t                           tag,
+                  double * __restrict               value)
 {
 	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(value);
 
-	struct mpack_tag_t tag;
-	int                err;
+	int err;
 
-	err = dpack_decode_tag(&decoder->mpack, mpack_type_double, &tag);
-	if (err)
-		return err;
+	switch (tag) {
+	case DPACK_FLOAT64_TAG:
+		{
+			union { uint64_t u; double d; } val;
 
-	*value = mpack_tag_double_value(&tag);
-	if (isnan(*value))
-		return -ENOMSG;
+			err = dpack_decoder_read(decoder,
+			                         (uint8_t *)&val.u,
+			                         sizeof(val.u));
+			if (!err) {
+				val.u = be64toh(val.u);
+				if (isnan(val.d))
+					return -EBADMSG;
+				*value = val.d;
+				return 0;
+			}
+			break;
+		}
 
-	return 0;
+	default:
+		{
+			float val;
+
+			err = dpack_load_float(decoder, tag, &val);
+			if (!err) {
+				*value = (double)val;
+				return 0;
+			}
+		}
+	}
+
+	return err;
 }
 
 int
-dpack_decode_double_min(struct dpack_decoder * decoder,
-                        double                 low,
-                        double * __restrict    value)
+dpack_decode_double(struct dpack_decoder * __restrict decoder,
+                    double * __restrict               value)
+{
+	dpack_decoder_assert_api(decoder);
+	dpack_assert_api(value);
+
+	uint8_t tag;
+	int     err;
+
+	err = dpack_read_tag(decoder, &tag);
+
+	return (!err) ? dpack_load_double(decoder, tag, value) : err;
+}
+
+int
+dpack_decode_double_min(struct dpack_decoder * __restrict decoder,
+                        double                            low,
+                        double * __restrict               value)
 {
 	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(isfinite(low));
@@ -1511,19 +1588,16 @@ dpack_decode_double_min(struct dpack_decoder * decoder,
 	int err;
 
 	err = dpack_decode_double(decoder, value);
-	if (err)
-		return err;
+	if (!err)
+		return (*value >= low) ? 0 : -ERANGE;
 
-	if (*value < low)
-		return -ERANGE;
-
-	return 0;
+	return err;
 }
 
 int
-dpack_decode_double_max(struct dpack_decoder * decoder,
-                        double                 high,
-                        double * __restrict    value)
+dpack_decode_double_max(struct dpack_decoder * __restrict decoder,
+                        double                            high,
+                        double * __restrict               value)
 {
 	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(isfinite(high));
@@ -1532,20 +1606,17 @@ dpack_decode_double_max(struct dpack_decoder * decoder,
 	int err;
 
 	err = dpack_decode_double(decoder, value);
-	if (err)
-		return err;
+	if (!err)
+		return (*value <= high) ? 0 : -ERANGE;
 
-	if (*value > high)
-		return -ERANGE;
-
-	return 0;
+	return err;
 }
 
 int
-dpack_decode_double_range(struct dpack_decoder * decoder,
-                          double                 low,
-                          double                 high,
-                          double * __restrict    value)
+dpack_decode_double_range(struct dpack_decoder * __restrict decoder,
+                          double                            low,
+                          double                            high,
+                          double * __restrict               value)
 {
 	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(isfinite(low));
@@ -1556,13 +1627,10 @@ dpack_decode_double_range(struct dpack_decoder * decoder,
 	int err;
 
 	err = dpack_decode_double(decoder, value);
-	if (err)
-		return err;
+	if (!err)
+		return ((*value >= low) && (*value <= high)) ? 0 : -ERANGE;
 
-	if ((*value < low) || (*value > high))
-		return -ERANGE;
-
-	return 0;
+	return err;
 }
 
 #endif /* defined(CONFIG_DPACK_DOUBLE) */
