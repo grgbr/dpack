@@ -45,20 +45,6 @@ dpack_array_mixed_size(unsigned int elm_nr, size_t data_size)
  * Array encoding
  ******************************************************************************/
 
-/*
- * Watch out !!
- *
- * This function is marked as __leaf for now. However, it calls
- * mpack_writer_flag_error() which in turn may call a function from the current
- * compilation unit thanks to the writer error_fn() function pointer of mpack.
- *
- * If modifying dpack_encoder_init_buffer() and / or registering an error
- * function (thanks to mpack_writer_set_error_handler()) is required for
- * internal DPack purposes, MAKE SURE you return to current compilation unit
- * only by return or by exception handling.
- *
- * See Stroll's __leaf documentation for more infos.
- */
 int
 dpack_array_begin_encode(struct dpack_encoder * __restrict encoder,
                          unsigned int                      nr)

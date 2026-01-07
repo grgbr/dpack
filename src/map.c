@@ -20,18 +20,18 @@ dpack_map_size(unsigned int fld_nr, size_t data_size)
 
 	switch (fld_nr) {
 	case 1 ... _DPACK_FIXMAP_FLDNR_MAX:
-		head = MPACK_TAG_SIZE_FIXMAP;
+		head = DPACK_FIXMAP_TAG_SIZE;
 		break;
 
 #if DPACK_MAP_FLDNR_MAX > _DPACK_FIXMAP_FLDNR_MAX
 	case (_DPACK_FIXMAP_FLDNR_MAX + 1) ... _DPACK_MAP16_FLDNR_MAX:
-		head = MPACK_TAG_SIZE_MAP16;
+		head = DPACK_MAP16_TAG_SIZE;
 		break;
 #endif
 
 #if DPACK_MAP_FLDNR_MAX > _DPACK_MAP16_FLDNR_MAX
 	case (_DPACK_MAP16_FLDNR_MAX + 1) ... _DPACK_MAP32_FLDNR_MAX:
-		head = MPACK_TAG_SIZE_MAP32;
+		head = DPACK_MAP32_TAG_SIZE;
 		break;
 #endif
 	default:
@@ -48,10 +48,12 @@ dpack_map_size(unsigned int fld_nr, size_t data_size)
 
 #define DPACK_MAP_DEFINE_ENCODE_SCALAR(_name, _type, _func) \
 	int \
-	_name(struct dpack_encoder * encoder, \
-	      unsigned int           id, \
-	      _type                  value) \
+	_name(struct dpack_encoder * __restrict encoder, \
+	      unsigned int                      id, \
+	      _type                             value) \
 	{ \
+		dpack_encoder_assert_api(encoder); \
+		\
 		int err; \
 		\
 		err = dpack_map_encode_fldid(encoder, id); \
@@ -61,53 +63,49 @@ dpack_map_size(unsigned int fld_nr, size_t data_size)
 		return _func(encoder, value); \
 	}
 
-/*
- * Watch out !!
- *
- * This function is marked as __leaf for now. However, it calls
- * mpack_writer_flag_error() which in turn may call a function from the current
- * compilation unit thanks to the writer error_fn() function pointer of mpack.
- *
- * If modifying dpack_encoder_init_buffer() and / or registering an error
- * function (thanks to mpack_writer_set_error_handler()) is required for
- * internal DPack purposes, MAKE SURE you return to current compilation unit
- * only by return or by exception handling.
- *
- * See Stroll's __leaf documentation for more infos.
- */
 int
-dpack_map_begin_encode(struct dpack_encoder * encoder, unsigned int nr)
+dpack_map_begin_encode(struct dpack_encoder * __restrict encoder,
+                       unsigned int                      nr)
 {
-	dpack_assert_api_encoder(encoder);
+	dpack_encoder_assert_api(encoder);
 	dpack_assert_api(nr);
-	dpack_assert_api(nr <= DPACK_MAP_FLDNR_MAX);
+	dpack_assert_api(nr <= DPACK_ARRAY_ELMNR_MAX);
 
-	mpack_start_map(&encoder->mpack, nr);
+	int err;
 
-	return dpack_encoder_error_state(&encoder->mpack);
-}
+	switch (nr) {
+	case 1 ... _DPACK_FIXMAP_FLDNR_MAX:
+		err = dpack_write_tag(encoder, _DPACK_FIXMAP_TAG | (uint8_t)nr);
+		break;
+#if DPACK_MAP_FLDNR_MAX > _DPACK_FIXMAP_FLDNR_MAX
+	case (_DPACK_FIXMAP_FLDNR_MAX + 1) ... _DPACK_MAP16_FLDNR_MAX:
+		err = dpack_write_tag(encoder, DPACK_MAP16_TAG);
+		if (!err) {
+			uint16_t val = htobe16((uint16_t)nr);
 
-/*
- * Watch out !!
- *
- * This function is marked as __leaf for now. However, when built with mpack's
- * write tracking support, it calls mpack_writer_flag_error() which in turn may
- * call a function from the current compilation unit thanks to the writer
- * error_fn() function pointer of mpack.
- *
- * If modifying dpack_encoder_init_buffer() and / or registering an error
- * function (thanks to mpack_writer_set_error_handler()) is required for
- * internal DPack purposes, MAKE SURE you return to current compilation unit
- * only by return or by exception handling.
- *
- * See Stroll's __leaf documentation for more infos.
- */
-void
-dpack_map_end_encode(struct dpack_encoder * encoder)
-{
-	dpack_assert_api_encoder(encoder);
+			err = dpack_encoder_write(encoder,
+			                          (const uint8_t *)&val,
+			                          sizeof(val));
+		}
+		break;
+#endif
+#if DPACK_MAP_FLDNR_MAX > _DPACK_MAP16_FLDNR_MAX
+	case (_DPACK_MAP16_FLDNR_MAX + 1) ... _DPACK_MAP32_FLDNR_MAX:
+		err = dpack_write_tag(encoder, DPACK_MAP32_TAG);
+		if (!err) {
+			uint32_t val = htobe32((uint32_t)nr);
 
-	mpack_finish_map(&encoder->mpack);
+			err = dpack_encoder_write(encoder,
+			                          (const uint8_t *)&val,
+			                          sizeof(val));
+		}
+		break;
+#endif
+	default:
+		dpack_assert_api(0);
+	}
+
+	return err;
 }
 
 /******************************************************************************
@@ -169,10 +167,13 @@ DPACK_MAP_DEFINE_ENCODE_SCALAR(dpack_map_encode_int64,
 #if defined(CONFIG_DPACK_FLOAT)
 
 int
-dpack_map_encode_float(struct dpack_encoder * encoder,
-                       unsigned int           id,
-                       float                  value)
+dpack_map_encode_float(struct dpack_encoder * __restrict encoder,
+                       unsigned int                      id,
+                       float                             value)
 {
+	dpack_encoder_assert_api(encoder);
+	dpack_assert_api(!isnanf(value));
+
 	int err;
 
 	err = dpack_map_encode_fldid(encoder, id);
@@ -195,6 +196,9 @@ dpack_map_encode_double(struct dpack_encoder * encoder,
                         unsigned int           id,
                         double                 value)
 {
+	dpack_encoder_assert_api(encoder);
+	dpack_assert_api(!isnan(value));
+
 	int err;
 
 	err = dpack_map_encode_fldid(encoder, id);
@@ -213,10 +217,14 @@ dpack_map_encode_double(struct dpack_encoder * encoder,
 #if defined(CONFIG_DPACK_STRING)
 
 int
-dpack_map_encode_str(struct dpack_encoder  * encoder,
-                     unsigned int            id,
-                     const char *__restrict  value)
+dpack_map_encode_str(struct dpack_encoder * __restrict encoder,
+                     unsigned int                      id,
+                     const char * __restrict           value)
 {
+	dpack_encoder_assert_api(encoder);
+	dpack_assert_api(value);
+	dpack_assert_api(value[0]);
+
 	int err;
 
 	err = dpack_map_encode_fldid(encoder, id);
@@ -227,18 +235,25 @@ dpack_map_encode_str(struct dpack_encoder  * encoder,
 }
 
 int
-dpack_map_encode_str_fix(struct dpack_encoder  * encoder,
-                         unsigned int            id,
-                         const char *__restrict  value,
-                         size_t                  len)
+dpack_map_encode_str_fix(struct dpack_encoder * __restrict encoder,
+                         unsigned int                      id,
+                         const char * __restrict           value,
+                         size_t                            length)
 {
+	dpack_encoder_assert_api(encoder);
+	dpack_assert_api(value);
+	dpack_assert_api(value[0]);
+	dpack_assert_api(length);
+	dpack_assert_api(length <= DPACK_STRLEN_MAX);
+	dpack_assert_api(length == strnlen(value, (DPACK_STRLEN_MAX + 1)));
+
 	int err;
 
 	err = dpack_map_encode_fldid(encoder, id);
 	if (err)
 		return err;
 
-	return dpack_encode_str_fix(encoder, value, len);
+	return dpack_encode_str_fix(encoder, value, length);
 }
 
 #endif /* defined(CONFIG_DPACK_STRING) */
@@ -250,10 +265,18 @@ dpack_map_encode_str_fix(struct dpack_encoder  * encoder,
 #if defined(CONFIG_DPACK_LVSTR)
 
 int
-dpack_map_encode_lvstr(struct dpack_encoder *                 encoder,
+dpack_map_encode_lvstr(struct dpack_encoder * __restrict      encoder,
                        unsigned int                           id,
                        const struct stroll_lvstr * __restrict value)
 {
+	dpack_encoder_assert_api(encoder);
+	dpack_assert_api(value);
+	dpack_assert_api(stroll_lvstr_cstr(value));
+	dpack_assert_api(stroll_lvstr_len(value));
+	dpack_assert_api(strnlen(stroll_lvstr_cstr(value),
+	                         DPACK_LVSTRLEN_MAX + 1) ==
+	                 stroll_lvstr_len(value));
+
 	int err;
 
 	err = dpack_map_encode_fldid(encoder, id);
@@ -272,11 +295,16 @@ dpack_map_encode_lvstr(struct dpack_encoder *                 encoder,
 #if defined(CONFIG_DPACK_BIN)
 
 int
-dpack_map_encode_bin(struct dpack_encoder *  encoder,
-                     unsigned int            id,
-                     const char * __restrict value,
-                     size_t                  size)
+dpack_map_encode_bin(struct dpack_encoder * __restrict encoder,
+                     unsigned int                      id,
+                     const uint8_t * __restrict        value,
+                     size_t                            size)
 {
+	dpack_encoder_assert_api(encoder);
+	dpack_assert_api(value);
+	dpack_assert_api(size);
+	dpack_assert_api(size <= DPACK_BINSZ_MAX);
+
 	int err;
 
 	err = dpack_map_encode_fldid(encoder, id);
@@ -293,9 +321,11 @@ dpack_map_encode_bin(struct dpack_encoder *  encoder,
  ******************************************************************************/
 
 int
-dpack_map_encode_nil(struct dpack_encoder * encoder,
-                     unsigned int           id)
+dpack_map_encode_nil(struct dpack_encoder * __restrict encoder,
+                     unsigned int                      id)
 {
+	dpack_encoder_assert_api(encoder);
+
 	int err;
 
 	err = dpack_map_encode_fldid(encoder, id);
@@ -310,10 +340,14 @@ dpack_map_encode_nil(struct dpack_encoder * encoder,
  ******************************************************************************/
 
 int
-dpack_map_begin_encode_nest_map(struct dpack_encoder * encoder,
-                                unsigned int           id,
-                                unsigned int           nr)
+dpack_map_begin_encode_nest_map(struct dpack_encoder * __restrict encoder,
+                                unsigned int                      id,
+                                unsigned int                      nr)
 {
+	dpack_encoder_assert_api(encoder);
+	dpack_assert_api(nr);
+	dpack_assert_api(nr <= DPACK_ARRAY_ELMNR_MAX);
+
 	int err;
 
 	err = dpack_map_encode_fldid(encoder, id);
@@ -328,10 +362,14 @@ dpack_map_begin_encode_nest_map(struct dpack_encoder * encoder,
 #include "dpack/array.h"
 
 int
-dpack_map_begin_encode_nest_array(struct dpack_encoder * encoder,
-                                  unsigned int           id,
-                                  unsigned int           nr)
+dpack_map_begin_encode_nest_array(struct dpack_encoder * __restrict encoder,
+                                  unsigned int                      id,
+                                  unsigned int                      nr)
 {
+	dpack_encoder_assert_api(encoder);
+	dpack_assert_api(nr);
+	dpack_assert_api(nr <= DPACK_ARRAY_ELMNR_MAX);
+
 	int err;
 
 	err = dpack_map_encode_fldid(encoder, id);
@@ -346,6 +384,8 @@ dpack_map_begin_encode_nest_array(struct dpack_encoder * encoder,
 /******************************************************************************
  * Map decoding
  ******************************************************************************/
+
+finish me!!!!
 
 static int
 dpack_map_xtract_nr(struct mpack_reader_t * reader, unsigned int * nr)

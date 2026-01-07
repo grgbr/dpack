@@ -34,7 +34,7 @@ common-ldflags        := $(filter-out -DNDEBUG,$(common-ldflags))
 endif # ($(filter y,$(CONFIG_DPACK_ASSERT_API) $(CONFIG_DPACK_ASSERT_INTERN)),)
 
 solibs                := libdpack.so
-libdpack.so-objs      += shared/codec.o shared/common.o
+libdpack.so-objs      += shared/codec.o
 libdpack.so-objs      += $(call kconf_enabled,DPACK_SCALAR,shared/scalar.o)
 libdpack.so-objs      += $(call kconf_enabled,DPACK_STRING,shared/string.o)
 libdpack.so-objs      += $(call kconf_enabled,DPACK_LVSTR,shared/lvstr.o)
@@ -47,7 +47,7 @@ libdpack.so-ldflags   := $(filter-out -fpie -fPIE,$(common-ldflags)) \
 libdpack.so-pkgconf   := libstroll
 
 arlibs                := libdpack.a
-libdpack.a-objs       += static/codec.o static/common.o
+libdpack.a-objs       += static/codec.o
 libdpack.a-objs       += $(call kconf_enabled,DPACK_SCALAR,static/scalar.o)
 libdpack.a-objs       += $(call kconf_enabled,DPACK_STRING,static/string.o)
 libdpack.a-objs       += $(call kconf_enabled,DPACK_LVSTR,static/lvstr.o)

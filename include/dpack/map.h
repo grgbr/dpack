@@ -101,6 +101,8 @@
  * Msgpack fixmap definitions
  ******************************************************************************/
 
+#define DPACK_FIXMAP_TAG_SIZE 1
+
 #define __DPACK_MAP_HEAD_SIZE(_fld_nr) \
 	MPACK_TAG_SIZE_FIXMAP
 
@@ -109,6 +111,8 @@
  ******************************************************************************/
 
 #if DPACK_MAP_FLDNR_MAX > _DPACK_FIXMAP_FLDNR_MAX
+
+#define DPACK_MAP16_TAG_SIZE 3
 
 #define _DPACK_MAP16_HEAD_SIZE(_fld_nr) \
 	(((_fld_nr) > _DPACK_FIXMAP_FLDNR_MAX) ? \
@@ -126,6 +130,8 @@
  ******************************************************************************/
 
 #if DPACK_MAP_FLDNR_MAX > _DPACK_MAP16_FLDNR_MAX
+
+#define DPACK_MAP32_TAG_SIZE 5
 
 #define _DPACK_MAP32_HEAD_SIZE(_fld_nr) \
 	(((_fld_nr) > _DPACK_MAP16_FLDNR_MAX) ? \
@@ -348,9 +354,9 @@ dpack_map_size(unsigned int fld_nr, size_t data_size)
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_map_begin_encode(struct dpack_encoder * encoder,
-                       unsigned int           nr)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_map_begin_encode(struct dpack_encoder * __restrict encoder,
+                       unsigned int                      nr)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /**
  * Complete encoding of a dpack map.
@@ -374,9 +380,12 @@ dpack_map_begin_encode(struct dpack_encoder * encoder,
  * - dpack_map_begin_encode()
  * - dpack_encoder_init_buffer()
  */
-extern void
-dpack_map_end_encode(struct dpack_encoder * encoder)
-	__dpack_nonull(1) __dpack_nothrow __leaf __dpack_export;
+static inline __dpack_nonull(1)
+void
+dpack_map_end_encode(struct dpack_encoder * __restrict encoder __unused)
+{
+	dpack_encoder_assert_api(encoder);
+}
 
 /******************************************************************************
  * Map field identifiers encoding
@@ -408,9 +417,13 @@ dpack_map_end_encode(struct dpack_encoder * encoder)
  * - dpack_map_decode_fldid()
  * - dpack_encoder_init_buffer()
  */
-static inline int __dpack_nonull(1) __dpack_nothrow __warn_result
-dpack_map_encode_fldid(struct dpack_encoder * encoder, unsigned int id)
+static inline __dpack_nonull(1) __warn_result
+int
+dpack_map_encode_fldid(struct dpack_encoder * __restrict encoder,
+                       unsigned int                      id)
 {
+	dpack_encoder_assert_api(encoder);
+
 	return dpack_encode_uint(encoder, id);
 }
 
@@ -446,10 +459,13 @@ dpack_map_encode_fldid(struct dpack_encoder * encoder, unsigned int id)
  * - dpack_decoder_init_buffer()
  * - dpack_decoder_init_skip_buffer()
  */
-static inline int __dpack_nonull(1, 2) __dpack_nothrow __warn_result
-dpack_map_decode_fldid(struct dpack_decoder *    decoder,
-                       unsigned int * __restrict id)
+static inline __dpack_nonull(1, 2) __warn_result
+int
+dpack_map_decode_fldid(struct dpack_decoder * __restrict decoder,
+                       unsigned int * __restrict         id)
 {
+	dpack_decoder_assert_api(decoder);
+
 	return dpack_decode_uint(decoder, id);
 }
 
@@ -498,10 +514,10 @@ dpack_map_decode_fldid(struct dpack_decoder *    decoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_map_encode_bool(struct dpack_encoder * encoder,
-                      unsigned int           id,
-                      bool                   value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_map_encode_bool(struct dpack_encoder * __restrict encoder,
+                      unsigned int                      id,
+                      bool                              value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /******************************************************************************
  * Map 8 bits integers encoding
@@ -548,10 +564,10 @@ dpack_map_encode_bool(struct dpack_encoder * encoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_map_encode_uint8(struct dpack_encoder * encoder,
-                       unsigned int           id,
-                       uint8_t                value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_map_encode_uint8(struct dpack_encoder * __restrict encoder,
+                       unsigned int                      id,
+                       uint8_t                           value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /**
  * Minimum size of an encoded 8-bits signed integer dpack map field.
@@ -594,10 +610,10 @@ dpack_map_encode_uint8(struct dpack_encoder * encoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_map_encode_int8(struct dpack_encoder * encoder,
-                      unsigned int           id,
-                      int8_t                 value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_map_encode_int8(struct dpack_encoder * __restrict encoder,
+                      unsigned int                      id,
+                      int8_t                            value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /******************************************************************************
  * Map 16 bits integers encoding
@@ -644,10 +660,10 @@ dpack_map_encode_int8(struct dpack_encoder * encoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_map_encode_uint16(struct dpack_encoder * encoder,
-                        unsigned int           id,
-                        uint16_t               value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_map_encode_uint16(struct dpack_encoder * __restrict encoder,
+                        unsigned int                      id,
+                        uint16_t                          value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /**
  * Minimum size of an encoded 16-bits signed integer dpack map field.
@@ -690,10 +706,10 @@ dpack_map_encode_uint16(struct dpack_encoder * encoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_map_encode_int16(struct dpack_encoder * encoder,
-                       unsigned int           id,
-                       int16_t                value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_map_encode_int16(struct dpack_encoder * __restrict encoder,
+                       unsigned int                      id,
+                       int16_t                           value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /******************************************************************************
  * Map 32 bits integers encoding
@@ -740,10 +756,10 @@ dpack_map_encode_int16(struct dpack_encoder * encoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_map_encode_uint32(struct dpack_encoder * encoder,
-                        unsigned int           id,
-                        uint32_t               value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_map_encode_uint32(struct dpack_encoder * __restrict encoder,
+                        unsigned int                      id,
+                        uint32_t                          value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /**
  * Minimum size of an encoded 32-bits signed integer dpack map field.
@@ -786,10 +802,10 @@ dpack_map_encode_uint32(struct dpack_encoder * encoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_map_encode_int32(struct dpack_encoder * encoder,
-                       unsigned int           id,
-                       int32_t                value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_map_encode_int32(struct dpack_encoder * __restrict encoder,
+                       unsigned int                      id,
+                       int32_t                           value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /******************************************************************************
  * Map 64 bits integers encoding
@@ -836,10 +852,10 @@ dpack_map_encode_int32(struct dpack_encoder * encoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_map_encode_uint64(struct dpack_encoder * encoder,
-                        unsigned int           id,
-                        uint64_t               value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_map_encode_uint64(struct dpack_encoder * __restrict encoder,
+                        unsigned int                      id,
+                        uint64_t                          value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /**
  * Minimum size of an encoded 64-bits signed integer dpack map field.
@@ -882,10 +898,10 @@ dpack_map_encode_uint64(struct dpack_encoder * encoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_map_encode_int64(struct dpack_encoder * encoder,
-                       unsigned int           id,
-                       int64_t                value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_map_encode_int64(struct dpack_encoder * __restrict encoder,
+                       unsigned int                      id,
+                       int64_t                           value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /******************************************************************************
  * Map single precision floats encoding
@@ -936,10 +952,10 @@ dpack_map_encode_int64(struct dpack_encoder * encoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_map_encode_float(struct dpack_encoder * encoder,
-                       unsigned int           id,
-                       float                  value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_map_encode_float(struct dpack_encoder * __restrict encoder,
+                       unsigned int                      id,
+                       float                             value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 #endif /* defined(CONFIG_DPACK_FLOAT) */
 
@@ -992,10 +1008,10 @@ dpack_map_encode_float(struct dpack_encoder * encoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_map_encode_double(struct dpack_encoder * encoder,
-                        unsigned int           id,
-                        double                 value)
-	__dpack_nonull(1) __dpack_nothrow __leaf __warn_result __dpack_export;
+dpack_map_encode_double(struct dpack_encoder * __restrict encoder,
+                        unsigned int                      id,
+                        double                            value)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 #endif /* defined(CONFIG_DPACK_DOUBLE) */
 
@@ -1063,13 +1079,10 @@ dpack_map_encode_double(struct dpack_encoder * encoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_map_encode_str(struct dpack_encoder  * encoder,
-                     unsigned int            id,
-                     const char * __restrict value) __dpack_nonull(1, 3)
-                                                    __dpack_nothrow
-						    __leaf
-						    __warn_result
-						    __dpack_export;
+dpack_map_encode_str(struct dpack_encoder * __restrict encoder,
+                     unsigned int                      id,
+                     const char * __restrict           value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Encode a string dpack map field.
@@ -1112,14 +1125,11 @@ dpack_map_encode_str(struct dpack_encoder  * encoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_map_encode_str_fix(struct dpack_encoder  * encoder,
-                         unsigned int            id,
-                         const char *__restrict  value,
-                         size_t                  len) __dpack_nonull(1, 3)
-                                                      __dpack_nothrow
-						      __leaf
-						      __warn_result
-						      __dpack_export;
+dpack_map_encode_str_fix(struct dpack_encoder  * __restrict encoder,
+                         unsigned int                       id,
+                         const char *__restrict             value,
+                         size_t                             length)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 #endif /* defined(CONFIG_DPACK_STRING) */
 
@@ -1192,14 +1202,10 @@ dpack_map_encode_str_fix(struct dpack_encoder  * encoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_map_encode_lvstr(struct dpack_encoder *                 encoder,
+dpack_map_encode_lvstr(struct dpack_encoder * __restrict      encoder,
                        unsigned int                           id,
                        const struct stroll_lvstr * __restrict value)
-	__dpack_nonull(1, 3)
-	__dpack_nothrow
-	__leaf
-	__warn_result
-	__dpack_export;
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 #endif /* defined(CONFIG_DPACK_LVSTR) */
 
@@ -1266,14 +1272,11 @@ dpack_map_encode_lvstr(struct dpack_encoder *                 encoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_map_encode_bin(struct dpack_encoder *  encoder,
-                     unsigned int            id,
-                     const char * __restrict value,
-                     size_t                  size) __dpack_nonull(1, 3)
-                                                   __dpack_nothrow
-                                                   __leaf
-                                                   __warn_result
-                                                   __dpack_export;
+dpack_map_encode_bin(struct dpack_encoder * __restrict encoder,
+                     unsigned int                      id,
+                     const uint8_t * __restrict        value,
+                     size_t                            size)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 #endif /* defined(CONFIG_DPACK_BIN) */
 
@@ -1321,12 +1324,9 @@ dpack_map_encode_bin(struct dpack_encoder *  encoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_map_encode_nil(struct dpack_encoder * encoder,
-                     unsigned int           id) __dpack_nonull(1)
-                                                __dpack_nothrow
-                                                __leaf
-                                                __warn_result
-                                                __dpack_export;
+dpack_map_encode_nil(struct dpack_encoder * __restrict encoder,
+                     unsigned int                      id)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 /******************************************************************************
  * Nested collections encoding
@@ -1407,13 +1407,10 @@ dpack_map_encode_nil(struct dpack_encoder * encoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_map_begin_encode_nest_map(struct dpack_encoder * encoder,
-                                unsigned int           id,
-                                unsigned int           nr) __dpack_nonull(1)
-                                                           __dpack_nothrow
-							   __leaf
-							   __warn_result
-							   __dpack_export;
+dpack_map_begin_encode_nest_map(struct dpack_encoder * __restrict encoder,
+                                unsigned int                      id,
+                                unsigned int                      nr)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 #if defined(CONFIG_DPACK_ARRAY)
 
@@ -1451,13 +1448,10 @@ dpack_map_begin_encode_nest_map(struct dpack_encoder * encoder,
  * - dpack_encoder_init_buffer()
  */
 extern int
-dpack_map_begin_encode_nest_array(struct dpack_encoder * encoder,
-                                  unsigned int           id,
-                                  unsigned int           nr) __dpack_nonull(1)
-                                                             __dpack_nothrow
-							     __leaf
-							     __warn_result
-							     __dpack_export;
+dpack_map_begin_encode_nest_array(struct dpack_encoder * __restrict encoder,
+                                  unsigned int                      id,
+                                  unsigned int                      nr)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 #endif /* defined(CONFIG_DPACK_ARRAY) */
 
