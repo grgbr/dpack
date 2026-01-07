@@ -375,15 +375,15 @@ CUTE_TEST(dpackut_lvstr_assert_sizes)
 
 CUTE_TEST(dpackut_lvstr_encode_assert)
 {
-	struct dpack_encoder enc = { 0, };
-	char *               buff;
-	struct stroll_lvstr  null = STROLL_LVSTR_INIT;
-	struct stroll_lvstr  lvstr = STROLL_LVSTR_INIT_LEND("test");
-	int                  ret __unused;
+	struct dpack_encoder_buffer enc = { 0, };
+	char *                      buff;
+	struct stroll_lvstr         null = STROLL_LVSTR_INIT;
+	struct stroll_lvstr         lvstr = STROLL_LVSTR_INIT_LEND("test");
+	int                         ret __unused;
 
 	cute_expect_assertion(ret = dpack_encode_lvstr(NULL, &lvstr));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_encode_lvstr(&enc, &lvstr));
+	cute_expect_assertion(ret = dpack_encode_lvstr(&enc.base, &lvstr));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
 	buff = malloc(DPACK_LVSTRLEN_MAX + 2);
@@ -391,14 +391,16 @@ CUTE_TEST(dpackut_lvstr_encode_assert)
 	memset(buff, 'f', DPACK_LVSTRLEN_MAX + 1);
 	buff[DPACK_LVSTRLEN_MAX + 1] = '\0';
 
-	dpack_encoder_init_buffer(&enc, buff, DPACK_LVSTRLEN_MAX + 2);
-	cute_expect_assertion(ret = dpack_encode_lvstr(&enc, NULL));
-	cute_expect_assertion(ret = dpack_encode_lvstr(&enc, &null));
+	dpack_encoder_init_buffer(&enc,
+	                          (uint8_t *)buff,
+	                          DPACK_LVSTRLEN_MAX + 2);
+	cute_expect_assertion(ret = dpack_encode_lvstr(&enc.base, NULL));
+	cute_expect_assertion(ret = dpack_encode_lvstr(&enc.base, &null));
 	stroll_lvstr_lend(&lvstr, buff);
-	cute_expect_assertion(ret = dpack_encode_lvstr(&enc, &lvstr));
+	cute_expect_assertion(ret = dpack_encode_lvstr(&enc.base, &lvstr));
 	stroll_lvstr_lend(&lvstr, "");
-	cute_expect_assertion(ret = dpack_encode_lvstr(&enc, &lvstr));
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	cute_expect_assertion(ret = dpack_encode_lvstr(&enc.base, &lvstr));
+	dpack_encoder_fini(&enc.base);
 
 	free(buff);
 }
@@ -419,7 +421,7 @@ struct dpackut_lvstr_data {
 	size_t              equ;
 	size_t              low;
 	size_t              high;
-	char *              packed;
+	uint8_t *           packed;
 	struct stroll_lvstr value;
 };
 
@@ -458,8 +460,8 @@ static void
 dpackut_lvstr_gen_data(struct dpackut_lvstr_data * data)
 {
 	unsigned int b;
-	char *       p;
-	char *       value;
+	uint8_t *    p;
+	uint8_t *    value;
 
 	data->size = dpackut_lvstr_size(data->len);
 	data->packed = malloc(data->size);
@@ -468,40 +470,40 @@ dpackut_lvstr_gen_data(struct dpackut_lvstr_data * data)
 	p = data->packed;
 	switch (data->len) {
 	case 0 ... 31:
-		*p++ = (char)(0xa0 | (data->len & 0x1f));
+		*p++ = (uint8_t)(0xa0U | (data->len & 0x1fU));
 		break;
 	case 32 ... 255:
-		*p++ = (char)0xd9;
-		*p++ = (char)(data->len & 0xff);
+		*p++ = (uint8_t)0xd9U;
+		*p++ = (uint8_t)(data->len & 0xffU);
 		break;
 	case 256 ... 65535:
-		*p++ = (char)0xda;
-		*p++ = (char)((data->len >> 8) & 0xff);
-		*p++ = (char)(data->len & 0xff);
+		*p++ = (uint8_t)0xdaU;
+		*p++ = (uint8_t)((data->len >> 8) & 0xffU);
+		*p++ = (uint8_t)(data->len & 0xffU);
 		break;
 	case 65536 ... 4294967295:
-		*p++ = (char)0xdb;
-		*p++ = (char)((data->len >> 24) & 0xff);
-		*p++ = (char)((data->len >> 16) & 0xff);
-		*p++ = (char)((data->len >> 8) & 0xff);
-		*p++ = (char)(data->len & 0xff);
+		*p++ = (uint8_t)0xdbU;
+		*p++ = (uint8_t)((data->len >> 24) & 0xffU);
+		*p++ = (uint8_t)((data->len >> 16) & 0xffU);
+		*p++ = (uint8_t)((data->len >> 8) & 0xffU);
+		*p++ = (uint8_t)(data->len & 0xffU);
 		break;
 	default:
 		cute_fail("unsupported MsgPack string size");
 	}
 	for (b = 0; b < data->len; b++)
-		*p++ = (char)('0' + (b % 10));
+		*p++ = (uint8_t)('0' + (b % 10));
 
 	value = malloc(data->len + 1);
 	cute_check_ptr(value, unequal, NULL);
 
 	p = value;
 	for (b = 0; b < data->len; b++)
-		*p++ = (char)('0' + (b % 10));
+		*p++ = (uint8_t)('0' + (b % 10));
 
 	value[data->len] = '\0';
 
-	stroll_lvstr_init_ncede(&data->value, value, data->len);
+	stroll_lvstr_init_ncede(&data->value, (char *)value, data->len);
 }
 
 static void
@@ -515,8 +517,8 @@ static void
 dpackut_lvstr_encode(struct dpackut_lvstr_data * data,
                      dpackut_lvstr_pack_fn *     pack)
 {
-	char *               buff;
-	struct dpack_encoder enc;
+	char *                      buff;
+	struct dpack_encoder_buffer enc;
 
 	dpackut_lvstr_gen_data(data);
 	cute_check_uint(data->len, equal, stroll_lvstr_len(&data->value));
@@ -525,17 +527,16 @@ dpackut_lvstr_encode(struct dpackut_lvstr_data * data,
 	cute_check_ptr(buff, unequal, NULL);
 	memset(buff, 0xa5, data->size);
 
-	dpack_encoder_init_buffer(&enc, buff, data->size);
-
-	pack(&enc, data);
+	dpack_encoder_init_buffer(&enc, (uint8_t *)buff, data->size);
+	pack(&enc.base, data);
 	cute_check_mem(buff, equal, data->packed, data->size);
 	cute_check_uint(dpack_lvstr_size(stroll_lvstr_len(&data->value)),
 	                equal,
 	                data->size);
-	cute_check_uint(dpack_encoder_space_used(&enc), equal, data->size);
-	cute_check_uint(dpack_encoder_space_left(&enc), equal, 0);
+	cute_check_uint(dpack_encoder_space_used(&enc.base), equal, data->size);
+	cute_check_uint(dpack_encoder_space_left(&enc.base), equal, 0);
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 
 	free(buff);
 
@@ -668,19 +669,19 @@ CUTE_TEST(dpackut_lvstr_encode_max)
 
 CUTE_TEST(dpackut_lvstr_decode_assert)
 {
-	struct dpack_decoder dec = { 0, };
-	struct stroll_lvstr  lvstr = STROLL_LVSTR_INIT;
-	char                 buff[8];
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	struct stroll_lvstr         lvstr = STROLL_LVSTR_INIT;
+	char                        buff[8];
+	ssize_t                     ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_lvstr(NULL, &lvstr));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_decode_lvstr(&dec, &lvstr));
+	cute_expect_assertion(ret = dpack_decode_lvstr(&dec.base, &lvstr));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
-	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_decode_lvstr(&dec, NULL));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_init_buffer(&dec, (uint8_t *)buff, sizeof(buff));
+	cute_expect_assertion(ret = dpack_decode_lvstr(&dec.base, NULL));
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !(defined(CONFIG_DPACK_ASSERT_API)) */
@@ -702,7 +703,7 @@ static void
 dpackut_lvstr_decode(struct dpackut_lvstr_data * data,
                      dpackut_lvstr_unpack_fn *   unpack)
 {
-	struct dpack_decoder dec;
+	struct dpack_decoder_buffer dec;
 
 	dpackut_lvstr_gen_data(data);
 	cute_check_uint(data->len, equal, stroll_lvstr_len(&data->value));
@@ -710,9 +711,10 @@ dpackut_lvstr_decode(struct dpackut_lvstr_data * data,
 	cute_check_uint(dpackut_lvstr_size(data->len), equal, data->size);
 
 	dpack_decoder_init_buffer(&dec, data->packed, data->size);
-	unpack(&dec, data);
-	cute_check_uint(dpack_decoder_data_left(&dec), equal, 0);
-	dpack_decoder_fini(&dec);
+	unpack(&dec.base, data);
+	if (!data->error)
+		cute_check_uint(dpack_decoder_data_left(&dec.base), equal, 0);
+	dpack_decoder_fini(&dec.base);
 
 	dpackut_lvstr_fini_data(data);
 }
@@ -736,7 +738,7 @@ dpackut_lvstr_unpack(struct dpack_decoder *            decoder,
 
 CUTE_TEST(dpackut_lvstr_decode_0)
 {
-	DPACKUT_LVSTR_DEC(data, 0, -EMSGSIZE);
+	DPACKUT_LVSTR_DEC(data, 0, -EBADMSG);
 	dpackut_lvstr_decode(&data, dpackut_lvstr_unpack);
 }
 
@@ -862,46 +864,54 @@ CUTE_TEST(dpackut_lvstr_decode_maxplus1)
 
 CUTE_TEST(dpackut_lvstr_decode_fail)
 {
-	struct dpack_decoder dec;
-	char                 buff[] = "\xa1\x30";
-	struct stroll_lvstr  lvstr = STROLL_LVSTR_INIT;
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec;
+	char                        buff[] = "\xa1\x30";
+	struct stroll_lvstr         lvstr = STROLL_LVSTR_INIT;
+	ssize_t                     ret __unused;
 
-	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
+	dpack_decoder_init_buffer(&dec, (uint8_t *)buff, sizeof(buff));
 	if (dpackut_expect_malloc()) {
-		cute_check_sint(dpack_decode_lvstr(&dec, &lvstr), equal, 1);
+		cute_check_sint(dpack_decode_lvstr(&dec.base, &lvstr),
+		                equal,
+		                1);
 		cute_check_ptr(stroll_lvstr_cstr(&lvstr), unequal, NULL);
 		stroll_lvstr_fini(&lvstr);
 	}
 	else
-		cute_check_sint(dpack_decode_lvstr(&dec, &lvstr),
+		cute_check_sint(dpack_decode_lvstr(&dec.base, &lvstr),
 		                equal,
 		                -ENOMEM);
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #if defined(CONFIG_DPACK_ASSERT_API)
 
 CUTE_TEST(dpackut_lvstr_decode_equ_assert)
 {
-	struct dpack_decoder dec = { 0, };
-	struct stroll_lvstr  lvstr = STROLL_LVSTR_INIT;
-	char                 buff[8];
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	struct stroll_lvstr         lvstr = STROLL_LVSTR_INIT;
+	char                        buff[8];
+	ssize_t                     ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_lvstr_equ(NULL, 2, &lvstr));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_decode_lvstr_equ(&dec, 2, &lvstr));
+	cute_expect_assertion(ret = dpack_decode_lvstr_equ(&dec.base,
+	                                                   2,
+	                                                   &lvstr));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
-	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_decode_lvstr_equ(&dec, 2, NULL));
-	cute_expect_assertion(ret = dpack_decode_lvstr_equ(&dec, 0, &lvstr));
-	cute_expect_assertion(ret = dpack_decode_lvstr_equ(&dec,
+	dpack_decoder_init_buffer(&dec, (uint8_t *)buff, sizeof(buff));
+	cute_expect_assertion(ret = dpack_decode_lvstr_equ(&dec.base,
+	                                                   2,
+	                                                   NULL));
+	cute_expect_assertion(ret = dpack_decode_lvstr_equ(&dec.base,
+	                                                   0,
+	                                                   &lvstr));
+	cute_expect_assertion(ret = dpack_decode_lvstr_equ(&dec.base,
 	                                                    DPACK_LVSTRLEN_MAX +
 	                                                    1,
 	                                                    &lvstr));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !(defined(CONFIG_DPACK_ASSERT_API)) */
@@ -943,7 +953,7 @@ CUTE_TEST(dpackut_lvstr_decode_equ_2)
 {
 	struct dpackut_lvstr_data data;
 
-	data = DPACKUT_LVSTR_DEC_EQU(0, -EMSGSIZE, 1);
+	data = DPACKUT_LVSTR_DEC_EQU(0, -EBADMSG, 1);
 	dpackut_lvstr_decode(&data, dpackut_lvstr_unpack_equ);
 
 	data = DPACKUT_LVSTR_DEC_EQU(1, 1, 1);
@@ -1153,24 +1163,30 @@ dpackut_lvstr_unpack_max(struct dpack_decoder *            decoder,
 
 CUTE_TEST(dpackut_lvstr_decode_max_assert)
 {
-	struct dpack_decoder dec = { 0, };
-	struct stroll_lvstr  lvstr = STROLL_LVSTR_INIT;
-	char                 buff[8];
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	struct stroll_lvstr         lvstr = STROLL_LVSTR_INIT;
+	char                        buff[8];
+	ssize_t                     ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_lvstr_max(NULL, 2, &lvstr));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_decode_lvstr_max(&dec, 2, &lvstr));
+	cute_expect_assertion(ret = dpack_decode_lvstr_max(&dec.base,
+	                                                   2,
+	                                                   &lvstr));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
-	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_decode_lvstr_max(&dec, 2, NULL));
-	cute_expect_assertion(ret = dpack_decode_lvstr_max(&dec, 1, &lvstr));
-	cute_expect_assertion(ret = dpack_decode_lvstr_max(&dec,
+	dpack_decoder_init_buffer(&dec, (uint8_t *)buff, sizeof(buff));
+	cute_expect_assertion(ret = dpack_decode_lvstr_max(&dec.base,
+	                                                   2,
+	                                                   NULL));
+	cute_expect_assertion(ret = dpack_decode_lvstr_max(&dec.base,
+	                                                   1,
+	                                                   &lvstr));
+	cute_expect_assertion(ret = dpack_decode_lvstr_max(&dec.base,
 	                                                    DPACK_LVSTRLEN_MAX +
 	                                                    1,
 	                                                    &lvstr));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !(defined(CONFIG_DPACK_ASSERT_API)) */
@@ -1186,7 +1202,7 @@ CUTE_TEST(dpackut_lvstr_decode_max_2)
 {
 	struct dpackut_lvstr_data data;
 
-	data = DPACKUT_LVSTR_DEC_MAX(0, -EMSGSIZE, 2);
+	data = DPACKUT_LVSTR_DEC_MAX(0, -EBADMSG, 2);
 	dpackut_lvstr_decode(&data, dpackut_lvstr_unpack_max);
 
 	data = DPACKUT_LVSTR_DEC_MAX(2,  2, 2);
@@ -1395,41 +1411,41 @@ dpackut_lvstr_unpack_range(struct dpack_decoder *            decoder,
 
 CUTE_TEST(dpackut_lvstr_decode_range_assert)
 {
-	struct dpack_decoder dec = { 0, };
-	struct stroll_lvstr  lvstr = STROLL_LVSTR_INIT;
-	char                 buff[8];
-	ssize_t              ret __unused;
+	struct dpack_decoder_buffer dec = { 0, };
+	struct stroll_lvstr         lvstr = STROLL_LVSTR_INIT;
+	char                        buff[8];
+	ssize_t                     ret __unused;
 
 	cute_expect_assertion(ret = dpack_decode_lvstr_range(NULL,
 	                                                     1,
 	                                                     2,
 	                                                     &lvstr));
 #if defined(CONFIG_DPACK_DEBUG)
-	cute_expect_assertion(ret = dpack_decode_lvstr_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_lvstr_range(&dec.base,
 	                                                     1,
 	                                                     2,
 	                                                     &lvstr));
 #endif /* defined(CONFIG_DPACK_DEBUG) */
 
-	dpack_decoder_init_buffer(&dec, buff, sizeof(buff));
-	cute_expect_assertion(ret = dpack_decode_lvstr_range(&dec,
+	dpack_decoder_init_buffer(&dec, (uint8_t *)buff, sizeof(buff));
+	cute_expect_assertion(ret = dpack_decode_lvstr_range(&dec.base,
 	                                                     1,
 	                                                     2,
 	                                                     NULL));
-	cute_expect_assertion(ret = dpack_decode_lvstr_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_lvstr_range(&dec.base,
 	                                                     0,
 	                                                     2,
 	                                                     &lvstr));
-	cute_expect_assertion(ret = dpack_decode_lvstr_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_lvstr_range(&dec.base,
 	                                                     1,
 	                                                     DPACK_LVSTRLEN_MAX
 	                                                     + 1,
 	                                                     &lvstr));
-	cute_expect_assertion(ret = dpack_decode_lvstr_range(&dec,
+	cute_expect_assertion(ret = dpack_decode_lvstr_range(&dec.base,
 	                                                     1,
 	                                                     1,
 	                                                     &lvstr));
-	dpack_decoder_fini(&dec);
+	dpack_decoder_fini(&dec.base);
 }
 
 #else  /* !(defined(CONFIG_DPACK_ASSERT_API)) */
@@ -1445,7 +1461,7 @@ CUTE_TEST(dpackut_lvstr_decode_range_1_2)
 {
 	struct dpackut_lvstr_data data;
 
-	data = DPACKUT_LVSTR_DEC_RANGE(0, -EMSGSIZE, 1, 2);
+	data = DPACKUT_LVSTR_DEC_RANGE(0, -EBADMSG, 1, 2);
 	dpackut_lvstr_decode(&data, dpackut_lvstr_unpack_range);
 
 	data = DPACKUT_LVSTR_DEC_RANGE(1, 1, 1, 2);

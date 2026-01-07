@@ -38,10 +38,10 @@ dpack_lvstr_size(size_t len)
 }
 
 int
-dpack_encode_lvstr(struct dpack_encoder *                 encoder,
+dpack_encode_lvstr(struct dpack_encoder * __restrict      encoder,
                    const struct stroll_lvstr * __restrict value)
 {
-	dpack_assert_api_encoder(encoder);
+	dpack_encoder_assert_api(encoder);
 	dpack_assert_api(value);
 	dpack_assert_api(stroll_lvstr_cstr(value));
 	dpack_assert_api(stroll_lvstr_len(value));
@@ -55,11 +55,35 @@ dpack_encode_lvstr(struct dpack_encoder *                 encoder,
 }
 
 ssize_t
-dpack_decode_lvstr_equ(struct dpack_decoder *           decoder,
-                       size_t                           len,
-                       struct stroll_lvstr * __restrict value)
+dpack_decode_lvstr(struct dpack_decoder * __restrict decoder,
+                   struct stroll_lvstr * __restrict  value)
 {
-	dpack_assert_api_decoder(decoder);
+	dpack_decoder_assert_api(decoder);
+	dpack_assert_api(value);
+
+	ssize_t len;
+	char *  cstr;
+
+	len = dpack_decode_strdup_max(decoder, DPACK_LVSTRLEN_MAX, &cstr);
+	dpack_assert_intern(len);
+	if (len > 0) {
+		dpack_assert_intern(cstr);
+		dpack_assert_intern(cstr[0]);
+		dpack_assert_intern((size_t)len <= DPACK_LVSTRLEN_MAX);
+
+		stroll_lvstr_ncede(value, cstr, (size_t)len);
+		dpack_assert_intern((size_t)len == stroll_lvstr_len(value));
+	}
+
+	return len;
+}
+
+ssize_t
+dpack_decode_lvstr_equ(struct dpack_decoder * __restrict decoder,
+                       size_t                            len,
+                       struct stroll_lvstr * __restrict  value)
+{
+	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(len);
 	dpack_assert_api(len <= DPACK_LVSTRLEN_MAX);
 	dpack_assert_api(value);
@@ -68,25 +92,52 @@ dpack_decode_lvstr_equ(struct dpack_decoder *           decoder,
 	char *  cstr;
 
 	ret = dpack_decode_strdup_equ(decoder, len, &cstr);
-	if (ret < 0)
-		return ret;
+	dpack_assert_intern(ret);
+	if (ret > 0) {
+		dpack_assert_intern(cstr);
+		dpack_assert_intern(cstr[0]);
+		dpack_assert_intern((size_t)ret == len);
 
-	dpack_assert_intern(cstr);
-	dpack_assert_intern(cstr[0]);
-	dpack_assert_intern((size_t)ret == len);
-
-	stroll_lvstr_ncede(value, cstr, len);
+		stroll_lvstr_ncede(value, cstr, len);
+	}
 
 	return ret;
 }
 
 ssize_t
-dpack_decode_lvstr_range(struct dpack_decoder *           decoder,
-                         size_t                           min_len,
-                         size_t                           max_len,
-                         struct stroll_lvstr * __restrict value)
+dpack_decode_lvstr_max(struct dpack_decoder * __restrict decoder,
+                       size_t                            max_len,
+                       struct stroll_lvstr * __restrict  value)
 {
-	dpack_assert_api_decoder(decoder);
+	dpack_decoder_assert_api(decoder);
+	dpack_assert_api(max_len > 1);
+	dpack_assert_api(max_len <= DPACK_LVSTRLEN_MAX);
+	dpack_assert_api(value);
+
+	ssize_t len;
+	char *  cstr;
+
+	len = dpack_decode_strdup_max(decoder, max_len, &cstr);
+	dpack_assert_intern(len);
+	if (len > 0) {
+		dpack_assert_intern(cstr);
+		dpack_assert_intern(cstr[0]);
+		dpack_assert_intern((size_t)len <= max_len);
+
+		stroll_lvstr_ncede(value, cstr, (size_t)len);
+		dpack_assert_intern((size_t)len == stroll_lvstr_len(value));
+	}
+
+	return len;
+}
+
+ssize_t
+dpack_decode_lvstr_range(struct dpack_decoder * __restrict decoder,
+                         size_t                            min_len,
+                         size_t                            max_len,
+                         struct stroll_lvstr * __restrict  value)
+{
+	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(min_len);
 	dpack_assert_api(min_len < max_len);
 	dpack_assert_api(max_len <= DPACK_LVSTRLEN_MAX);
@@ -96,16 +147,16 @@ dpack_decode_lvstr_range(struct dpack_decoder *           decoder,
 	char *  cstr;
 
 	len = dpack_decode_strdup_range(decoder, min_len, max_len, &cstr);
-	if (len < 0)
-		return len;
+	dpack_assert_intern(len);
+	if (len > 0) {
+		dpack_assert_intern(cstr);
+		dpack_assert_intern(cstr[0]);
+		dpack_assert_intern((size_t)len >= min_len);
+		dpack_assert_intern((size_t)len <= max_len);
 
-	dpack_assert_intern(cstr);
-	dpack_assert_intern(cstr[0]);
-	dpack_assert_intern((size_t)len >= min_len);
-	dpack_assert_intern((size_t)len <= max_len);
-
-	stroll_lvstr_ncede(value, cstr, (size_t)len);
-	dpack_assert_intern((size_t)len == stroll_lvstr_len(value));
+		stroll_lvstr_ncede(value, cstr, (size_t)len);
+		dpack_assert_intern((size_t)len == stroll_lvstr_len(value));
+	}
 
 	return len;
 }

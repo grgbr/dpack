@@ -282,9 +282,9 @@ dpack_xtract_str_equ(struct dpack_decoder * __restrict decoder,
 }
 
 ssize_t
-dpack_decode_strdup_equ(struct dpack_decoder * decoder,
-                        size_t                 length,
-                        char ** __restrict     value)
+dpack_decode_strdup_equ(struct dpack_decoder * __restrict decoder,
+                        size_t                            length,
+                        char ** __restrict                value)
 {
 	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(length);

@@ -169,13 +169,64 @@ dpack_lvstr_size(size_t len) __dpack_const
  * @see dpack_encoder_init_buffer()
  */
 extern int
-dpack_encode_lvstr(struct dpack_encoder *                 encoder,
+dpack_encode_lvstr(struct dpack_encoder * __restrict      encoder,
                    const struct stroll_lvstr * __restrict value)
-	__dpack_nonull(1, 2)
-	__dpack_nothrow
-	__leaf
-	__warn_result
-	__dpack_export;
+	__dpack_nonull(1, 2) __warn_result __dpack_export;
+
+/**
+ * Decode a string encoded according to the MessagePack format into a lvstr
+ *
+ * @param[inout] decoder decoder
+ * @param[out]   value   lvstr where to store decoded string
+ *
+ * @return length of decoded string when successful, an errno like error code
+ *         otherwise
+ * @retval >0        Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -EBADMSG  Invalid MessagePack string data
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack string format} into @p value @rstlnk{lvstr} from buffer
+ * assigned to @p decoder at initialization time.
+ *
+ * The decoded string is allocated using @man{malloc(3)}. It is registered into
+ * and given ownership to the @rstlnk{lvstr} @p value. The allocated
+ * string should be released thanks to @rstsubst{stroll_lvstr_fini} or
+ * @rstsubst{stroll_lvstr_drop} once no longer needed.
+ *
+ * The @p value @rstlnk{lvstr} should have been previously initialized using one
+ * of the @rstsubst{lvstr} initialization primitives described into
+ * @rstsubst{lvstr} section of @rstsubst{Stroll's API guide}.
+ * The allocated string is guaranteed to be ``NULL`` terminated.
+ *
+ * Decoding a string longer than #DPACK_LVSTRLEN_MAX will cause a ``-EMSGSIZE``
+ * error code to be returned.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p value @rstsubst{lvstr} is not initialized, result is undefined. An
+ *   assertion *MAY* be triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_lvstr_equ()
+ * - dpack_decode_lvstr_max()
+ * - dpack_decode_lvstr_range()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
+extern ssize_t
+dpack_decode_lvstr(struct dpack_decoder * __restrict decoder,
+                   struct stroll_lvstr * __restrict  value)
+	__dpack_nonull(1, 2) __warn_result __dpack_export;
 
 /**
  * Decode a string encoded according to the MessagePack format into a lvstr with
@@ -233,14 +284,71 @@ dpack_encode_lvstr(struct dpack_encoder *                 encoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern ssize_t
-dpack_decode_lvstr_equ(struct dpack_decoder *           decoder,
-                       size_t                           len,
-                       struct stroll_lvstr * __restrict value)
-	__dpack_nonull(1, 3)
-	__dpack_nothrow
-	__leaf
-	__warn_result
-	__dpack_export;
+dpack_decode_lvstr_equ(struct dpack_decoder * __restrict decoder,
+                       size_t                            len,
+                       struct stroll_lvstr * __restrict  value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
+
+/**
+ * Decode a string encoded according to the MessagePack format into a lvstr with
+ * with requested maximum length
+ *
+ * @param[inout] decoder decoder
+ * @param[in]    max_len maximum length of decoded string
+ * @param[out]   value   lvstr where to store decoded string
+ *
+ * @return length of decoded string when successful, an errno like error code
+ *         otherwise
+ * @retval >0        Success
+ * @retval -EPROTO   Not a valid MessagePack stream
+ * @retval -ENOTSUP  Unsupported MessagePack stream data
+ * @retval -EBADMSG  Invalid MessagePack string data
+ * @retval -EMSGSIZE Not enough space to complete operation
+ * @retval -ENOMEM   Memory allocation failure
+ *
+ * Decode / unpack / deserialize data item encoded according to the
+ * @rstsubst{MessagePack string format} into @p value @rstlnk{lvstr} from buffer
+ * assigned to @p decoder at initialization time.
+ *
+ * Decoding fails with a ``-EMSGSIZE`` error code when length of the decoded
+ * string is larger than the specified @p max_len value.
+ *
+ * The decoded string is allocated using @man{malloc(3)}. It is registered into
+ * and given ownership to the @rstlnk{lvstr} @p value. The allocated
+ * string should be released thanks to @rstsubst{stroll_lvstr_fini} or
+ * @rstsubst{stroll_lvstr_drop} once no longer needed.
+ *
+ * The @p value @rstlnk{lvstr} should have been previously initialized using one
+ * of the @rstsubst{lvstr} initialization primitives described into
+ * @rstsubst{lvstr} section of @rstsubst{Stroll's API guide}.
+ * The allocated string is guaranteed to be ``NULL`` terminated.
+ *
+ * @warning
+ * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
+ *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
+ *   undefined otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p decoder is in error state before calling this function, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p max_len value is ``<= 1`` or greater than #DPACK_LVSTRLEN_MAX, result is
+ *   undefined. An assertion is triggered otherwise.
+ * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
+ *   @p value @rstsubst{lvstr} is not initialized, result is undefined. An
+ *   assertion *MAY* be triggered otherwise.
+ *
+ * @see
+ * - dpack_decode_lvstr()
+ * - dpack_decode_lvstr_equ()
+ * - dpack_decode_lvstr_range()
+ * - dpack_decoder_init_buffer()
+ * - dpack_decoder_init_skip_buffer()
+ */
+extern ssize_t
+dpack_decode_lvstr_max(struct dpack_decoder * __restrict decoder,
+                       size_t                            max_len,
+                       struct stroll_lvstr * __restrict  value)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 /**
  * Decode a string encoded according to the MessagePack format into a lvstr
@@ -304,134 +412,10 @@ dpack_decode_lvstr_equ(struct dpack_decoder *           decoder,
  * - dpack_decoder_init_skip_buffer()
  */
 extern ssize_t
-dpack_decode_lvstr_range(struct dpack_decoder *           decoder,
-                         size_t                           min_len,
-                         size_t                           max_len,
-                         struct stroll_lvstr * __restrict value)
-	__dpack_nonull(1, 4)
-	__dpack_nothrow
-	__leaf
-	__warn_result
-	__dpack_export;
-
-/**
- * Decode a string encoded according to the MessagePack format into a lvstr
- *
- * @param[inout] decoder decoder
- * @param[out]   value   lvstr where to store decoded string
- *
- * @return length of decoded string when successful, an errno like error code
- *         otherwise
- * @retval >0        Success
- * @retval -EPROTO   Not a valid MessagePack stream
- * @retval -ENOTSUP  Unsupported MessagePack stream data
- * @retval -EBADMSG  Invalid MessagePack string data
- * @retval -EMSGSIZE Not enough space to complete operation
- * @retval -ENOMEM   Memory allocation failure
- *
- * Decode / unpack / deserialize data item encoded according to the
- * @rstsubst{MessagePack string format} into @p value @rstlnk{lvstr} from buffer
- * assigned to @p decoder at initialization time.
- *
- * The decoded string is allocated using @man{malloc(3)}. It is registered into
- * and given ownership to the @rstlnk{lvstr} @p value. The allocated
- * string should be released thanks to @rstsubst{stroll_lvstr_fini} or
- * @rstsubst{stroll_lvstr_drop} once no longer needed.
- *
- * The @p value @rstlnk{lvstr} should have been previously initialized using one
- * of the @rstsubst{lvstr} initialization primitives described into
- * @rstsubst{lvstr} section of @rstsubst{Stroll's API guide}.
- * The allocated string is guaranteed to be ``NULL`` terminated.
- *
- * Decoding a string longer than #DPACK_LVSTRLEN_MAX will cause a ``-EMSGSIZE``
- * error code to be returned.
- *
- * @warning
- * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
- *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
- *   undefined otherwise.
- * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
- *   @p decoder is in error state before calling this function, result is
- *   undefined. An assertion is triggered otherwise.
- * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
- *   @p value @rstsubst{lvstr} is not initialized, result is undefined. An
- *   assertion *MAY* be triggered otherwise.
- *
- * @see
- * - dpack_decode_lvstr_equ()
- * - dpack_decode_lvstr_max()
- * - dpack_decode_lvstr_range()
- * - dpack_decoder_init_buffer()
- * - dpack_decoder_init_skip_buffer()
- */
-static inline ssize_t __dpack_nonull(1, 2) __dpack_nothrow __warn_result
-dpack_decode_lvstr(struct dpack_decoder *           decoder,
-                   struct stroll_lvstr * __restrict value)
-{
-	return dpack_decode_lvstr_range(decoder, 1, DPACK_LVSTRLEN_MAX, value);
-}
-
-/**
- * Decode a string encoded according to the MessagePack format into a lvstr with
- * with requested maximum length
- *
- * @param[inout] decoder decoder
- * @param[in]    max_len maximum length of decoded string
- * @param[out]   value   lvstr where to store decoded string
- *
- * @return length of decoded string when successful, an errno like error code
- *         otherwise
- * @retval >0        Success
- * @retval -EPROTO   Not a valid MessagePack stream
- * @retval -ENOTSUP  Unsupported MessagePack stream data
- * @retval -EBADMSG  Invalid MessagePack string data
- * @retval -EMSGSIZE Not enough space to complete operation
- * @retval -ENOMEM   Memory allocation failure
- *
- * Decode / unpack / deserialize data item encoded according to the
- * @rstsubst{MessagePack string format} into @p value @rstlnk{lvstr} from buffer
- * assigned to @p decoder at initialization time.
- *
- * Decoding fails with a ``-EMSGSIZE`` error code when length of the decoded
- * string is larger than the specified @p max_len value.
- *
- * The decoded string is allocated using @man{malloc(3)}. It is registered into
- * and given ownership to the @rstlnk{lvstr} @p value. The allocated
- * string should be released thanks to @rstsubst{stroll_lvstr_fini} or
- * @rstsubst{stroll_lvstr_drop} once no longer needed.
- *
- * The @p value @rstlnk{lvstr} should have been previously initialized using one
- * of the @rstsubst{lvstr} initialization primitives described into
- * @rstsubst{lvstr} section of @rstsubst{Stroll's API guide}.
- * The allocated string is guaranteed to be ``NULL`` terminated.
- *
- * @warning
- * - @p decoder *MUST* have been initialized using dpack_decoder_init_buffer()
- *   or dpack_decoder_init_skip_buffer() before calling this function. Result is
- *   undefined otherwise.
- * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
- *   @p decoder is in error state before calling this function, result is
- *   undefined. An assertion is triggered otherwise.
- * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
- *   @p max_len value is ``<= 1`` or greater than #DPACK_LVSTRLEN_MAX, result is
- *   undefined. An assertion is triggered otherwise.
- * - When compiled with the #CONFIG_DPACK_ASSERT_API build option disabled and
- *   @p value @rstsubst{lvstr} is not initialized, result is undefined. An
- *   assertion *MAY* be triggered otherwise.
- *
- * @see
- * - dpack_decode_lvstr()
- * - dpack_decode_lvstr_equ()
- * - dpack_decode_lvstr_range()
- * - dpack_decoder_init_buffer()
- * - dpack_decoder_init_skip_buffer()
- */
-static inline ssize_t __dpack_nonull(1, 3) __dpack_nothrow __warn_result
-dpack_decode_lvstr_max(struct dpack_decoder *           decoder,
-                       size_t                           max_len,
-                       struct stroll_lvstr * __restrict value)
-{
-	return dpack_decode_lvstr_range(decoder, 1, max_len, value);
-}
+dpack_decode_lvstr_range(struct dpack_decoder * __restrict decoder,
+                         size_t                            min_len,
+                         size_t                            max_len,
+                         struct stroll_lvstr * __restrict  value)
+	__dpack_nonull(1, 4) __warn_result __dpack_export;
 
 #endif /* _DPACK_LVSTR_H */
