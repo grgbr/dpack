@@ -914,7 +914,40 @@ dpack_array_end_encode(struct dpack_encoder * __restrict encoder __unused)
 }
 
 /******************************************************************************
- * Array decoding
+ * Basic array decoding
+ ******************************************************************************/
+
+extern int
+dpack_array_decode_count(struct dpack_decoder * __restrict decoder,
+                         unsigned int * __restrict         count)
+	__dpack_nonull(1, 2) __warn_result __dpack_export;
+
+extern int
+dpack_array_decode_count_equ(struct dpack_decoder * __restrict decoder,
+                             unsigned int                      count)
+	__dpack_nonull(1) __warn_result __dpack_export;
+
+extern int
+dpack_array_decode_count_min(struct dpack_decoder * __restrict decoder,
+                             unsigned int                      min_cnt,
+                             unsigned int * __restrict         count)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
+
+extern int
+dpack_array_decode_count_max(struct dpack_decoder * __restrict decoder,
+                             unsigned int                      max_cnt,
+                             unsigned int * __restrict         count)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
+
+extern int
+dpack_array_decode_count_range(struct dpack_decoder * __restrict decoder,
+                               unsigned int                      min_cnt,
+                               unsigned int                      max_cnt,
+                               unsigned int * __restrict         count)
+	__dpack_nonull(1, 4) __warn_result __dpack_export;
+
+/******************************************************************************
+ * Array decoding helpers
  ******************************************************************************/
 
 /**

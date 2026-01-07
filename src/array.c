@@ -106,7 +106,7 @@ dpack_array_begin_encode(struct dpack_encoder * __restrict encoder,
 }
 
 /******************************************************************************
- * Array decoding
+ * Basic array decoding
  ******************************************************************************/
 
 static __dpack_nonull(1) __warn_result
@@ -162,6 +162,113 @@ dpack_load_array_tag(struct dpack_decoder * __restrict decoder,
 
 	return err;
 }
+
+int
+dpack_array_decode_count(struct dpack_decoder * __restrict decoder,
+                         unsigned int * __restrict         count)
+{
+	dpack_decoder_assert_api(decoder);
+	dpack_assert_api(count);
+
+	return dpack_load_array_tag(decoder, count);
+}
+
+int
+dpack_array_decode_count_equ(struct dpack_decoder * __restrict decoder,
+                             unsigned int                      count)
+{
+	dpack_decoder_assert_api(decoder);
+	dpack_assert_api(count);
+	dpack_assert_api(count <= DPACK_ARRAY_ELMNR_MAX);
+
+	unsigned cnt;
+	int      err;
+
+	err = dpack_load_array_tag(decoder, &cnt);
+	if (!err) {
+		if (cnt == count)
+			return 0;
+
+		return cnt ? -EMSGSIZE : -EBADMSG;
+	}
+
+	return err;
+}
+
+int
+dpack_array_decode_count_min(struct dpack_decoder * __restrict decoder,
+                             unsigned int                      min_cnt,
+                             unsigned int * __restrict         count)
+{
+	dpack_decoder_assert_api(decoder);
+	dpack_assert_api(min_cnt);
+	dpack_assert_api(min_cnt < DPACK_ARRAY_ELMNR_MAX);
+	dpack_assert_api(count);
+
+	int err;
+
+	err = dpack_load_array_tag(decoder, count);
+	if (!err) {
+		if ((*count >= min_cnt) && (*count <= DPACK_ARRAY_ELMNR_MAX))
+			return 0;
+
+		return *count ? -EMSGSIZE : -EBADMSG;
+	}
+
+	return err;
+}
+
+int
+dpack_array_decode_count_max(struct dpack_decoder * __restrict decoder,
+                             unsigned int                      max_cnt,
+                             unsigned int * __restrict         count)
+{
+	dpack_decoder_assert_api(decoder);
+	dpack_assert_api(max_cnt);
+	dpack_assert_api(max_cnt <= DPACK_ARRAY_ELMNR_MAX);
+	dpack_assert_api(count);
+
+	int err;
+
+	err = dpack_load_array_tag(decoder, count);
+	if (!err) {
+		if ((*count >= 1) && (*count <= max_cnt))
+			return 0;
+
+		return *count ? -EMSGSIZE : -EBADMSG;
+	}
+
+	return err;
+}
+
+int
+dpack_array_decode_count_range(struct dpack_decoder * __restrict decoder,
+                               unsigned int                      min_cnt,
+                               unsigned int                      max_cnt,
+                               unsigned int * __restrict         count)
+{
+	dpack_decoder_assert_api(decoder);
+	dpack_assert_api(min_cnt);
+	dpack_assert_api(min_cnt < max_cnt);
+	dpack_assert_api(max_cnt <= DPACK_ARRAY_ELMNR_MAX);
+	dpack_assert_api(count);
+
+	int err;
+
+	err = dpack_load_array_tag(decoder, count);
+	if (!err) {
+		if ((*count >= min_cnt) && (*count <= max_cnt))
+			return 0;
+
+		return *count ? -EMSGSIZE : -EBADMSG;
+	}
+
+	return err;
+}
+
+/******************************************************************************
+ * Array decoding helpers
+ ******************************************************************************/
 
 static __dpack_nonull(1, 2) __warn_result
 int

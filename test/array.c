@@ -823,8 +823,8 @@ CUTE_TEST_STATIC(dpackut_array_encode_bin,
                  CUTE_DFLT_TMOUT)
 {
 	struct dpack_encoder_buffer enc;
-	const char                  blob0[] = "\x00\x01\x03";
-	const char                  blob1[] = "\xff\xfe\xfd";
+	const uint8_t               blob0[] = "\x00\x01\x03";
+	const uint8_t               blob1[] = "\xff\xfe\xfd";
 
 	dpack_encoder_init_buffer(&enc,
 	                          dpackut_array_buff,
@@ -902,7 +902,7 @@ CUTE_TEST(dpackut_array_encode_multi)
 {
 	struct dpack_encoder_buffer enc;
 	uint8_t                     buff[DPACKUT_ARRAY_MULTI_PACK_SIZE_MAX] = { 0, };
-	const char                  blob[] = "\x00\x01\x03";
+	const uint8_t               blob[] = "\x00\x01\x03";
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
@@ -1784,7 +1784,7 @@ dpackut_array_xtract_bin(struct dpack_decoder * decoder,
                          unsigned int           id,
                          void * __restrict      data)
 {
-	char ** values = (char **)data;
+	uint8_t ** values = (uint8_t **)data;
 
 	cute_mock_uint_parm(id);
 	cute_mock_ptr_parm(data);
@@ -1840,13 +1840,13 @@ CUTE_TEST(dpackut_array_decode_bin)
     defined(CONFIG_DPACK_BIN)
 
 struct dpackut_array_decode_multi_data {
-	bool     abool;
-	double   adbl;
-	char *   astr;
-	int16_t  ashrt;
-	char *   abin;
-	uint32_t aword;
-	void *   aptr;
+	bool      abool;
+	double    adbl;
+	char *    astr;
+	int16_t   ashrt;
+	uint8_t * abin;
+	uint32_t  aword;
+	void *    aptr;
 };
 
 static int
