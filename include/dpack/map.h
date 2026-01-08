@@ -1460,33 +1460,38 @@ dpack_map_begin_encode_nest_array(struct dpack_encoder * __restrict encoder,
  ******************************************************************************/
 
 extern int
-dpack_map_decode(struct dpack_decoder * decoder,
-                 dpack_decode_item_fn * decode,
-                 void                 * data);
+dpack_map_decode(struct dpack_decoder * __restrict decoder,
+                 dpack_decode_item_fn *            decode,
+                 void * __restrict                 data)
+	__dpack_nonull(1, 2) __warn_result __dpack_export;
 
 extern int
-dpack_map_decode_equ(struct dpack_decoder * decoder,
-                     unsigned int           nr,
-                     dpack_decode_item_fn * decode,
-                     void                 * data) __dpack_export;
+dpack_map_decode_equ(struct dpack_decoder * __restrict decoder,
+                     unsigned int                      nr,
+                     dpack_decode_item_fn *            decode,
+                     void * __restrict                 data)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 extern int
-dpack_map_decode_min(struct dpack_decoder * decoder,
-                     unsigned int           min_nr,
-                     dpack_decode_item_fn * decode,
-                     void                 * data);
+dpack_map_decode_min(struct dpack_decoder * __restrict decoder,
+                     unsigned int                      min_nr,
+                     dpack_decode_item_fn *            decode,
+                     void * __restrict                 data)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 extern int
-dpack_map_decode_max(struct dpack_decoder * decoder,
-                     unsigned int           max_nr,
-                     dpack_decode_item_fn * decode,
-                     void                 * data);
+dpack_map_decode_max(struct dpack_decoder * __restrict decoder,
+                     unsigned int                      max_nr,
+                     dpack_decode_item_fn *            decode,
+                     void * __restrict                 data)
+	__dpack_nonull(1, 3) __warn_result __dpack_export;
 
 extern int
-dpack_map_decode_range(struct dpack_decoder * decoder,
+dpack_map_decode_range(struct dpack_decoder * __restrict decoder,
                        unsigned int           min_nr,
                        unsigned int           max_nr,
                        dpack_decode_item_fn * decode,
-                       void                 * data) __dpack_export;
+                       void * __restrict      data)
+	__dpack_nonull(1, 4) __warn_result __dpack_export;
 
 #endif /* _DPACK_MAP_H */

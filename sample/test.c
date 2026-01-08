@@ -8,6 +8,9 @@
 #include "test.h"
 #include <dpack/codec.h>
 #include <stroll/assert.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
 #include <getopt.h>
 
 #if defined(CONFIG_DPACK_ASSERT_API)
@@ -23,7 +26,7 @@
 
 
 static int
-save_to_file(const char * path, const char * buffer, size_t size)
+save_to_file(const char * path, const uint8_t * buffer, size_t size)
 {
 	sample_assert(path);
 	sample_assert(buffer);
@@ -64,9 +67,9 @@ err:
 static int
 pack_to_file(const char * path, const struct test_ops * ops)
 {
-	char                 * buff;
-	struct dpack_encoder   enc;
-	int                    err;
+	uint8_t *                   buff;
+	struct dpack_encoder_buffer enc;
+	int                         err;
 
 	buff = malloc(ops->max_size);
 	if (!buff) {
@@ -76,15 +79,17 @@ pack_to_file(const char * path, const struct test_ops * ops)
 
 	dpack_encoder_init_buffer(&enc, buff, ops->max_size);
 
-	err = ops->pack(&enc);
+	err = ops->pack(&enc.base);
 	if (err)
 		test_show_error("packing failed: %s (%d).\n",
 		                strerror(-err),
 		                -err);
 	else
-		err = save_to_file(path, buff, dpack_encoder_space_used(&enc));
+		err = save_to_file(path,
+		                   buff,
+		                   dpack_encoder_space_used(&enc.base));
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 
 	free(buff);
 
@@ -92,14 +97,14 @@ pack_to_file(const char * path, const struct test_ops * ops)
 }
 
 static ssize_t
-load_from_file(const char * path, char * buffer, size_t size)
+load_from_file(const char * path, uint8_t * buffer, size_t size)
 {
 	sample_assert(path);
 	sample_assert(buffer);
 	sample_assert(size);
 	sample_assert(size <= SSIZE_MAX);
 
-	FILE       * in;
+	FILE *       in;
 	size_t       sz;
 	const char * msg;
 	int          err = 0;
@@ -136,9 +141,9 @@ err:
 static int
 unpack_from_file(const char * path, const struct test_ops * ops)
 {
-	char                 * buff;
-	ssize_t                ret;
-	struct dpack_decoder   dec;
+	uint8_t *                   buff;
+	ssize_t                     ret;
+	struct dpack_decoder_buffer dec;
 
 	buff = malloc(ops->max_size);
 	if (!buff) {
@@ -156,8 +161,8 @@ unpack_from_file(const char * path, const struct test_ops * ops)
 	}
 
 	dpack_decoder_init_buffer(&dec, buff, (size_t)ret);
-	ret = ops->unpack(&dec);
-	dpack_decoder_fini(&dec);
+	ret = ops->unpack(&dec.base);
+	dpack_decoder_fini(&dec.base);
 
 	if (ret) {
 		test_show_error("unpacking failed: %s (%d).\n",

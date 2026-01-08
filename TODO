@@ -4,7 +4,7 @@ TODO
 * unit tests:
   * lvstr array
   * map
-  * map and array discarding
+  * map (decoder) and array discarding
   * test skip decoding
   * DPACK_ARRAY_LVSTR_SIZE(), DPACK_ARRAY_LVSTR_SIZE_MIN(), DPACK_ARRAY_LVSTR_SIZE_MAX()
 * doc:

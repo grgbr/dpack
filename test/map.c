@@ -135,36 +135,36 @@ CUTE_TEST(dpackut_map_encode_begin_null_enc)
 
 CUTE_TEST(dpackut_map_encode_begin_zero)
 {
-	struct dpack_encoder enc = { 0, };
-	char                 buff;
-	int                  ret __unused;
+	struct dpack_encoder_buffer enc = { 0, };
+	uint8_t                     buff;
+	int                         ret __unused;
 
 	dpack_encoder_init_buffer(&enc, &buff, 1);
-	cute_expect_assertion(ret = dpack_map_begin_encode(&enc, 0));
-	dpack_encoder_fini(&enc, DPACK_ABORT);
+	cute_expect_assertion(ret = dpack_map_begin_encode(&enc.base, 0));
+	dpack_encoder_fini(&enc.base);
 }
 
 CUTE_TEST(dpackut_map_encode_begin_huge)
 {
-	struct dpack_encoder enc = { 0, };
-	char                 buff;
-	int                  ret __unused;
+	struct dpack_encoder_buffer enc = { 0, };
+	uint8_t                     buff;
+	int                         ret __unused;
 
 	dpack_encoder_init_buffer(&enc, &buff, 1);
 	cute_expect_assertion(
-		ret = dpack_map_begin_encode(&enc,
+		ret = dpack_map_begin_encode(&enc.base,
 		                             DPACK_MAP_FLDNR_MAX + 1));
-	dpack_encoder_fini(&enc, DPACK_ABORT);
+	dpack_encoder_fini(&enc.base);
 }
 
 CUTE_TEST(dpackut_map_encode_end_null_enc)
 {
-	struct dpack_encoder enc;
-	char                 buff;
+	struct dpack_encoder_buffer enc;
+	uint8_t                     buff;
 
 	dpack_encoder_init_buffer(&enc, &buff, 1);
 	cute_expect_assertion(dpack_map_end_encode(NULL));
-	dpack_encoder_fini(&enc, DPACK_ABORT);
+	dpack_encoder_fini(&enc.base);
 }
 
 #else  /* !defined(CONFIG_DPACK_ASSERT_API) */
@@ -200,65 +200,17 @@ CUTE_TEST(dpackut_map_encode_end_null_enc)
 
 CUTE_TEST(dpackut_map_encode_begin_uninit_enc)
 {
-	struct dpack_encoder enc = { 0, };
-	int                  ret __unused;
+	struct dpack_encoder_buffer enc = { 0, };
+	int                         ret __unused;
 
-	cute_expect_assertion(ret = dpack_map_begin_encode(&enc, 1));
+	cute_expect_assertion(ret = dpack_map_begin_encode(&enc.base, 1));
 }
 
 CUTE_TEST(dpackut_map_encode_end_uninit_enc)
 {
-	struct dpack_encoder enc = { 0, };
+	struct dpack_encoder_buffer enc = { 0, };
 
-	cute_expect_assertion(dpack_map_end_encode(&enc));
-}
-
-#define DPACKUT_MAP_BOOL_SIZE(_fld_nr) \
-	DPACK_MAP_SIZE(_fld_nr, DPACK_MAP_BOOL_SIZE_MAX)
-
-CUTE_TEST(dpackut_map_encode_end_empty)
-{
-	struct dpack_encoder enc;
-	char                 buff[DPACKUT_MAP_BOOL_SIZE(1)] = { 0, };
-
-	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
-
-	cute_check_sint(dpack_map_begin_encode(&enc, 1), equal, 0);
-	cute_expect_assertion(dpack_map_end_encode(&enc));
-
-	dpack_encoder_fini(&enc, DPACK_ABORT);
-}
-
-CUTE_TEST(dpackut_map_encode_end_partial)
-{
-	struct dpack_encoder enc;
-	char                 buff[DPACKUT_MAP_BOOL_SIZE(2)] = { 0, };
-
-	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
-
-	cute_check_sint(dpack_map_begin_encode(&enc, 2), equal, 0);
-	cute_check_sint(dpack_map_encode_bool(&enc, 0, true), equal, 0);
-	cute_expect_assertion(dpack_map_end_encode(&enc));
-
-	dpack_encoder_fini(&enc, DPACK_ABORT);
-}
-
-#define DPACKUT_MAP_INT8_SIZE(_fld_nr) \
-	DPACK_MAP_SIZE(_fld_nr, DPACK_MAP_INT8_SIZE_MAX)
-
-CUTE_TEST(dpackut_map_encode_xcess)
-{
-	struct dpack_encoder enc;
-	char                 buff[DPACKUT_MAP_INT8_SIZE(2)] = { 0, };
-	int                  ret __unused;
-
-	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
-
-	cute_check_sint(dpack_map_begin_encode(&enc, 1), equal, 0);
-	cute_check_sint(dpack_map_encode_int8(&enc, 0, INT8_MIN), equal, 0);
-	cute_expect_assertion(ret = dpack_map_encode_int8(&enc, 1, 0));
-
-	dpack_encoder_fini(&enc, DPACK_ABORT);
+	cute_expect_assertion(dpack_map_end_encode(&enc.base));
 }
 
 #else /* !defined(CONFIG_DPACK_DEBUG) */
@@ -269,21 +221,6 @@ CUTE_TEST(dpackut_map_encode_begin_uninit_enc)
 }
 
 CUTE_TEST(dpackut_map_encode_end_uninit_enc)
-{
-	cute_skip("debug build disabled");
-}
-
-CUTE_TEST(dpackut_map_encode_end_empty)
-{
-	cute_skip("debug build disabled");
-}
-
-CUTE_TEST(dpackut_map_encode_end_partial)
-{
-	cute_skip("debug build disabled");
-}
-
-CUTE_TEST(dpackut_map_encode_xcess)
 {
 	cute_skip("debug build disabled");
 }
@@ -303,19 +240,20 @@ CUTE_TEST(dpackut_map_encode_xcess)
 
 CUTE_TEST(dpackut_map_encode_bool)
 {
-	struct dpack_encoder enc;
-	char                 buff[DPACKUT_MAP_BOOL_PACK_SIZE_MAX] = { 0, };
+	struct dpack_encoder_buffer enc;
+	uint8_t                     buff[DPACKUT_MAP_BOOL_PACK_SIZE_MAX] = { 0, };
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	cute_check_sint(dpack_map_begin_encode(&enc, DPACKUT_MAP_BOOL_FLD_NR),
+	cute_check_sint(dpack_map_begin_encode(&enc.base,
+	                                       DPACKUT_MAP_BOOL_FLD_NR),
 	                equal,
 	                0);
-	cute_check_sint(dpack_map_encode_bool(&enc, 0, false), equal, 0);
-	cute_check_sint(dpack_map_encode_bool(&enc, 1, true), equal, 0);
-	dpack_map_end_encode(&enc);
+	cute_check_sint(dpack_map_encode_bool(&enc.base, 0, false), equal, 0);
+	cute_check_sint(dpack_map_encode_bool(&enc.base, 1, true), equal, 0);
+	dpack_map_end_encode(&enc.base);
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 
 	cute_check_mem(buff,
 	               equal,
@@ -336,20 +274,21 @@ CUTE_TEST(dpackut_map_encode_bool)
 
 CUTE_TEST(dpackut_map_encode_int8)
 {
-	struct dpack_encoder enc;
-	char                 buff[DPACKUT_MAP_INT8_PACK_SIZE_MAX] = { 0, };
+	struct dpack_encoder_buffer enc;
+	uint8_t                     buff[DPACKUT_MAP_INT8_PACK_SIZE_MAX] = { 0, };
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	cute_check_sint(dpack_map_begin_encode(&enc, DPACKUT_MAP_INT8_FLD_NR),
+	cute_check_sint(dpack_map_begin_encode(&enc.base,
+	                                       DPACKUT_MAP_INT8_FLD_NR),
 	                equal,
 	                0);
-	cute_check_sint(dpack_map_encode_int8(&enc, 0, INT8_MIN), equal, 0);
-	cute_check_sint(dpack_map_encode_int8(&enc, 1, 0), equal, 0);
-	cute_check_sint(dpack_map_encode_int8(&enc, 2, INT8_MAX), equal, 0);
-	dpack_map_end_encode(&enc);
+	cute_check_sint(dpack_map_encode_int8(&enc.base, 0, INT8_MIN), equal, 0);
+	cute_check_sint(dpack_map_encode_int8(&enc.base, 1, 0), equal, 0);
+	cute_check_sint(dpack_map_encode_int8(&enc.base, 2, INT8_MAX), equal, 0);
+	dpack_map_end_encode(&enc.base);
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 
 	cute_check_mem(buff,
 	               equal,
@@ -379,20 +318,23 @@ CUTE_TEST(dpackut_map_encode_int8)
 
 CUTE_TEST(dpackut_map_encode_uint8)
 {
-	struct dpack_encoder enc;
-	char                 buff[DPACKUT_MAP_UINT8_PACK_SIZE_MAX] = { 0, };
+	struct dpack_encoder_buffer enc;
+	uint8_t                     buff[DPACKUT_MAP_UINT8_PACK_SIZE_MAX] = { 0, };
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	cute_check_sint(dpack_map_begin_encode(&enc, DPACKUT_MAP_UINT8_FLD_NR),
+	cute_check_sint(dpack_map_begin_encode(&enc.base,
+	                                       DPACKUT_MAP_UINT8_FLD_NR),
 	                equal,
 	                0);
-	cute_check_sint(dpack_map_encode_uint8(&enc, 0, 127), equal, 0);
-	cute_check_sint(dpack_map_encode_uint8(&enc, 1, 0), equal, 0);
-	cute_check_sint(dpack_map_encode_uint8(&enc, 0, UINT8_MAX), equal, 0);
-	dpack_map_end_encode(&enc);
+	cute_check_sint(dpack_map_encode_uint8(&enc.base, 0, 127), equal, 0);
+	cute_check_sint(dpack_map_encode_uint8(&enc.base, 1, 0), equal, 0);
+	cute_check_sint(dpack_map_encode_uint8(&enc.base, 0, UINT8_MAX),
+	                equal,
+	                0);
+	dpack_map_end_encode(&enc.base);
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 
 	cute_check_mem(buff,
 	               equal,
@@ -404,7 +346,7 @@ CUTE_TEST(dpackut_map_encode_uint8)
 #define DPACKUT_MAP_INT16_FLD_NR \
 	(3U)
 #define DPACKUT_MAP_INT16_PACK_DATA \
-	"\x83\x00\xd1\x80\x00\x01\x00\x02\xcd\x7f\xff"
+	"\x83\x00\xd1\x80\x00\x01\x00\x02\xd1\x7f\xff"
 #define DPACKUT_MAP_INT16_PACK_SIZE \
 	(sizeof(DPACKUT_MAP_INT16_PACK_DATA) - 1)
 #define DPACKUT_MAP_INT16_PACK_SIZE_MAX \
@@ -413,20 +355,27 @@ CUTE_TEST(dpackut_map_encode_uint8)
 
 CUTE_TEST(dpackut_map_encode_int16)
 {
-	struct dpack_encoder enc;
-	char                 buff[DPACKUT_MAP_INT16_PACK_SIZE_MAX] = { 0, };
+	struct dpack_encoder_buffer enc;
+	uint8_t                     buff[DPACKUT_MAP_INT16_PACK_SIZE_MAX] = { 0, };
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	cute_check_sint(dpack_map_begin_encode(&enc, DPACKUT_MAP_INT16_FLD_NR),
+	cute_check_sint(dpack_map_begin_encode(&enc.base,
+	                                       DPACKUT_MAP_INT16_FLD_NR),
 	                equal,
 	                0);
-	cute_check_sint(dpack_map_encode_int16(&enc, 0, INT16_MIN), equal, 0);
-	cute_check_sint(dpack_map_encode_int16(&enc, 1, 0), equal, 0);
-	cute_check_sint(dpack_map_encode_int16(&enc, 2, INT16_MAX), equal, 0);
-	dpack_map_end_encode(&enc);
+	cute_check_sint(dpack_map_encode_int16(&enc.base, 0, INT16_MIN),
+	                equal,
+	                0);
+	cute_check_sint(dpack_map_encode_int16(&enc.base, 1, 0),
+	                equal,
+	                0);
+	cute_check_sint(dpack_map_encode_int16(&enc.base, 2, INT16_MAX),
+	                equal,
+	                0);
+	dpack_map_end_encode(&enc.base);
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 
 	cute_check_mem(buff,
 	               equal,
@@ -447,19 +396,22 @@ CUTE_TEST(dpackut_map_encode_int16)
 
 CUTE_TEST(dpackut_map_encode_uint16)
 {
-	struct dpack_encoder enc;
-	char                 buff[DPACKUT_MAP_UINT16_PACK_SIZE_MAX] = { 0, };
+	struct dpack_encoder_buffer enc;
+	uint8_t                     buff[DPACKUT_MAP_UINT16_PACK_SIZE_MAX] = { 0, };
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	cute_check_sint(dpack_map_begin_encode(&enc, DPACKUT_MAP_UINT16_FLD_NR),
+	cute_check_sint(dpack_map_begin_encode(&enc.base,
+	                                       DPACKUT_MAP_UINT16_FLD_NR),
 	                equal,
 	                0);
-	cute_check_sint(dpack_map_encode_uint16(&enc, 0, 0), equal, 0);
-	cute_check_sint(dpack_map_encode_uint16(&enc, 2, UINT16_MAX), equal, 0);
-	dpack_map_end_encode(&enc);
+	cute_check_sint(dpack_map_encode_uint16(&enc.base, 0, 0), equal, 0);
+	cute_check_sint(dpack_map_encode_uint16(&enc.base, 2, UINT16_MAX),
+	                equal,
+	                0);
+	dpack_map_end_encode(&enc.base);
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 
 	cute_check_mem(buff,
 	               equal,
@@ -471,7 +423,7 @@ CUTE_TEST(dpackut_map_encode_uint16)
 #define DPACKUT_MAP_INT32_FLD_NR \
 	(3U)
 #define DPACKUT_MAP_INT32_PACK_DATA \
-	"\x83\x00\xd2\x80\x00\x00\x00\x01\x00\x02\xce\x7f\xff\xff\xff"
+	"\x83\x00\xd2\x80\x00\x00\x00\x01\x00\x02\xd2\x7f\xff\xff\xff"
 #define DPACKUT_MAP_INT32_PACK_SIZE \
 	(sizeof(DPACKUT_MAP_INT32_PACK_DATA) - 1)
 #define DPACKUT_MAP_INT32_PACK_SIZE_MAX \
@@ -480,20 +432,20 @@ CUTE_TEST(dpackut_map_encode_uint16)
 
 CUTE_TEST(dpackut_map_encode_int32)
 {
-	struct dpack_encoder enc;
-	char                 buff[DPACKUT_MAP_INT32_PACK_SIZE_MAX] = { 0, };
+	struct dpack_encoder_buffer enc;
+	uint8_t                     buff[DPACKUT_MAP_INT32_PACK_SIZE_MAX] = { 0, };
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	cute_check_sint(dpack_map_begin_encode(&enc, DPACKUT_MAP_INT32_FLD_NR),
+	cute_check_sint(dpack_map_begin_encode(&enc.base, DPACKUT_MAP_INT32_FLD_NR),
 	                equal,
 	                0);
-	cute_check_sint(dpack_map_encode_int32(&enc, 0, INT32_MIN), equal, 0);
-	cute_check_sint(dpack_map_encode_int32(&enc, 1, 0), equal, 0);
-	cute_check_sint(dpack_map_encode_int32(&enc, 2, INT32_MAX), equal, 0);
-	dpack_map_end_encode(&enc);
+	cute_check_sint(dpack_map_encode_int32(&enc.base, 0, INT32_MIN), equal, 0);
+	cute_check_sint(dpack_map_encode_int32(&enc.base, 1, 0), equal, 0);
+	cute_check_sint(dpack_map_encode_int32(&enc.base, 2, INT32_MAX), equal, 0);
+	dpack_map_end_encode(&enc.base);
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 
 	cute_check_mem(buff,
 	               equal,
@@ -514,19 +466,22 @@ CUTE_TEST(dpackut_map_encode_int32)
 
 CUTE_TEST(dpackut_map_encode_uint32)
 {
-	struct dpack_encoder enc;
-	char                 buff[DPACKUT_MAP_UINT32_PACK_SIZE_MAX] = { 0, };
+	struct dpack_encoder_buffer enc;
+	uint8_t                     buff[DPACKUT_MAP_UINT32_PACK_SIZE_MAX] = { 0, };
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	cute_check_sint(dpack_map_begin_encode(&enc, DPACKUT_MAP_UINT32_FLD_NR),
+	cute_check_sint(dpack_map_begin_encode(&enc.base,
+	                                       DPACKUT_MAP_UINT32_FLD_NR),
 	                equal,
 	                0);
-	cute_check_sint(dpack_map_encode_uint32(&enc, 0, 0), equal, 0);
-	cute_check_sint(dpack_map_encode_uint32(&enc, 2, UINT32_MAX), equal, 0);
-	dpack_map_end_encode(&enc);
+	cute_check_sint(dpack_map_encode_uint32(&enc.base, 0, 0), equal, 0);
+	cute_check_sint(dpack_map_encode_uint32(&enc.base, 2, UINT32_MAX),
+	                equal,
+	                0);
+	dpack_map_end_encode(&enc.base);
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 
 	cute_check_mem(buff,
 	               equal,
@@ -544,7 +499,7 @@ CUTE_TEST(dpackut_map_encode_uint32)
 	"\x83" \
 	"\x00\xd3\x80\x00\x00\x00\x00\x00\x00" \
 	"\x00" \
-	"\x01\x00\x02\xcf\x7f\xff\xff\xff\xff\xff\xff\xff"
+	"\x01\x00\x02\xd3\x7f\xff\xff\xff\xff\xff\xff\xff"
 #define DPACKUT_MAP_INT64_PACK_SIZE \
 	(sizeof(DPACKUT_MAP_INT64_PACK_DATA) - 1)
 #define DPACKUT_MAP_INT64_PACK_SIZE_MAX \
@@ -553,20 +508,24 @@ CUTE_TEST(dpackut_map_encode_uint32)
 
 CUTE_TEST(dpackut_map_encode_int64)
 {
-	struct dpack_encoder enc;
-	char                 buff[DPACKUT_MAP_INT64_PACK_SIZE_MAX] = { 0, };
+	struct dpack_encoder_buffer enc;
+	uint8_t                     buff[DPACKUT_MAP_INT64_PACK_SIZE_MAX] = { 0, };
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	cute_check_sint(dpack_map_begin_encode(&enc, DPACKUT_MAP_INT64_FLD_NR),
+	cute_check_sint(dpack_map_begin_encode(&enc.base, DPACKUT_MAP_INT64_FLD_NR),
 	                equal,
 	                0);
-	cute_check_sint(dpack_map_encode_int64(&enc, 0, INT64_MIN), equal, 0);
-	cute_check_sint(dpack_map_encode_int64(&enc, 1, 0), equal, 0);
-	cute_check_sint(dpack_map_encode_int64(&enc, 2, INT64_MAX), equal, 0);
-	dpack_map_end_encode(&enc);
+	cute_check_sint(dpack_map_encode_int64(&enc.base, 0, INT64_MIN),
+	                equal,
+	                0);
+	cute_check_sint(dpack_map_encode_int64(&enc.base, 1, 0), equal, 0);
+	cute_check_sint(dpack_map_encode_int64(&enc.base, 2, INT64_MAX),
+	                equal,
+	                0);
+	dpack_map_end_encode(&enc.base);
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 
 	cute_check_mem(buff,
 	               equal,
@@ -587,19 +546,22 @@ CUTE_TEST(dpackut_map_encode_int64)
 
 CUTE_TEST(dpackut_map_encode_uint64)
 {
-	struct dpack_encoder enc;
-	char                 buff[DPACKUT_MAP_UINT64_PACK_SIZE_MAX] = { 0, };
+	struct dpack_encoder_buffer enc;
+	uint8_t                     buff[DPACKUT_MAP_UINT64_PACK_SIZE_MAX] = { 0, };
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	cute_check_sint(dpack_map_begin_encode(&enc, DPACKUT_MAP_UINT64_FLD_NR),
+	cute_check_sint(dpack_map_begin_encode(&enc.base,
+	                                       DPACKUT_MAP_UINT64_FLD_NR),
 	                equal,
 	                0);
-	cute_check_sint(dpack_map_encode_uint64(&enc, 0, 0), equal, 0);
-	cute_check_sint(dpack_map_encode_uint64(&enc, 2, UINT64_MAX), equal, 0);
-	dpack_map_end_encode(&enc);
+	cute_check_sint(dpack_map_encode_uint64(&enc.base, 0, 0), equal, 0);
+	cute_check_sint(dpack_map_encode_uint64(&enc.base, 2, UINT64_MAX),
+	                equal,
+	                0);
+	dpack_map_end_encode(&enc.base);
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 
 	cute_check_mem(buff,
 	               equal,
@@ -622,19 +584,24 @@ CUTE_TEST(dpackut_map_encode_uint64)
 
 CUTE_TEST(dpackut_map_encode_float)
 {
-	struct dpack_encoder enc;
-	char                 buff[DPACKUT_MAP_FLOAT_PACK_SIZE_MAX] = { 0, };
+	struct dpack_encoder_buffer enc;
+	uint8_t                     buff[DPACKUT_MAP_FLOAT_PACK_SIZE_MAX] = { 0, };
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	cute_check_sint(dpack_map_begin_encode(&enc, DPACKUT_MAP_FLOAT_FLD_NR),
+	cute_check_sint(dpack_map_begin_encode(&enc.base,
+	                                       DPACKUT_MAP_FLOAT_FLD_NR),
 	                equal,
 	                0);
-	cute_check_sint(dpack_map_encode_float(&enc, 2, -1.005f), equal, 0);
-	cute_check_sint(dpack_map_encode_float(&enc, 0, 10.0f), equal, 0);
-	dpack_map_end_encode(&enc);
+	cute_check_sint(dpack_map_encode_float(&enc.base, 2, -1.005f),
+	                equal,
+	                0);
+	cute_check_sint(dpack_map_encode_float(&enc.base, 0, 10.0f),
+	                equal,
+	                0);
+	dpack_map_end_encode(&enc.base);
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 
 	cute_check_mem(buff,
 	               equal,
@@ -668,19 +635,24 @@ CUTE_TEST(dpackut_map_encode_float)
 
 CUTE_TEST(dpackut_map_encode_double)
 {
-	struct dpack_encoder enc;
-	char                 buff[DPACKUT_MAP_DOUBLE_PACK_SIZE_MAX] = { 0, };
+	struct dpack_encoder_buffer enc;
+	uint8_t                     buff[DPACKUT_MAP_DOUBLE_PACK_SIZE_MAX] = { 0, };
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	cute_check_sint(dpack_map_begin_encode(&enc, DPACKUT_MAP_DOUBLE_FLD_NR),
+	cute_check_sint(dpack_map_begin_encode(&enc.base,
+	                                       DPACKUT_MAP_DOUBLE_FLD_NR),
 	                equal,
 	                0);
-	cute_check_sint(dpack_map_encode_double(&enc, 2, -1.005), equal, 0);
-	cute_check_sint(dpack_map_encode_double(&enc, 0, INFINITY), equal, 0);
-	dpack_map_end_encode(&enc);
+	cute_check_sint(dpack_map_encode_double(&enc.base, 2, -1.005),
+	                equal,
+	                0);
+	cute_check_sint(dpack_map_encode_double(&enc.base, 0, INFINITY),
+	                equal,
+	                0);
+	dpack_map_end_encode(&enc.base);
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 
 	cute_check_mem(buff,
 	               equal,
@@ -701,7 +673,7 @@ CUTE_TEST(dpackut_map_encode_double)
     defined(CONFIG_DPACK_LVSTR) || \
     defined(CONFIG_DPACK_BIN)
 
-static char * dpackut_map_buff;
+static uint8_t * dpackut_map_buff;
 
 static void dpackut_map_teardown(void)
 {
@@ -742,21 +714,24 @@ CUTE_TEST_STATIC(dpackut_map_encode_str,
                  dpackut_map_teardown,
                  CUTE_DFLT_TMOUT)
 {
-	struct dpack_encoder enc;
+	struct dpack_encoder_buffer enc;
 
 	dpack_encoder_init_buffer(&enc,
 	                          dpackut_map_buff,
 	                          DPACKUT_MAP_STR_PACK_SIZE_MAX);
 
-	cute_check_sint(dpack_map_begin_encode(&enc, DPACKUT_MAP_STR_FLD_NR),
+	cute_check_sint(dpack_map_begin_encode(&enc.base,
+	                                       DPACKUT_MAP_STR_FLD_NR),
 	                equal,
 	                0);
-	cute_check_sint(dpack_map_encode_str(&enc, 0, "a"), equal, 0);
-	cute_check_sint(dpack_map_encode_str(&enc, 1, "list"), equal, 0);
-	cute_check_sint(dpack_map_encode_str(&enc, 2, "of strings"), equal, 0);
-	dpack_map_end_encode(&enc);
+	cute_check_sint(dpack_map_encode_str(&enc.base, 0, "a"), equal, 0);
+	cute_check_sint(dpack_map_encode_str(&enc.base, 1, "list"), equal, 0);
+	cute_check_sint(dpack_map_encode_str(&enc.base, 2, "of strings"),
+	                equal,
+	                0);
+	dpack_map_end_encode(&enc.base);
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 
 	cute_check_mem(dpackut_map_buff,
 	               equal,
@@ -780,24 +755,25 @@ CUTE_TEST_STATIC(dpackut_map_encode_lvstr,
                  dpackut_map_teardown,
                  CUTE_DFLT_TMOUT)
 {
-	struct dpack_encoder enc;
-	struct stroll_lvstr  str0 = STROLL_LVSTR_INIT_LEND("a");
-	struct stroll_lvstr  str1 = STROLL_LVSTR_INIT_LEND("list");
-	struct stroll_lvstr  str2 = STROLL_LVSTR_INIT_LEND("of strings");
+	struct dpack_encoder_buffer enc;
+	struct stroll_lvstr         str0 = STROLL_LVSTR_INIT_LEND("a");
+	struct stroll_lvstr         str1 = STROLL_LVSTR_INIT_LEND("list");
+	struct stroll_lvstr         str2 = STROLL_LVSTR_INIT_LEND("of strings");
 
 	dpack_encoder_init_buffer(&enc,
 	                          dpackut_map_buff,
 	                          DPACKUT_MAP_STR_PACK_SIZE_MAX);
 
-	cute_check_sint(dpack_map_begin_encode(&enc, DPACKUT_MAP_STR_FLD_NR),
+	cute_check_sint(dpack_map_begin_encode(&enc.base,
+	                                       DPACKUT_MAP_STR_FLD_NR),
 	                equal,
 	                0);
-	cute_check_sint(dpack_map_encode_lvstr(&enc, 0, &str0), equal, 0);
-	cute_check_sint(dpack_map_encode_lvstr(&enc, 1, &str1), equal, 0);
-	cute_check_sint(dpack_map_encode_lvstr(&enc, 2, &str2), equal, 0);
-	dpack_map_end_encode(&enc);
+	cute_check_sint(dpack_map_encode_lvstr(&enc.base, 0, &str0), equal, 0);
+	cute_check_sint(dpack_map_encode_lvstr(&enc.base, 1, &str1), equal, 0);
+	cute_check_sint(dpack_map_encode_lvstr(&enc.base, 2, &str2), equal, 0);
+	dpack_map_end_encode(&enc.base);
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 
 	cute_check_mem(dpackut_map_buff,
 	               equal,
@@ -844,26 +820,33 @@ CUTE_TEST_STATIC(dpackut_map_encode_bin,
                  dpackut_map_teardown,
                  CUTE_DFLT_TMOUT)
 {
-	struct dpack_encoder enc;
-	const char           blob0[] = "\x00\x01\x03";
-	const char           blob1[] = "\xff\xfe\xfd";
+	struct dpack_encoder_buffer enc;
+	const uint8_t               blob0[] = "\x00\x01\x03";
+	const uint8_t               blob1[] = "\xff\xfe\xfd";
 
 	dpack_encoder_init_buffer(&enc,
 	                          dpackut_map_buff,
 	                          DPACKUT_MAP_BIN_PACK_SIZE_MAX);
 
-	cute_check_sint(dpack_map_begin_encode(&enc, DPACKUT_MAP_BIN_FLD_NR),
+	cute_check_sint(dpack_map_begin_encode(&enc.base,
+	                                       DPACKUT_MAP_BIN_FLD_NR),
 	                equal,
 	                0);
-	cute_check_sint(dpack_map_encode_bin(&enc, 2, blob0, sizeof(blob0) - 1),
+	cute_check_sint(dpack_map_encode_bin(&enc.base,
+	                                     2,
+	                                     blob0,
+	                                     sizeof(blob0) - 1),
 	                equal,
 	                0);
-	cute_check_sint(dpack_map_encode_bin(&enc, 0, blob1, sizeof(blob1) - 1),
+	cute_check_sint(dpack_map_encode_bin(&enc.base,
+	                                     0,
+	                                     blob1,
+	                                     sizeof(blob1) - 1),
 	                equal,
 	                0);
-	dpack_map_end_encode(&enc);
+	dpack_map_end_encode(&enc.base);
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 
 	cute_check_mem(dpackut_map_buff,
 	               equal,
@@ -920,27 +903,35 @@ CUTE_TEST(dpackut_map_encode_bin)
 
 CUTE_TEST(dpackut_map_encode_multi)
 {
-	struct dpack_encoder enc;
-	char                 buff[DPACKUT_MAP_MULTI_PACK_SIZE_MAX] = { 0, };
-	const char           blob[] = "\x00\x01\x03";
+	struct dpack_encoder_buffer enc;
+	uint8_t                     buff[DPACKUT_MAP_MULTI_PACK_SIZE_MAX] = { 0, };
+	const uint8_t               blob[] = "\x00\x01\x03";
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
-	cute_check_sint(dpack_map_begin_encode(&enc, DPACKUT_MAP_MULTI_FLD_NR),
+	cute_check_sint(dpack_map_begin_encode(&enc.base,
+	                                       DPACKUT_MAP_MULTI_FLD_NR),
 	                equal,
 	                0);
-	cute_check_sint(dpack_map_encode_bool(&enc, 0, true), equal, 0);
-	cute_check_sint(dpack_map_encode_double(&enc, 5, 1.005), equal, 0);
-	cute_check_sint(dpack_map_encode_str(&enc, 1, "test"), equal, 0);
-	cute_check_sint(dpack_map_encode_int16(&enc, 3, INT16_MIN), equal, 0);
-	cute_check_sint(dpack_map_encode_bin(&enc, 2, blob, sizeof(blob) - 1),
+	cute_check_sint(dpack_map_encode_bool(&enc.base, 0, true), equal, 0);
+	cute_check_sint(dpack_map_encode_double(&enc.base, 5, 1.005), equal, 0);
+	cute_check_sint(dpack_map_encode_str(&enc.base, 1, "test"), equal, 0);
+	cute_check_sint(dpack_map_encode_int16(&enc.base, 3, INT16_MIN),
 	                equal,
 	                0);
-	cute_check_sint(dpack_map_encode_uint32(&enc, 9, UINT32_MAX), equal, 0);
-	cute_check_sint(dpack_map_encode_nil(&enc, 6), equal, 0);
-	dpack_map_end_encode(&enc);
+	cute_check_sint(dpack_map_encode_bin(&enc.base,
+	                                     2,
+	                                     blob,
+	                                     sizeof(blob) - 1),
+	                equal,
+	                0);
+	cute_check_sint(dpack_map_encode_uint32(&enc.base, 9, UINT32_MAX),
+	                equal,
+	                0);
+	cute_check_sint(dpack_map_encode_nil(&enc.base, 6), equal, 0);
+	dpack_map_end_encode(&enc.base);
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 
 	cute_check_mem(buff,
 	               equal,
@@ -990,29 +981,31 @@ CUTE_TEST(dpackut_map_encode_multi)
 
 CUTE_TEST(dpackut_map_encode_nest)
 {
-	struct dpack_encoder enc;
-	char                 buff[DPACKUT_MAP_NEST_PACK_SIZE_MAX] = { 0, };
+	struct dpack_encoder_buffer enc;
+	uint8_t                     buff[DPACKUT_MAP_NEST_PACK_SIZE_MAX] = { 0, };
 
 	dpack_encoder_init_buffer(&enc, buff, sizeof(buff));
 
 	cute_check_sint(
-		dpack_map_begin_encode(&enc, DPACKUT_MAP_NEST_LVL0_FLD_NR),
+		dpack_map_begin_encode(&enc.base, DPACKUT_MAP_NEST_LVL0_FLD_NR),
 		equal,
 		0);
-	cute_check_sint(dpack_map_encode_bool(&enc, 3, true), equal, 0);
+	cute_check_sint(dpack_map_encode_bool(&enc.base, 3, true), equal, 0);
 	cute_check_sint(
-		dpack_map_begin_encode_nest_map(&enc,
+		dpack_map_begin_encode_nest_map(&enc.base,
 		                                5,
 		                                DPACKUT_MAP_NEST_LVL1_FLD_NR),
 		equal,
 		0);
-	cute_check_sint(dpack_map_encode_int16(&enc, 0, INT16_MIN), equal, 0);
-	cute_check_sint(dpack_map_encode_double(&enc, 1, 1.005), equal, 0);
-	dpack_map_end_encode(&enc);
-	cute_check_sint(dpack_map_encode_str(&enc, 0, "test"), equal, 0);
-	dpack_map_end_encode(&enc);
+	cute_check_sint(dpack_map_encode_int16(&enc.base, 0, INT16_MIN),
+	                equal,
+	                0);
+	cute_check_sint(dpack_map_encode_double(&enc.base, 1, 1.005), equal, 0);
+	dpack_map_end_encode(&enc.base);
+	cute_check_sint(dpack_map_encode_str(&enc.base, 0, "test"), equal, 0);
+	dpack_map_end_encode(&enc.base);
 
-	dpack_encoder_fini(&enc, DPACK_DONE);
+	dpack_encoder_fini(&enc.base);
 
 	cute_check_mem(buff,
 	               equal,
@@ -1045,9 +1038,6 @@ CUTE_GROUP(dpackut_map_group) = {
 	CUTE_REF(dpackut_map_encode_end_null_enc),
 	CUTE_REF(dpackut_map_encode_begin_uninit_enc),
 	CUTE_REF(dpackut_map_encode_end_uninit_enc),
-	CUTE_REF(dpackut_map_encode_end_empty),
-	CUTE_REF(dpackut_map_encode_end_partial),
-	CUTE_REF(dpackut_map_encode_xcess),
 
 	CUTE_REF(dpackut_map_encode_bool),
 	CUTE_REF(dpackut_map_encode_int8),

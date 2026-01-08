@@ -95,7 +95,7 @@ dpack_array_begin_encode(struct dpack_encoder * __restrict encoder,
  * Basic array decoding
  ******************************************************************************/
 
-static __dpack_nonull(1) __warn_result
+static __dpack_nonull(1, 2) __warn_result
 int
 dpack_load_array_tag(struct dpack_decoder * __restrict decoder,
                      unsigned int * __restrict         nr)
@@ -112,7 +112,7 @@ dpack_load_array_tag(struct dpack_decoder * __restrict decoder,
 		case DPACK_FIXARRAY_TAG:
 			*nr = (unsigned int)(tag & _DPACK_FIXARRAY_ELMNR_MAX);
 			return 0;
-
+#if DPACK_ARRAY_ELMNR_MAX > _DPACK_FIXARRAY_ELMNR_MAX
 		case DPACK_ARRAY16_TAG:
 			{
 				uint16_t val;
@@ -126,7 +126,8 @@ dpack_load_array_tag(struct dpack_decoder * __restrict decoder,
 				}
 				break;
 			}
-
+#endif
+#if DPACK_ARRAY_ELMNR_MAX > _DPACK_ARRAY16_ELMNR_MAX
 		case DPACK_ARRAY32_TAG:
 			{
 				uint32_t val;
@@ -140,7 +141,7 @@ dpack_load_array_tag(struct dpack_decoder * __restrict decoder,
 				}
 				break;
 			}
-
+#endif
 		default:
 			err = -ENOMSG;
 		}
@@ -299,12 +300,11 @@ dpack_array_xtract_range(struct dpack_decoder * decoder,
 
 	err = dpack_load_array_tag(decoder, &nr);
 	if (!err) {
-		if ((nr >= min_nr) && (nr <= max_nr)) {
+		if ((nr >= min_nr) && (nr <= max_nr))
 			return dpack_array_decode_elems(decoder,
 			                                decode,
 			                                data,
 			                                nr);
-		}
 
 		return nr ? -EMSGSIZE : -EBADMSG;
 	}

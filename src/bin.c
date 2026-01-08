@@ -110,7 +110,6 @@ dpack_load_bin_tag(struct dpack_decoder * __restrict decoder)
 					return (ssize_t)sz;
 				break;
 			}
-
 #if DPACK_BINSZ_MAX > _DPACK_BIN8_SIZE_MAX
 		case DPACK_BIN16_TAG:
 			{
@@ -123,7 +122,6 @@ dpack_load_bin_tag(struct dpack_decoder * __restrict decoder)
 					return (ssize_t)(be16toh(sz));
 				break;
 			}
-
 #endif
 #if DPACK_BINSZ_MAX > _DPACK_BIN16_SIZE_MAX
 		case DPACK_BIN32_TAG:
