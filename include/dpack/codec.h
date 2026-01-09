@@ -33,9 +33,9 @@ typedef size_t dpack_encoder_space_fn(const struct dpack_encoder * __restrict)
 	__dpack_nonull(1) __warn_result;
 
 
-typedef void dpack_encoder_write_fn(struct dpack_encoder * __restrict,
-                                    const uint8_t * __restrict,
-                                    size_t)
+typedef int dpack_encoder_write_fn(struct dpack_encoder * __restrict,
+                                   const uint8_t * __restrict,
+                                   size_t)
 	__dpack_nonull(1, 2);
 
 typedef void dpack_encoder_fini_fn(struct dpack_encoder * __restrict)
@@ -259,13 +259,12 @@ typedef int dpack_decode_item_fn(struct dpack_decoder * __restrict,
 typedef size_t dpack_decoder_left_fn(const struct dpack_decoder * __restrict)
 	__dpack_nonull(1) __warn_result;
 
-typedef void dpack_decoder_read_fn(struct dpack_decoder * __restrict,
-                                   uint8_t * __restrict,
-                                   size_t)
+typedef int dpack_decoder_read_fn(struct dpack_decoder * __restrict,
+                                  uint8_t * __restrict,
+                                  size_t)
 	__dpack_nonull(1, 2);
 
-typedef void dpack_decoder_discard_fn(struct dpack_decoder * __restrict,
-                                      size_t)
+typedef int dpack_decoder_discard_fn(struct dpack_decoder * __restrict, size_t)
 	__dpack_nonull(1);
 
 typedef void dpack_decoder_fini_fn(struct dpack_decoder * __restrict)
@@ -332,6 +331,10 @@ dpack_decoder_data_left(const struct dpack_decoder * __restrict decoder)
 
 	return decoder->ops->left(decoder);
 }
+
+extern int
+dpack_decoder_discard_item(struct dpack_decoder * __restrict decoder)
+	__dpack_nonull(1) __warn_result __dpack_export;
 
 static inline __dpack_nonull(1, 2)
 void

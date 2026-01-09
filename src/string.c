@@ -141,7 +141,6 @@ dpack_load_str_tag(struct dpack_decoder * __restrict decoder)
 					return (ssize_t)len;
 				break;
 			}
-
 #endif
 #if DPACK_STRLEN_MAX > _DPACK_STR8_LEN_MAX
 		case DPACK_STR16_TAG:
@@ -152,10 +151,9 @@ dpack_load_str_tag(struct dpack_decoder * __restrict decoder)
 				                         (uint8_t *)&len,
 				                         sizeof(len));
 				if (!err)
-					return (ssize_t)(be16toh(len));
+					return (ssize_t)be16toh(len);
 				break;
 			}
-
 #endif
 #if DPACK_STRLEN_MAX > _DPACK_STR16_LEN_MAX
 		case DPACK_STR32_TAG:
@@ -166,7 +164,7 @@ dpack_load_str_tag(struct dpack_decoder * __restrict decoder)
 				                         (uint8_t *)&len,
 				                         sizeof(len));
 				if (!err)
-					return (ssize_t)(be32toh(len));
+					return (ssize_t)be32toh(len);
 				break;
 			}
 #endif

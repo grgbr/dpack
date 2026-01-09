@@ -22,13 +22,11 @@ dpack_map_size(unsigned int fld_nr, size_t data_size)
 	case 1 ... _DPACK_FIXMAP_FLDNR_MAX:
 		head = DPACK_FIXMAP_TAG_SIZE;
 		break;
-
 #if DPACK_MAP_FLDNR_MAX > _DPACK_FIXMAP_FLDNR_MAX
 	case (_DPACK_FIXMAP_FLDNR_MAX + 1) ... _DPACK_MAP16_FLDNR_MAX:
 		head = DPACK_MAP16_TAG_SIZE;
 		break;
 #endif
-
 #if DPACK_MAP_FLDNR_MAX > _DPACK_MAP16_FLDNR_MAX
 	case (_DPACK_MAP16_FLDNR_MAX + 1) ... _DPACK_MAP32_FLDNR_MAX:
 		head = DPACK_MAP32_TAG_SIZE;

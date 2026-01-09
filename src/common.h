@@ -69,25 +69,14 @@
 
 #define dpack_encoder_assert_ops_intern(_ops) \
 	dpack_assert_intern(_ops); \
-	dpack_assert_intern((_ops)->write)
+	dpack_assert_intern((_ops)->left); \
+	dpack_assert_intern((_ops)->used); \
+	dpack_assert_intern((_ops)->write); \
+	dpack_assert_intern((_ops)->fini); \
 
 #define dpack_encoder_assert_intern(_encoder) \
 	dpack_assert_intern(_encoder); \
 	dpack_encoder_assert_ops_intern((_encoder)->ops)
-
-static inline __dpack_nonull(1, 2)
-void
-_dpack_encoder_write(struct dpack_encoder * __restrict encoder,
-                     const uint8_t * __restrict        data,
-                     size_t                            size)
-{
-	dpack_encoder_assert_intern(encoder);
-	dpack_assert_intern(data);
-	dpack_assert_intern(size);
-	dpack_assert_intern(size <= dpack_encoder_space_left(encoder));
-
-	encoder->ops->write(encoder, data, size);
-}
 
 static inline __dpack_nonull(1, 2) __warn_result
 int
@@ -99,12 +88,7 @@ dpack_encoder_write(struct dpack_encoder * __restrict encoder,
 	dpack_assert_intern(data);
 	dpack_assert_intern(size);
 
-	if (size <= dpack_encoder_space_left(encoder)) {
-		_dpack_encoder_write(encoder, data, size);
-		return 0;
-	}
-
-	return -EMSGSIZE;
+	return encoder->ops->write(encoder, data, size);
 }
 
 static inline __dpack_nonull(1) __warn_result
@@ -132,18 +116,6 @@ dpack_write_tag(struct dpack_encoder * __restrict encoder,
 	dpack_assert_intern(_decoder); \
 	dpack_decoder_assert_ops_intern((_decoder)->ops)
 
-static inline __dpack_nonull(1)
-void
-_dpack_decoder_discard(struct dpack_decoder * __restrict decoder,
-                       size_t                            size)
-{
-	dpack_decoder_assert_api(decoder);
-	dpack_assert_api(size);
-	dpack_assert_api(size <= dpack_decoder_data_left(decoder));
-
-	decoder->ops->disc(decoder, size);
-}
-
 static inline __dpack_nonull(1) __warn_result
 int
 dpack_decoder_discard(struct dpack_decoder * __restrict decoder,
@@ -152,26 +124,7 @@ dpack_decoder_discard(struct dpack_decoder * __restrict decoder,
 	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(size);
 
-	if (size <= dpack_decoder_data_left(decoder)) {
-		_dpack_decoder_discard(decoder, size);
-		return 0;
-	}
-
-	return -ENODATA;
-}
-
-static inline __dpack_nonull(1, 2)
-void
-_dpack_decoder_read(struct dpack_decoder * __restrict decoder,
-                    uint8_t * __restrict              data,
-                    size_t                            size)
-{
-	dpack_decoder_assert_intern(decoder);
-	dpack_assert_intern(data);
-	dpack_assert_intern(size);
-	dpack_assert_intern(size <= dpack_decoder_data_left(decoder));
-
-	decoder->ops->read(decoder, data, size);
+	return decoder->ops->disc(decoder, size);
 }
 
 static inline __dpack_nonull(1, 2) __warn_result
@@ -184,12 +137,7 @@ dpack_decoder_read(struct dpack_decoder * __restrict decoder,
 	dpack_assert_intern(data);
 	dpack_assert_intern(size);
 
-	if (size <= dpack_decoder_data_left(decoder)) {
-		_dpack_decoder_read(decoder, data, size);
-		return 0;
-	}
-
-	return -ENODATA;
+	return decoder->ops->read(decoder, data, size);
 }
 
 static inline __dpack_nonull(1, 2) __warn_result
@@ -202,5 +150,25 @@ dpack_read_tag(struct dpack_decoder * __restrict decoder,
 
 	return dpack_decoder_read(decoder, tag, sizeof(*tag));
 }
+
+extern int
+dpack_read_cnt8(struct dpack_decoder * __restrict decoder,
+                size_t * __restrict               count)
+	__dpack_nonull(1, 2) __warn_result;
+
+extern int
+dpack_read_cnt16(struct dpack_decoder * __restrict decoder,
+                 size_t * __restrict               count)
+	__dpack_nonull(1, 2) __warn_result;
+
+extern int
+dpack_read_cnt32(struct dpack_decoder * __restrict decoder,
+                 size_t * __restrict               count)
+	__dpack_nonull(1, 2) __warn_result;
+
+
+extern int
+dpack_discard_body(struct dpack_decoder * __restrict decoder, uint8_t tag)
+	__dpack_nonull(1) __warn_result;
 
 #endif /* _DPACK_COMMON_H */

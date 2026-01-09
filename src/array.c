@@ -121,7 +121,7 @@ dpack_load_array_tag(struct dpack_decoder * __restrict decoder,
 				                         (uint8_t *)&val,
 				                         sizeof(val));
 				if (!err) {
-					*nr = (unsigned int)(be16toh(val));
+					*nr = (unsigned int)be16toh(val);
 					return 0;
 				}
 				break;
@@ -136,7 +136,7 @@ dpack_load_array_tag(struct dpack_decoder * __restrict decoder,
 				                         (uint8_t *)&val,
 				                         sizeof(val));
 				if (!err) {
-					*nr = (unsigned int)(be32toh(val));
+					*nr = (unsigned int)be32toh(val);
 					return 0;
 				}
 				break;
