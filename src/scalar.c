@@ -8,6 +8,7 @@
 #include "dpack/scalar.h"
 #include "dpack/codec.h"
 #include "common.h"
+#include <endian.h>
 #if defined(CONFIG_DPACK_FLOAT) || defined(CONFIG_DPACK_DOUBLE)
 #include <math.h>
 #endif /* defined(CONFIG_DPACK_FLOAT) || defined(CONFIG_DPACK_DOUBLE) */
@@ -47,10 +48,10 @@ dpack_decode_bool(struct dpack_decoder * __restrict decoder,
 			return 0;
 
 		default:
-			break;
+			err = dpack_maybe_discard(decoder, tag);
+			if (!err)
+				err = -ENOMSG;
 		}
-
-		return -ENOMSG;
 	}
 
 	return err;
@@ -86,6 +87,8 @@ dpack_load_uint8(struct dpack_decoder * __restrict decoder,
 	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(value);
 
+	int err;
+
 	switch (tag) {
 	case DPACK_FIXUINT_TAG:
 		*value = tag;
@@ -99,28 +102,26 @@ dpack_load_uint8(struct dpack_decoder * __restrict decoder,
 			*value = tag;
 			return 0;
 		}
+		else
+			err = -ENOMSG;
 		break;
 
 	case DPACK_INT8_TAG:
-		{
-			int err;
-
-			err = dpack_decoder_read(decoder,
-			                         value,
-			                         sizeof(*value));
-			if (!err) {
-				if (*(int8_t *)value >= 0)
-					return 0;
-				break;
-			}
-			return err;
-		}
+		err = dpack_decoder_read(decoder,
+		                         value,
+		                         sizeof(*value));
+		if (!err)
+			if (*(int8_t *)value >= 0)
+				return 0;
+		break;
 
 	default:
-		break;
+		err = dpack_maybe_discard(decoder, tag);
+		if (!err)
+			err = -ENOMSG;
 	}
 
-	return -ENOMSG;
+	return err;
 }
 
 int
@@ -236,6 +237,8 @@ dpack_load_int8(struct dpack_decoder * __restrict decoder,
 	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(value);
 
+	int err;
+
 	switch (tag) {
 	case DPACK_FIXINT_TAG:
 		*value = (int8_t)tag;
@@ -251,25 +254,23 @@ dpack_load_int8(struct dpack_decoder * __restrict decoder,
 			*value = (int8_t)tag;
 			return 0;
 		}
+		else
+			err = -ENOMSG;
 		break;
 
 	case DPACK_UINT8_TAG:
-		{
-			int err;
-
-			err = dpack_decoder_read(decoder,
-			                         (uint8_t *)value,
-			                         sizeof(*value));
-			if (!err) {
-				if (*value >= 0)
-					return 0;
-				break;
-			}
-			return err;
-		}
+		err = dpack_decoder_read(decoder,
+		                         (uint8_t *)value,
+		                         sizeof(*value));
+		if (!err)
+			if (*value >= 0)
+				return 0;
+		break;
 
 	default:
-		break;
+		err = dpack_maybe_discard(decoder, tag);
+		if (!err)
+			err = -ENOMSG;
 	}
 
 	return -ENOMSG;
@@ -1393,9 +1394,10 @@ dpack_load_float(struct dpack_decoder * __restrict decoder,
 	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(value);
 
+	int err;
+
 	if (tag == DPACK_FLOAT32_TAG) {
 		union { uint32_t u; float f; } val;
-		int                            err;
 
 		err = dpack_decoder_read(decoder,
 		                         (uint8_t *)&val.u,
@@ -1407,11 +1409,14 @@ dpack_load_float(struct dpack_decoder * __restrict decoder,
 			*value = val.f;
 			return 0;
 		}
-
-		return err;
+	}
+	else {
+		err = dpack_maybe_discard(decoder, tag);
+		if (!err)
+			err = -ENOMSG;
 	}
 
-	return -ENOMSG;
+	return err;
 }
 
 int
@@ -1662,10 +1667,10 @@ dpack_decode_nil(struct dpack_decoder * decoder)
 			return 0;
 
 		default:
-			break;
+			err = dpack_maybe_discard(decoder, tag);
+			if (!err)
+				err = -ENOMSG;
 		}
-
-		return -ENOMSG;
 	}
 
 	return err;

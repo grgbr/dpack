@@ -148,8 +148,8 @@ dpack_decoder_buffer_read(struct dpack_decoder * __restrict decoder,
 
 static __dpack_nonull(1)
 int
-dpack_decoder_buffer_discard(struct dpack_decoder * __restrict decoder,
-                             size_t                            size)
+dpack_decoder_buffer_skip(struct dpack_decoder * __restrict decoder,
+                          size_t                            size)
 {
 	dpack_decoder_assert_buffer_api((const struct dpack_decoder_buffer *)
 	                                decoder);
@@ -177,20 +177,23 @@ dpack_decoder_buffer_fini(struct dpack_decoder * __restrict decoder __unused)
 const struct dpack_decoder_ops dpack_decoder_buffer_ops = {
 	.left = dpack_decoder_buffer_left,
 	.read = dpack_decoder_buffer_read,
-	.disc = dpack_decoder_buffer_discard,
+	.skip = dpack_decoder_buffer_skip,
 	.fini = dpack_decoder_buffer_fini
 };
 
 void
-dpack_decoder_init_buffer(struct dpack_decoder_buffer * __restrict decoder,
-                          const uint8_t * __restrict               buffer,
-                          size_t                                   size)
+_dpack_decoder_init_buffer(struct dpack_decoder_buffer * __restrict decoder,
+                           const uint8_t * __restrict               buffer,
+                           size_t                                   size,
+                           bool                                     discard)
 {
 	dpack_assert_api(decoder);
 	dpack_assert_api(buffer);
 	dpack_assert_api(size);
 
-	dpack_decoder_init(&decoder->base, &dpack_decoder_buffer_ops);
+	dpack_decoder_init(&decoder->base,
+	                   &dpack_decoder_buffer_ops,
+	                   discard);
 	decoder->head = 0;
 	decoder->capa = size;
 	decoder->buff = buffer;

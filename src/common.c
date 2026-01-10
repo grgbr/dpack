@@ -8,9 +8,10 @@
 #include "common.h"
 #include <endian.h>
 
+static inline __dpack_nonull(1, 2) __warn_result
 int
 dpack_read_cnt8(struct dpack_decoder * __restrict decoder,
-                size_t * __restrict               count)
+                unsigned int * __restrict         count)
 {
 	dpack_decoder_assert_intern(decoder);
 	dpack_assert_intern(count);
@@ -29,7 +30,7 @@ dpack_read_cnt8(struct dpack_decoder * __restrict decoder,
 
 int
 dpack_read_cnt16(struct dpack_decoder * __restrict decoder,
-                 size_t * __restrict               count)
+                 unsigned int * __restrict         count)
 {
 	dpack_decoder_assert_intern(decoder);
 	dpack_assert_intern(count);
@@ -48,7 +49,7 @@ dpack_read_cnt16(struct dpack_decoder * __restrict decoder,
 
 int
 dpack_read_cnt32(struct dpack_decoder * __restrict decoder,
-                 size_t * __restrict               count)
+                 unsigned int * __restrict         count)
 {
 	dpack_decoder_assert_intern(decoder);
 	dpack_assert_intern(count);
@@ -75,8 +76,7 @@ dpack_discard_fixcnt(struct dpack_decoder * __restrict decoder,
 	dpack_assert_intern(tag);
 	dpack_assert_intern(mask);
 
-	return dpack_decoder_discard(decoder,
-	                             (size_t)((unsigned int)tag & mask));
+	return dpack_decoder_skip(decoder, (size_t)((unsigned int)tag & mask));
 }
 
 static __dpack_nonull(1) __warn_result
@@ -85,12 +85,12 @@ dpack_discard_cnt8(struct dpack_decoder * __restrict decoder)
 {
 	dpack_decoder_assert_intern(decoder);
 
-	size_t cnt;
-	int    err;
+	unsigned int cnt;
+	int          err;
 
 	err = dpack_read_cnt8(decoder, &cnt);
 	if (!err)
-		return dpack_decoder_discard(decoder, cnt);
+		return dpack_decoder_skip(decoder, cnt);
 
 	return err;
 }
@@ -101,12 +101,12 @@ dpack_discard_cnt16(struct dpack_decoder * __restrict decoder)
 {
 	dpack_decoder_assert_intern(decoder);
 
-	size_t cnt;
-	int    err;
+	unsigned int cnt;
+	int          err;
 
 	err = dpack_read_cnt16(decoder, &cnt);
 	if (!err)
-		return dpack_decoder_discard(decoder, cnt);
+		return dpack_decoder_skip(decoder, cnt);
 
 	return err;
 }
@@ -117,12 +117,12 @@ dpack_discard_cnt32(struct dpack_decoder * __restrict decoder)
 {
 	dpack_decoder_assert_intern(decoder);
 
-	size_t cnt;
-	int    err;
+	unsigned int cnt;
+	int          err;
 
 	err = dpack_read_cnt32(decoder, &cnt);
 	if (!err)
-		return dpack_decoder_discard(decoder, cnt);
+		return dpack_decoder_skip(decoder, cnt);
 
 	return err;
 }
@@ -133,14 +133,15 @@ dpack_discard_items(struct dpack_decoder * __restrict decoder,
                     unsigned int                      nr)
 {
 	dpack_decoder_assert_intern(decoder);
+	dpack_assert_intern(nr);
 
-	while (nr--) {
+	do {
 		int err;
 
-		err = dpack_decoder_discard_item(decoder);
+		err = dpack_decoder_discard(decoder);
 		if (err)
 			return err;
-	}
+	} while (--nr);
 
 	return 0;
 }
@@ -160,7 +161,7 @@ dpack_discard_fixarray(struct dpack_decoder * __restrict decoder,
 
 	unsigned int nr = (unsigned int)(tag & _DPACK_FIXARRAY_ELMNR_MAX);
 
-	return dpack_discard_items(decoder, nr);
+	return nr ? dpack_discard_items(decoder, nr) : 0;
 }
 
 #else  /* !defined(CONFIG_DPACK_ARRAY) */
@@ -171,8 +172,6 @@ dpack_discard_fixarray(struct dpack_decoder * __restrict decoder __unused,
                        uint8_t                           tag)
 {
 	dpack_decoder_assert_intern(decoder);
-	dpack_assert_intern(((unsigned int)tag & ~_DPACK_FIXARRAY_ELMNR_MAX) ==
-	                    _DPACK_FIXARRAY_TAG);
 
 	return -ENOTSUP;
 }
@@ -188,12 +187,12 @@ dpack_discard_array16(struct dpack_decoder * __restrict decoder)
 {
 	dpack_decoder_assert_intern(decoder);
 
-	size_t nr;
-	int    err;
+	unsigned nr;
+	int      err;
 
 	err = dpack_read_cnt16(decoder, &nr);
 	if (!err)
-		return dpack_discard_items(decoder, (unsigned int)nr);
+		return nr ? dpack_discard_items(decoder, nr) : 0;
 
 	return err;
 }
@@ -222,12 +221,12 @@ dpack_discard_array32(struct dpack_decoder * __restrict decoder)
 {
 	dpack_decoder_assert_intern(decoder);
 
-	size_t nr;
-	int    err;
+	unsigned int nr;
+	int          err;
 
 	err = dpack_read_cnt32(decoder, &nr);
 	if (!err)
-		return dpack_discard_items(decoder, (unsigned int)nr);
+		return nr ? dpack_discard_items(decoder, nr) : 0;
 
 	return err;
 }
@@ -262,7 +261,7 @@ dpack_discard_fixmap(struct dpack_decoder * __restrict decoder,
 
 	unsigned int nr = (unsigned int)(tag & _DPACK_FIXMAP_FLDNR_MAX);
 
-	return dpack_discard_items(decoder, 2 * nr);
+	return nr ? dpack_discard_items(decoder, 2 * nr) : 0;
 }
 
 #else  /* !defined(CONFIG_DPACK_MAP) */
@@ -273,8 +272,6 @@ dpack_discard_fixmap(struct dpack_decoder * __restrict decoder __unused,
                      uint8_t                           tag __unused)
 {
 	dpack_decoder_assert_intern(decoder);
-	dpack_assert_intern(((unsigned int)tag & ~_DPACK_FIXMAP_FLDNR_MAX) ==
-	                    _DPACK_FIXMAP_TAG);
 
 	return -ENOTSUP;
 }
@@ -290,12 +287,12 @@ dpack_discard_map16(struct dpack_decoder * __restrict decoder)
 {
 	dpack_decoder_assert_intern(decoder);
 
-	size_t nr;
-	int    err;
+	unsigned int nr;
+	int          err;
 
 	err = dpack_read_cnt16(decoder, &nr);
 	if (!err)
-		return dpack_discard_items(decoder, 2 * (unsigned int)nr);
+		return nr ? dpack_discard_items(decoder, 2 * nr) : 0;
 
 	return err;
 }
@@ -324,12 +321,15 @@ dpack_discard_map32(struct dpack_decoder * __restrict decoder)
 {
 	dpack_decoder_assert_intern(decoder);
 
-	size_t nr;
-	int    err;
+	unsigned int nr;
+	int          err;
 
 	err = dpack_read_cnt32(decoder, &nr);
-	if (!err)
-		return dpack_discard_items(decoder, 2 * (unsigned int)nr);
+	if (!err) {
+		if (nr <= DPACK_MAP_FLDNR_MAX)
+			return nr ? dpack_discard_items(decoder, 2 * nr) : 0;
+		err = -EBADMSG;
+	}
 
 	return err;
 }
@@ -349,6 +349,7 @@ dpack_discard_map32(struct dpack_decoder * __restrict decoder)
 #endif /* defined(CONFIG_DPACK_MAP) && \
           (DPACK_MAP_FLDNR_MAX > _DPACK_MAP16_FLDNR_MAX) */
 
+static __dpack_nonull(1) __warn_result
 int
 dpack_discard_body(struct dpack_decoder * __restrict decoder, uint8_t tag)
 {
@@ -365,27 +366,27 @@ dpack_discard_body(struct dpack_decoder * __restrict decoder, uint8_t tag)
 
 	case DPACK_UINT8_TAG:
 	case DPACK_INT8_TAG:
-		return dpack_decoder_discard(decoder, sizeof(uint8_t));
+		return dpack_decoder_skip(decoder, sizeof(uint8_t));
 
 	case DPACK_UINT16_TAG:
 	case DPACK_INT16_TAG:
-		return dpack_decoder_discard(decoder, sizeof(uint16_t));
+		return dpack_decoder_skip(decoder, sizeof(uint16_t));
 
 	case DPACK_UINT32_TAG:
 	case DPACK_INT32_TAG:
-		return dpack_decoder_discard(decoder, sizeof(uint32_t));
+		return dpack_decoder_skip(decoder, sizeof(uint32_t));
 
 	case DPACK_UINT64_TAG:
 	case DPACK_INT64_TAG:
-		return dpack_decoder_discard(decoder, sizeof(uint64_t));
+		return dpack_decoder_skip(decoder, sizeof(uint64_t));
 
 #if defined(CONFIG_DPACK_FLOAT)
 	case DPACK_FLOAT32_TAG:
-		return dpack_decoder_discard(decoder, sizeof(float));
+		return dpack_decoder_skip(decoder, sizeof(float));
 #endif /* defined(CONFIG_DPACK_FLOAT) */
 #if defined(CONFIG_DPACK_DOUBLE)
 	case DPACK_FLOAT64_TAG:
-		return dpack_decoder_discard(decoder, sizeof(double));
+		return dpack_decoder_skip(decoder, sizeof(double));
 #endif /* defined(CONFIG_DPACK_DOUBLE) */
 #endif /* defined(CONFIG_DPACK_SCALAR) */
 
@@ -454,8 +455,30 @@ dpack_discard_body(struct dpack_decoder * __restrict decoder, uint8_t tag)
 }
 
 int
-dpack_decoder_discard_item(struct dpack_decoder * __restrict decoder)
+dpack_maybe_discard_items(struct dpack_decoder * __restrict decoder,
+                          unsigned int                      count)
 {
+	dpack_decoder_assert_intern(decoder);
+
+	if (!decoder->disc)
+		return 0;
+
+	return count ? dpack_discard_items(decoder, count) : 0;
+}
+
+int
+dpack_maybe_discard(struct dpack_decoder * __restrict decoder, uint8_t tag)
+{
+	dpack_decoder_assert_intern(decoder);
+
+	return (!decoder->disc) ? 0 : dpack_discard_body(decoder, tag);
+}
+
+int
+dpack_decoder_discard(struct dpack_decoder * __restrict decoder)
+{
+	dpack_decoder_assert_api(decoder);
+
 	uint8_t tag;
 	int     err;
 

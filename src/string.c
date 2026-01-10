@@ -169,7 +169,9 @@ dpack_load_str_tag(struct dpack_decoder * __restrict decoder)
 			}
 #endif
 		default:
-			err = -ENOMSG;
+			err = dpack_maybe_discard(decoder, tag);
+			if (!err)
+				err = -ENOMSG;
 		}
 	}
 
@@ -190,12 +192,18 @@ dpack_decode_str_tag(struct dpack_decoder * __restrict decoder,
 	ssize_t len;
 
 	len = dpack_load_str_tag(decoder);
-	if (len > 0)
-		return (((size_t)len >= min_len) && ((size_t)len <= max_len))
-		       ? len
-		       : -EMSGSIZE;
-	else
-		return len ? len : -EBADMSG;
+	if (len > 0) {
+		if (((size_t)len >= min_len) && ((size_t)len <= max_len))
+			return len;
+
+		len = (ssize_t)dpack_maybe_skip(decoder, (size_t)len);
+		if (!len)
+			len = -EMSGSIZE;
+	}
+	else if (!len)
+		len = -EBADMSG;
+
+	return len;
 }
 
 static __dpack_nonull(1, 2) __warn_result
@@ -273,10 +281,18 @@ dpack_xtract_str_equ(struct dpack_decoder * __restrict decoder,
 	ssize_t len;
 
 	len = dpack_load_str_tag(decoder);
-	if (len > 0)
-		return ((size_t)len == length) ? 0 : -EMSGSIZE;
-	else
-		return len ? (int)len : -EBADMSG;
+	if (len > 0) {
+		if ((size_t)len == length)
+			return 0;
+
+		len = (ssize_t)dpack_maybe_skip(decoder, (size_t)len);
+		if (!len)
+			len = -EMSGSIZE;
+	}
+	else if (!len)
+		len = -EBADMSG;
+
+	return (int)len;
 }
 
 ssize_t
@@ -308,10 +324,18 @@ dpack_xtract_str_max(struct dpack_decoder * __restrict decoder,
 	ssize_t len;
 
 	len = dpack_load_str_tag(decoder);
-	if (len > 0)
-		return ((size_t)len <= max_len) ? len : -EMSGSIZE;
-	else
-		return len ? len : -EBADMSG;
+	if (len > 0) {
+		if ((size_t)len <= max_len)
+			return len;
+
+		len = (ssize_t)dpack_maybe_skip(decoder, (size_t)len);
+		if (!len)
+			len = -EMSGSIZE;
+	}
+	else if (!len)
+		len = -EBADMSG;
+
+	return len;
 }
 
 ssize_t

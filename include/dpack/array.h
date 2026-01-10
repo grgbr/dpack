@@ -946,6 +946,11 @@ dpack_array_decode_count_range(struct dpack_decoder * __restrict decoder,
                                unsigned int * __restrict         count)
 	__dpack_nonull(1, 4) __warn_result __dpack_export;
 
+extern int
+dpack_array_decode_count_end(struct dpack_decoder * __restrict decoder,
+                             unsigned int                      left)
+	__dpack_nonull(1) __warn_result __dpack_export;
+
 /******************************************************************************
  * Array decoding helpers
  ******************************************************************************/

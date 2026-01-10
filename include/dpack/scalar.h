@@ -20,7 +20,6 @@
 #define _DPACK_SCALAR_H
 
 #include <dpack/cdefs.h>
-#include <dpack/mpack.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -33,7 +32,7 @@ struct dpack_decoder;
  * Minimum size in bytes of an integer serialized according to the
  * @rstsubst{MessagePack int format}.
  */
-#define DPACK_STDINT_SIZE_MIN MPACK_TAG_SIZE_FIXUINT
+#define DPACK_STDINT_SIZE_MIN 1
 
 /**
  * Maximum size of a serialized integer.
@@ -41,7 +40,7 @@ struct dpack_decoder;
  * Maximum size in bytes of an integer serialized according to the
  * @rstsubst{MessagePack int format}.
  */
-#define DPACK_STDINT_SIZE_MAX MPACK_TAG_SIZE_U64
+#define DPACK_STDINT_SIZE_MAX 9
 
 /******************************************************************************
  * Boolean
@@ -137,7 +136,7 @@ dpack_decode_bool(struct dpack_decoder * __restrict decoder,
  * Maximum size in bytes of an 8-bits unsigned integer serialized according to
  * the @rstsubst{MessagePack int format}.
  */
-#define DPACK_UINT8_SIZE_MAX MPACK_TAG_SIZE_U8
+#define DPACK_UINT8_SIZE_MAX 2
 
 /**
  * Encode an 8-bits unsigned integer according to the MessagePack format
@@ -364,7 +363,7 @@ dpack_decode_uint8_range(struct dpack_decoder * __restrict decoder,
  * Maximum size in bytes of an 8-bits signed integer serialized according to the
  * @rstsubst{MessagePack int format}.
  */
-#define DPACK_INT8_SIZE_MAX MPACK_TAG_SIZE_I8
+#define DPACK_INT8_SIZE_MAX 2
 
 /**
  * Encode an 8-bits signed integer according to the MessagePack format
@@ -596,7 +595,7 @@ dpack_decode_int8_range(struct dpack_decoder * __restrict decoder,
  * Maximum size in bytes of a 16-bits unsigned integer serialized according to
  * the @rstsubst{MessagePack int format}.
  */
-#define DPACK_UINT16_SIZE_MAX MPACK_TAG_SIZE_U16
+#define DPACK_UINT16_SIZE_MAX 3
 
 /**
  * Encode a 16-bits unsigned integer according to the MessagePack format
@@ -824,7 +823,7 @@ dpack_decode_uint16_range(struct dpack_decoder * __restrict decoder,
  * Maximum size in bytes of a 16-bits signed integer serialized according to
  * the @rstsubst{MessagePack int format}.
  */
-#define DPACK_INT16_SIZE_MAX MPACK_TAG_SIZE_I16
+#define DPACK_INT16_SIZE_MAX 3
 
 /**
  * Encode a 16-bits signed integer according to the MessagePack format
@@ -1056,7 +1055,7 @@ dpack_decode_int16_range(struct dpack_decoder * __restrict decoder,
  * Maximum size in bytes of a 32-bits unsigned integer serialized according to
  * the @rstsubst{MessagePack int format}.
  */
-#define DPACK_UINT32_SIZE_MAX MPACK_TAG_SIZE_U32
+#define DPACK_UINT32_SIZE_MAX 5
 
 /**
  * Encode a 32-bits unsigned integer according to the MessagePack format
@@ -1525,7 +1524,7 @@ dpack_decode_uint_range(struct dpack_decoder * __restrict decoder,
  * Maximum size in bytes of a 32-bits signed integer serialized according to
  * the @rstsubst{MessagePack int format}.
  */
-#define DPACK_INT32_SIZE_MAX MPACK_TAG_SIZE_I32
+#define DPACK_INT32_SIZE_MAX 5
 
 /**
  * Encode a 32-bits signed integer according to the MessagePack format
@@ -1999,7 +1998,7 @@ dpack_decode_int_range(struct dpack_decoder * __restrict decoder,
  * Maximum size in bytes of a 64-bits unsigned integer serialized according to
  * the @rstsubst{MessagePack int format}.
  */
-#define DPACK_UINT64_SIZE_MAX MPACK_TAG_SIZE_U64
+#define DPACK_UINT64_SIZE_MAX 9
 
 /**
  * Encode a 64-bits unsigned integer according to the MessagePack format
@@ -2226,7 +2225,7 @@ dpack_decode_uint64_range(struct dpack_decoder * __restrict decoder,
  * Maximum size in bytes of a 64-bits signed integer serialized according to
  * the @rstsubst{MessagePack int format}.
  */
-#define DPACK_INT64_SIZE_MAX MPACK_TAG_SIZE_I64
+#define DPACK_INT64_SIZE_MAX 9
 
 /**
  * Encode a 64-bits signed integer according to the MessagePack format
@@ -2452,7 +2451,7 @@ dpack_decode_int64_range(struct dpack_decoder * __restrict decoder,
  * Size in bytes of a single precision floating point number serialized
  * according to the @rstsubst{MessagePack float format}.
  */
-#define DPACK_FLOAT_SIZE MPACK_TAG_SIZE_FLOAT
+#define DPACK_FLOAT_SIZE 5
 
 /**
  * Encode a single precision floating point number according to the MessagePack
@@ -2691,7 +2690,7 @@ dpack_decode_float_range(struct dpack_decoder * __restrict decoder,
  * Size in bytes of a double precision floating point number serialized
  * according to the @rstsubst{MessagePack float format}.
  */
-#define DPACK_DOUBLE_SIZE MPACK_TAG_SIZE_DOUBLE
+#define DPACK_DOUBLE_SIZE 9
 
 /**
  * Encode a double precision floating point number according to the MessagePack

@@ -109,23 +109,12 @@ dpack_write_tag(struct dpack_encoder * __restrict encoder,
 	dpack_assert_intern(_ops); \
 	dpack_assert_intern((_ops)->left); \
 	dpack_assert_intern((_ops)->read); \
-	dpack_assert_intern((_ops)->disc); \
+	dpack_assert_intern((_ops)->skip); \
 	dpack_assert_intern((_ops)->fini)
 
 #define dpack_decoder_assert_intern(_decoder) \
 	dpack_assert_intern(_decoder); \
 	dpack_decoder_assert_ops_intern((_decoder)->ops)
-
-static inline __dpack_nonull(1) __warn_result
-int
-dpack_decoder_discard(struct dpack_decoder * __restrict decoder,
-                      size_t                            size)
-{
-	dpack_decoder_assert_api(decoder);
-	dpack_assert_api(size);
-
-	return decoder->ops->disc(decoder, size);
-}
 
 static inline __dpack_nonull(1, 2) __warn_result
 int
@@ -151,24 +140,46 @@ dpack_read_tag(struct dpack_decoder * __restrict decoder,
 	return dpack_decoder_read(decoder, tag, sizeof(*tag));
 }
 
-extern int
-dpack_read_cnt8(struct dpack_decoder * __restrict decoder,
-                size_t * __restrict               count)
-	__dpack_nonull(1, 2) __warn_result;
+static inline __dpack_nothrow
+void
+dpack_fixcnt(uint8_t tag, unsigned int mask, unsigned int * __restrict count)
+{
+	dpack_assert_intern(tag);
+	dpack_assert_intern(mask);
+	dpack_assert_intern(count);
+
+	*count = (size_t)((unsigned int)tag & mask);
+}
 
 extern int
 dpack_read_cnt16(struct dpack_decoder * __restrict decoder,
-                 size_t * __restrict               count)
-	__dpack_nonull(1, 2) __warn_result;
+                 unsigned int * __restrict         count)
+	__dpack_nonull(1, 2) __warn_result __export_intern;
 
 extern int
 dpack_read_cnt32(struct dpack_decoder * __restrict decoder,
-                 size_t * __restrict               count)
-	__dpack_nonull(1, 2) __warn_result;
+                 unsigned int * __restrict         count)
+	__dpack_nonull(1, 2) __warn_result __export_intern;
 
+static inline __dpack_nonull(1) __warn_result
+int
+dpack_maybe_skip(struct dpack_decoder * __restrict decoder,
+                 size_t                            size)
+{
+	dpack_decoder_assert_intern(decoder);
+	dpack_assert_api(size);
+
+	return (!decoder->disc) ? 0 : decoder->ops->skip(decoder, size);
+}
 
 extern int
-dpack_discard_body(struct dpack_decoder * __restrict decoder, uint8_t tag)
-	__dpack_nonull(1) __warn_result;
+dpack_maybe_discard_items(struct dpack_decoder * __restrict decoder,
+                          unsigned int                      nr)
+	__dpack_nonull(1) __warn_result __export_intern;
+
+extern int
+dpack_maybe_discard(struct dpack_decoder * __restrict decoder,
+                    uint8_t                           tag)
+	__dpack_nonull(1) __warn_result __export_intern;
 
 #endif /* _DPACK_COMMON_H */

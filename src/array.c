@@ -110,42 +110,42 @@ dpack_load_array_tag(struct dpack_decoder * __restrict decoder,
 	if (!err) {
 		switch (tag) {
 		case DPACK_FIXARRAY_TAG:
-			*nr = (unsigned int)(tag & _DPACK_FIXARRAY_ELMNR_MAX);
+			dpack_fixcnt(tag, _DPACK_FIXARRAY_ELMNR_MAX, nr);
 			return 0;
 #if DPACK_ARRAY_ELMNR_MAX > _DPACK_FIXARRAY_ELMNR_MAX
 		case DPACK_ARRAY16_TAG:
-			{
-				uint16_t val;
-
-				err = dpack_decoder_read(decoder,
-				                         (uint8_t *)&val,
-				                         sizeof(val));
-				if (!err) {
-					*nr = (unsigned int)be16toh(val);
-					return 0;
-				}
-				break;
-			}
+			return dpack_read_cnt16(decoder, nr);
 #endif
 #if DPACK_ARRAY_ELMNR_MAX > _DPACK_ARRAY16_ELMNR_MAX
 		case DPACK_ARRAY32_TAG:
-			{
-				uint32_t val;
-
-				err = dpack_decoder_read(decoder,
-				                         (uint8_t *)&val,
-				                         sizeof(val));
-				if (!err) {
-					*nr = (unsigned int)be32toh(val);
-					return 0;
-				}
-				break;
-			}
+			return dpack_read_cnt32(decoder, nr);
 #endif
 		default:
-			err = -ENOMSG;
+			err = dpack_maybe_discard(decoder, tag);
+			if (!err)
+				err = -ENOMSG;
 		}
 	}
+
+	return err;
+}
+
+static __dpack_nonull(1, 2) __warn_result
+int
+dpack_array_maybe_discard_left(struct dpack_decoder * __restrict decoder,
+                               unsigned int                      left)
+{
+	dpack_decoder_assert_api(decoder);
+
+	int err;
+
+	if (left) {
+		err = dpack_maybe_discard_items(decoder, left);
+		if (!err)
+			err = -EMSGSIZE;
+	}
+	else
+		err = -EBADMSG;
 
 	return err;
 }
@@ -157,7 +157,13 @@ dpack_array_decode_count(struct dpack_decoder * __restrict decoder,
 	dpack_decoder_assert_api(decoder);
 	dpack_assert_api(count);
 
-	return dpack_load_array_tag(decoder, count);
+	int err;
+
+	err = dpack_load_array_tag(decoder, count);
+	if (!err)
+		return (*count) ? 0 : -EBADMSG;
+
+	return err;
 }
 
 int
@@ -176,7 +182,7 @@ dpack_array_decode_count_equ(struct dpack_decoder * __restrict decoder,
 		if (cnt == count)
 			return 0;
 
-		return cnt ? -EMSGSIZE : -EBADMSG;
+		err = dpack_array_maybe_discard_left(decoder, count);
 	}
 
 	return err;
@@ -199,7 +205,7 @@ dpack_array_decode_count_min(struct dpack_decoder * __restrict decoder,
 		if ((*count >= min_cnt) && (*count <= DPACK_ARRAY_ELMNR_MAX))
 			return 0;
 
-		return *count ? -EMSGSIZE : -EBADMSG;
+		err = dpack_array_maybe_discard_left(decoder, *count);
 	}
 
 	return err;
@@ -222,7 +228,7 @@ dpack_array_decode_count_max(struct dpack_decoder * __restrict decoder,
 		if ((*count >= 1) && (*count <= max_cnt))
 			return 0;
 
-		return *count ? -EMSGSIZE : -EBADMSG;
+		err = dpack_array_maybe_discard_left(decoder, *count);
 	}
 
 	return err;
@@ -247,10 +253,19 @@ dpack_array_decode_count_range(struct dpack_decoder * __restrict decoder,
 		if ((*count >= min_cnt) && (*count <= max_cnt))
 			return 0;
 
-		return *count ? -EMSGSIZE : -EBADMSG;
+		err = dpack_array_maybe_discard_left(decoder, *count);
 	}
 
 	return err;
+}
+
+int
+dpack_array_decode_count_end(struct dpack_decoder * __restrict decoder,
+                             unsigned int                      left)
+{
+	dpack_decoder_assert_api(decoder);
+
+	return (!left) ? 0 : dpack_maybe_discard_items(decoder, left);
 }
 
 /******************************************************************************
@@ -269,16 +284,31 @@ dpack_array_decode_elems(struct dpack_decoder * __restrict decoder,
 	dpack_assert_intern(nr);
 
 	unsigned int idx = 0;
+	int          err;
 
 	do {
-		int err;
-
 		err = decode(decoder, idx, data);
 		if (err)
-			return err;
+			goto discard;
 	} while (++idx < nr);
 
 	return 0;
+
+discard:
+	{
+		dpack_assert_intern(idx < nr);
+
+		nr -= idx + 1;
+		if (nr) {
+			int ret;
+
+			ret = dpack_maybe_discard_items(decoder, nr);
+			if (ret)
+				err = ret;
+		}
+
+		return err;
+	}
 }
 
 static __dpack_nonull(1, 4) __warn_result
@@ -306,7 +336,7 @@ dpack_array_xtract_range(struct dpack_decoder * decoder,
 			                                data,
 			                                nr);
 
-		return nr ? -EMSGSIZE : -EBADMSG;
+		err = dpack_array_maybe_discard_left(decoder, nr);
 	}
 
 	return err;
@@ -348,7 +378,8 @@ dpack_array_decode_equ(struct dpack_decoder * __restrict decoder,
 		                                       decode,
 		                                       data,
 		                                       nr);
-		return cnt ? -EMSGSIZE : -EBADMSG;
+
+		err = dpack_array_maybe_discard_left(decoder, cnt);
 	}
 
 	return err;

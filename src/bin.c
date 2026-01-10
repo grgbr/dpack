@@ -137,7 +137,9 @@ dpack_load_bin_tag(struct dpack_decoder * __restrict decoder)
 			}
 #endif
 		default:
-			err = -ENOMSG;
+			err = dpack_maybe_discard(decoder, tag);
+			if (!err)
+				err = -ENOMSG;
 		}
 	}
 
@@ -158,12 +160,18 @@ dpack_decode_bin_tag(struct dpack_decoder * __restrict decoder,
 	ssize_t sz;
 
 	sz = dpack_load_bin_tag(decoder);
-	if (sz > 0)
-		return (((size_t)sz >= min_sz) && ((size_t)sz <= max_sz))
-		       ? sz
-		       : -EMSGSIZE;
-	else
-		return sz ? sz : -EBADMSG;
+	if (sz > 0) {
+		if (((size_t)sz >= min_sz) && ((size_t)sz <= max_sz))
+			return sz;
+
+		sz = (ssize_t)dpack_maybe_skip(decoder, (size_t)sz);
+		if (!sz)
+			sz = -EMSGSIZE;
+	}
+	else if (!sz)
+		sz = -EBADMSG;
+
+	return sz;
 }
 
 static __dpack_nonull(1, 2) __warn_result
@@ -220,10 +228,18 @@ dpack_xtract_bin_equ(struct dpack_decoder * __restrict decoder, size_t size)
 	ssize_t sz;
 
 	sz = dpack_load_bin_tag(decoder);
-	if (sz > 0)
-		return ((size_t)sz == size) ? 0 : -EMSGSIZE;
-	else
-		return sz ? (int)sz : -EBADMSG;
+	if (sz > 0) {
+		if ((size_t)sz == size)
+			return 0;
+
+		sz = (ssize_t)dpack_maybe_skip(decoder, (size_t)sz);
+		if (!sz)
+			sz = -EMSGSIZE;
+	}
+	else if (!sz)
+		sz = -EBADMSG;
+
+	return (int)sz;
 }
 
 ssize_t
@@ -255,10 +271,18 @@ dpack_xtract_bin_max(struct dpack_decoder * __restrict decoder,
 	ssize_t sz;
 
 	sz = dpack_load_bin_tag(decoder);
-	if (sz > 0)
-		return ((size_t)sz <= max_sz) ? sz : -EMSGSIZE;
-	else
-		return sz ? sz : -EBADMSG;
+	if (sz > 0) {
+		if ((size_t)sz <= max_sz)
+			return sz;
+
+		sz = (ssize_t)dpack_maybe_skip(decoder, (size_t)sz);
+		if (!sz)
+			sz = -EMSGSIZE;
+	}
+	else if (!sz)
+		sz = -EBADMSG;
+
+	return sz;
 }
 
 ssize_t

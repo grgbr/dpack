@@ -21,6 +21,7 @@
 
 #include <dpack/cdefs.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <errno.h>
 
 /******************************************************************************
@@ -231,7 +232,7 @@ struct dpack_decoder;
  * of @rstref{sect-api-array} or @rstref{sect-api-map} collections.
  *
  * @p decoder shall be given as a decoder initialized using
- * dpack_decoder_init_buffer() or dpack_decoder_init_skip_buffer().
+ * dpack_decoder_init_buffer() or dpack_decoder_init_discard_buffer().
  *
  * @p id shall be given as the index of the next item within the current
  * collection that is being decoded, starting from zero.
@@ -250,7 +251,7 @@ struct dpack_decoder;
  * - dpack_array_decode()
  * - dpack_map_decode()
  * - dpack_decoder_init_buffer()
- * - dpack_decoder_init_skip_buffer()
+ * - dpack_decoder_init_discard_buffer()
  */
 typedef int dpack_decode_item_fn(struct dpack_decoder * __restrict,
                                  unsigned int,
@@ -264,27 +265,32 @@ typedef int dpack_decoder_read_fn(struct dpack_decoder * __restrict,
                                   size_t)
 	__dpack_nonull(1, 2);
 
-typedef int dpack_decoder_discard_fn(struct dpack_decoder * __restrict, size_t)
+typedef int dpack_decoder_skip_fn(struct dpack_decoder * __restrict, size_t)
 	__dpack_nonull(1);
 
 typedef void dpack_decoder_fini_fn(struct dpack_decoder * __restrict)
 	__dpack_nonull(1);
 
 struct dpack_decoder_ops {
-	dpack_decoder_left_fn *    left;
-	dpack_decoder_read_fn *    read;
-	dpack_decoder_discard_fn * disc;
-	dpack_decoder_fini_fn *    fini;
+	dpack_decoder_left_fn * left;
+	dpack_decoder_read_fn * read;
+	dpack_decoder_skip_fn * skip;
+	dpack_decoder_fini_fn * fini;
 };
 
-#define DPACK_DECODER_INIT_OPS(_left, _read, _disc, _fini) \
-	{ .left = _left, .read = _read, .disc = _disc, .fini = _fini }
+#define DPACK_DECODER_INIT_OPS(_left, _read, _skip, _fini) \
+	{ \
+		.left = _left, \
+		.read = _read, \
+		.skip = _skip, \
+		.fini = _fini \
+	}
 
 #define dpack_decoder_assert_ops_api(_ops) \
 	dpack_assert_api(_ops); \
 	dpack_assert_api((_ops)->left); \
 	dpack_assert_api((_ops)->read); \
-	dpack_assert_api((_ops)->disc); \
+	dpack_assert_api((_ops)->skip); \
 	dpack_assert_api((_ops)->fini)
 
 /**
@@ -295,10 +301,14 @@ struct dpack_decoder_ops {
  */
 struct dpack_decoder {
 	const struct dpack_decoder_ops * ops;
+	bool                             disc;
 };
 
-#define DPACK_DECODER_INIT(_ops) \
-	{ .ops = _ops }
+#define DPACK_DECODER_DISC   (true)
+#define DPACK_DECODER_NODISC (false)
+
+#define DPACK_DECODER_INIT(_ops, _disc) \
+	{ .ops = _ops, .disc = _disc }
 
 #define dpack_decoder_assert_api(_decoder) \
 	dpack_assert_api(_decoder); \
@@ -316,12 +326,12 @@ struct dpack_decoder {
  *
  * @warning
  * @p decoder *MUST* have been initialized using dpack_decoder_init_buffer() or
- * dpack_decoder_init_skip_buffer() before calling this function. Result is
+ * dpack_decoder_init_discard_buffer() before calling this function. Result is
  * undefined otherwise.
  *
  * @see
  * - dpack_decoder_init_buffer()
- * - dpack_decoder_init_skip_buffer()
+ * - dpack_decoder_init_discard_buffer()
  */
 static inline __dpack_nonull(1) __dpack_pure __warn_result
 size_t
@@ -332,19 +342,32 @@ dpack_decoder_data_left(const struct dpack_decoder * __restrict decoder)
 	return decoder->ops->left(decoder);
 }
 
+static inline __dpack_nonull(1) __warn_result
+int
+dpack_decoder_skip(struct dpack_decoder * __restrict decoder,
+                   size_t                            size)
+{
+	dpack_decoder_assert_api(decoder);
+	dpack_assert_api(size);
+
+	return decoder->ops->skip(decoder, size);
+}
+
 extern int
-dpack_decoder_discard_item(struct dpack_decoder * __restrict decoder)
+dpack_decoder_discard(struct dpack_decoder * __restrict decoder)
 	__dpack_nonull(1) __warn_result __dpack_export;
 
 static inline __dpack_nonull(1, 2)
 void
 dpack_decoder_init(struct dpack_decoder * __restrict           decoder,
-                   const struct dpack_decoder_ops * __restrict ops)
+                   const struct dpack_decoder_ops * __restrict ops,
+                   bool                                        discard)
 {
 	dpack_assert_api(decoder);
 	dpack_decoder_assert_ops_api(ops);
 
 	decoder->ops= ops;
+	decoder->disc = discard;
 }
 
 /**
@@ -355,12 +378,12 @@ dpack_decoder_init(struct dpack_decoder * __restrict           decoder,
  * Release resources allocated for @p decoder.
  *
  * @p buffer previously registered at dpack_decoder_init_buffer() /
- * dpack_decoder_init_skip_buffer() time may safely be @man{free(3)}'ed once
+ * dpack_decoder_init_discard_buffer() time may safely be @man{free(3)}'ed once
  * dpack_decoder_fini() has been called only.
  *
  * @see
  * - dpack_decoder_init_buffer()
- * - dpack_decoder_init_skip_buffer()
+ * - dpack_decoder_init_discard_buffer()
  */
 static inline __dpack_nonull(1)
 void
@@ -382,11 +405,19 @@ extern const struct dpack_decoder_ops dpack_decoder_buffer_ops;
 
 #define DPACK_DECODER_INIT_BUFFER(_buff, _size) \
 	{ \
-		.base = DPACK_DECODER_INIT(&dpack_decoder_buffer_ops), \
+		.base = DPACK_DECODER_INIT(&dpack_decoder_buffer_ops, \
+		                           DPACK_DECODER_NODISC), \
 		.head = 0, \
 		.capa = _size, \
 		.buff = _buff \
 	}
+
+extern void
+_dpack_decoder_init_buffer(struct dpack_decoder_buffer * __restrict decoder,
+                           const uint8_t * __restrict               buffer,
+                           size_t                                   size,
+                           bool                                     discard)
+	__dpack_nonull(1, 2) __dpack_nothrow __leaf __dpack_export;
 
 /**
  * Initialize a MessagePack decoder with buffer space
@@ -411,12 +442,36 @@ extern const struct dpack_decoder_ops dpack_decoder_buffer_ops;
  *
  * @see
  * - dpack_decoder_fini()
- * - dpack_decoder_init_skip_buffer()
+ * - dpack_decoder_init_discard_buffer()
  */
-extern void
+static inline __dpack_nonull(1, 2) __dpack_nothrow
+void
 dpack_decoder_init_buffer(struct dpack_decoder_buffer * __restrict decoder,
                           const uint8_t * __restrict               buffer,
                           size_t                                   size)
-	 __dpack_nonull(1, 2) __dpack_nothrow __leaf __dpack_export;
+{
+	_dpack_decoder_init_buffer(decoder, buffer, size, DPACK_DECODER_NODISC);
+}
+
+extern const struct dpack_decoder_ops dpack_decoder_buffer_disc_ops;
+
+#define DPACK_DECODER_INIT_DISCARD_BUFFER(_buff, _size) \
+	{ \
+		.base = DPACK_DECODER_INIT(&dpack_decoder_buffer_disc_ops, \
+		                           DPACK_DECODER_DISC), \
+		.head = 0, \
+		.capa = _size, \
+		.buff = _buff \
+	}
+
+static inline __dpack_nonull(1, 2) __dpack_nothrow
+void
+dpack_decoder_init_discard_buffer(
+	struct dpack_decoder_buffer * __restrict decoder,
+	const uint8_t * __restrict               buffer,
+	size_t                                   size)
+{
+	_dpack_decoder_init_buffer(decoder, buffer, size, DPACK_DECODER_DISC);
+}
 
 #endif /* _DPACK_CODEC_H */

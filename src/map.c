@@ -401,38 +401,16 @@ dpack_load_map_tag(struct dpack_decoder * __restrict decoder,
 	err = dpack_read_tag(decoder, &tag);
 	if (!err) {
 		switch (tag) {
-		case 1 ... _DPACK_FIXMAP_FLDNR_MAX:
-			*nr = (unsigned int)(tag & _DPACK_FIXMAP_FLDNR_MAX);
+		case DPACK_FIXMAP_TAG:
+			dpack_fixcnt(tag, _DPACK_FIXMAP_FLDNR_MAX, nr);
 			return 0;
 #if DPACK_MAP_FLDNR_MAX > _DPACK_FIXMAP_FLDNR_MAX
 		case DPACK_MAP16_TAG:
-			{
-				uint16_t val;
-
-				err = dpack_decoder_read(decoder,
-				                         (uint8_t *)&val,
-				                         sizeof(val));
-				if (!err) {
-					*nr = (unsigned int)(be16toh(val));
-					return 0;
-				}
-				break;
-			}
+			return dpack_read_cnt16(decoder, nr);
 #endif
 #if DPACK_MAP_FLDNR_MAX > _DPACK_MAP16_FLDNR_MAX
 		case DPACK_MAP32_TAG:
-			{
-				uint32_t val;
-
-				err = dpack_decoder_read(decoder,
-				                         (uint8_t *)&val,
-				                         sizeof(val));
-				if (!err) {
-					*nr = (unsigned int)(be32toh(val));
-					return 0;
-				}
-				break;
-			}
+			return dpack_read_cnt32(decoder, nr);
 #endif
 		default:
 			err = -ENOMSG;

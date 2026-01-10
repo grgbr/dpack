@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 #include <sys/types.h>
 
 union dpackut_scalar_value {
