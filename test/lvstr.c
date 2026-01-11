@@ -858,7 +858,7 @@ CUTE_TEST(dpackut_lvstr_decode_max)
 
 CUTE_TEST(dpackut_lvstr_decode_maxplus1)
 {
-	DPACKUT_LVSTR_DEC(data, DPACK_LVSTRLEN_MAX + 1, -EMSGSIZE);
+	DPACKUT_LVSTR_DEC(data, DPACK_LVSTRLEN_MAX + 1, -ENOTSUP);
 	dpackut_lvstr_decode(&data, dpackut_lvstr_unpack);
 }
 
@@ -1128,7 +1128,7 @@ CUTE_TEST(dpackut_lvstr_decode_equ_max)
 	dpackut_lvstr_decode(&data, dpackut_lvstr_unpack_equ);
 
 	data = DPACKUT_LVSTR_DEC_EQU(DPACK_LVSTRLEN_MAX + 1,
-	                             -EMSGSIZE,
+	                             -ENOTSUP,
 	                             DPACK_LVSTRLEN_MAX);
 	dpackut_lvstr_decode(&data, dpackut_lvstr_unpack_equ);
 }
@@ -1372,7 +1372,7 @@ CUTE_TEST(dpackut_lvstr_decode_max_max)
 	dpackut_lvstr_decode(&data, dpackut_lvstr_unpack_max);
 
 	data = DPACKUT_LVSTR_DEC_MAX(DPACK_LVSTRLEN_MAX + 1,
-	                             -EMSGSIZE,
+	                             -ENOTSUP,
 	                             DPACK_LVSTRLEN_MAX);
 	dpackut_lvstr_decode(&data, dpackut_lvstr_unpack_max);
 }
@@ -1665,7 +1665,7 @@ CUTE_TEST(dpackut_lvstr_decode_range_maxminus1_max)
 	dpackut_lvstr_decode(&data, dpackut_lvstr_unpack_range);
 
 	data = DPACKUT_LVSTR_DEC_RANGE(DPACK_LVSTRLEN_MAX + 1,
-	                               -EMSGSIZE,
+	                               -ENOTSUP,
 	                               DPACK_LVSTRLEN_MAX - 1,
 	                               DPACK_LVSTRLEN_MAX);
 	dpackut_lvstr_decode(&data, dpackut_lvstr_unpack_range);

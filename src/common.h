@@ -161,20 +161,16 @@ dpack_read_cnt32(struct dpack_decoder * __restrict decoder,
                  unsigned int * __restrict         count)
 	__dpack_nonull(1, 2) __warn_result __export_intern;
 
-static inline __dpack_nonull(1) __warn_result
-int
+extern int
 dpack_maybe_skip(struct dpack_decoder * __restrict decoder,
-                 size_t                            size)
-{
-	dpack_decoder_assert_intern(decoder);
-	dpack_assert_api(size);
-
-	return (!decoder->disc) ? 0 : decoder->ops->skip(decoder, size);
-}
+                 size_t                            size,
+                 size_t                            max_sz)
+	__dpack_nonull(1) __warn_result;
 
 extern int
 dpack_maybe_discard_items(struct dpack_decoder * __restrict decoder,
-                          unsigned int                      nr)
+                          unsigned int                      count,
+                          unsigned int                      max_cnt)
 	__dpack_nonull(1) __warn_result __export_intern;
 
 extern int

@@ -2143,7 +2143,7 @@ CUTE_TEST(dpackut_bin_decode_dup_range_nok_binsz_short)
 
 CUTE_TEST(dpackut_bin_decode_dup_range_nok_binszplus_short_sup)
 {
-	dpackut_bin_decode_dup_range(-EMSGSIZE,
+	dpackut_bin_decode_dup_range(-ENOTSUP,
 	                             DPACK_BINSZ_MAX + 1,
 	                             DPACK_BINSZ_MAX,
 	                             DPACK_BINSZ_MAX - 1,

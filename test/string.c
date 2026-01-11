@@ -1067,7 +1067,7 @@ CUTE_TEST(dpackut_str_decode_dup_max)
 
 CUTE_TEST(dpackut_str_decode_dup_maxplus1)
 {
-	DPACKUT_STR_DEC(data, DPACK_STRLEN_MAX + 1, -EMSGSIZE);
+	DPACKUT_STR_DEC(data, DPACK_STRLEN_MAX + 1, -ENOTSUP);
 	dpackut_str_decode(&data, dpackut_str_unpack_dup);
 }
 
@@ -1334,7 +1334,7 @@ CUTE_TEST(dpackut_str_decode_dup_equ_max)
 	dpackut_str_decode(&data, dpackut_str_unpack_dup_equ);
 
 	data = DPACKUT_STR_DEC_EQU(DPACK_STRLEN_MAX + 1,
-	                           -EMSGSIZE,
+	                           -ENOTSUP,
 	                           DPACK_STRLEN_MAX);
 	dpackut_str_decode(&data, dpackut_str_unpack_dup_equ);
 }
@@ -1574,7 +1574,7 @@ CUTE_TEST(dpackut_str_decode_dup_max_max)
 	dpackut_str_decode(&data, dpackut_str_unpack_dup_max);
 
 	data = DPACKUT_STR_DEC_MAX(DPACK_STRLEN_MAX + 1,
-	                           -EMSGSIZE,
+	                           -ENOTSUP,
 	                           DPACK_STRLEN_MAX);
 	dpackut_str_decode(&data, dpackut_str_unpack_dup_max);
 }
@@ -1866,7 +1866,7 @@ CUTE_TEST(dpackut_str_decode_dup_range_maxminus1_max)
 	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
 
 	data = DPACKUT_STR_DEC_RANGE(DPACK_STRLEN_MAX + 1,
-	                             -EMSGSIZE,
+	                             -ENOTSUP,
 	                             DPACK_STRLEN_MAX - 1,
 	                             DPACK_STRLEN_MAX);
 	dpackut_str_decode(&data, dpackut_str_unpack_dup_range);
@@ -2051,7 +2051,7 @@ CUTE_TEST(dpackut_str_decode_strcpy_max)
 
 CUTE_TEST(dpackut_str_decode_strcpy_maxplus1)
 {
-	DPACKUT_STR_DEC(data, DPACK_STRLEN_MAX + 1, -EMSGSIZE);
+	DPACKUT_STR_DEC(data, DPACK_STRLEN_MAX + 1, -ENOTSUP);
 	dpackut_str_decode(&data, dpackut_str_unpack_strcpy);
 }
 
@@ -2294,7 +2294,7 @@ CUTE_TEST(dpackut_str_decode_strcpy_equ_max)
 	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
 
 	data = DPACKUT_STR_DEC_EQU(DPACK_STRLEN_MAX + 1,
-	                           -EMSGSIZE,
+	                           -ENOTSUP,
 	                           DPACK_STRLEN_MAX);
 	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_equ);
 }
@@ -2588,7 +2588,7 @@ CUTE_TEST_STATIC(dpackut_str_decode_strcpy_range_maxminus1_max,
 	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);
 
 	data = DPACKUT_STR_DEC_RANGE(DPACK_STRLEN_MAX + 1,
-	                             -EMSGSIZE,
+	                             -ENOTSUP,
 	                             DPACK_STRLEN_MAX - 1,
 	                             DPACK_STRLEN_MAX);
 	dpackut_str_decode(&data, dpackut_str_unpack_strcpy_range);

@@ -130,17 +130,19 @@ dpack_load_array_tag(struct dpack_decoder * __restrict decoder,
 	return err;
 }
 
-static __dpack_nonull(1, 2) __warn_result
+static __dpack_nonull(1) __warn_result
 int
 dpack_array_maybe_discard_left(struct dpack_decoder * __restrict decoder,
                                unsigned int                      left)
 {
-	dpack_decoder_assert_api(decoder);
+	dpack_decoder_assert_intern(decoder);
 
 	int err;
 
 	if (left) {
-		err = dpack_maybe_discard_items(decoder, left);
+		err = dpack_maybe_discard_items(decoder,
+		                                left,
+		                                DPACK_ARRAY_ELMNR_MAX);
 		if (!err)
 			err = -EMSGSIZE;
 	}
@@ -181,7 +183,6 @@ dpack_array_decode_count_equ(struct dpack_decoder * __restrict decoder,
 	if (!err) {
 		if (cnt == count)
 			return 0;
-
 		err = dpack_array_maybe_discard_left(decoder, count);
 	}
 
@@ -204,7 +205,6 @@ dpack_array_decode_count_min(struct dpack_decoder * __restrict decoder,
 	if (!err) {
 		if ((*count >= min_cnt) && (*count <= DPACK_ARRAY_ELMNR_MAX))
 			return 0;
-
 		err = dpack_array_maybe_discard_left(decoder, *count);
 	}
 
@@ -227,7 +227,6 @@ dpack_array_decode_count_max(struct dpack_decoder * __restrict decoder,
 	if (!err) {
 		if ((*count >= 1) && (*count <= max_cnt))
 			return 0;
-
 		err = dpack_array_maybe_discard_left(decoder, *count);
 	}
 
@@ -252,7 +251,6 @@ dpack_array_decode_count_range(struct dpack_decoder * __restrict decoder,
 	if (!err) {
 		if ((*count >= min_cnt) && (*count <= max_cnt))
 			return 0;
-
 		err = dpack_array_maybe_discard_left(decoder, *count);
 	}
 
@@ -265,7 +263,9 @@ dpack_array_decode_count_end(struct dpack_decoder * __restrict decoder,
 {
 	dpack_decoder_assert_api(decoder);
 
-	return (!left) ? 0 : dpack_maybe_discard_items(decoder, left);
+	return (!left) ? 0 : dpack_maybe_discard_items(decoder,
+	                                               left,
+	                                               DPACK_ARRAY_ELMNR_MAX);
 }
 
 /******************************************************************************
@@ -282,27 +282,28 @@ dpack_array_decode_elems(struct dpack_decoder * __restrict decoder,
 	dpack_decoder_assert_intern(decoder);
 	dpack_assert_intern(decode);
 	dpack_assert_intern(nr);
+	dpack_assert_intern(nr <= DPACK_ARRAY_ELMNR_MAX);
 
 	unsigned int idx = 0;
 	int          err;
 
 	do {
 		err = decode(decoder, idx, data);
+		idx++;
 		if (err)
 			goto discard;
-	} while (++idx < nr);
+	} while (idx < nr);
 
 	return 0;
 
 discard:
 	{
-		dpack_assert_intern(idx < nr);
-
-		nr -= idx + 1;
 		if (nr) {
 			int ret;
 
-			ret = dpack_maybe_discard_items(decoder, nr);
+			ret = dpack_maybe_discard_items(decoder,
+			                                nr,
+			                                DPACK_ARRAY_ELMNR_MAX);
 			if (ret)
 				err = ret;
 		}
@@ -335,7 +336,6 @@ dpack_array_xtract_range(struct dpack_decoder * decoder,
 			                                decode,
 			                                data,
 			                                nr);
-
 		err = dpack_array_maybe_discard_left(decoder, nr);
 	}
 
@@ -378,7 +378,6 @@ dpack_array_decode_equ(struct dpack_decoder * __restrict decoder,
 		                                       decode,
 		                                       data,
 		                                       nr);
-
 		err = dpack_array_maybe_discard_left(decoder, cnt);
 	}
 

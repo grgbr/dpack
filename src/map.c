@@ -413,7 +413,9 @@ dpack_load_map_tag(struct dpack_decoder * __restrict decoder,
 			return dpack_read_cnt32(decoder, nr);
 #endif
 		default:
-			err = -ENOMSG;
+			err = dpack_maybe_discard(decoder, tag);
+			if (!err)
+				err = -ENOMSG;
 		}
 	}
 
@@ -430,6 +432,7 @@ dpack_map_decode_fields(struct dpack_decoder * __restrict decoder,
 	dpack_decoder_assert_intern(decoder);
 	dpack_assert_intern(decode);
 	dpack_assert_intern(nr);
+	dpack_assert_intern(nr <= DPACK_MAP_FLDNR_MAX);
 
 	int err;
 
@@ -440,15 +443,53 @@ dpack_map_decode_fields(struct dpack_decoder * __restrict decoder,
 		err = dpack_map_decode_fldid(decoder, &fid);
 		nr--;
 		if (err)
-			return err;
+			goto discard;
 
 		err = decode(decoder, fid, data);
 		nr--;
 		if (err)
-			return err;
+			goto discard;
 	} while (nr);
 
 	return 0;
+
+discard:
+	{
+		if (nr) {
+			int ret;
+
+			ret = dpack_maybe_discard_items(decoder,
+			                                nr,
+			                                DPACK_MAP_FLDNR_MAX);
+			if (ret)
+				err = ret;
+		}
+
+		return err;
+	}
+}
+
+static __dpack_nonull(1) __warn_result
+int
+dpack_map_maybe_discard_left(struct dpack_decoder * __restrict decoder,
+                             unsigned int                      left)
+{
+	dpack_decoder_assert_intern(decoder);
+	dpack_assert_intern(left <= DPACK_MAP_FLDNR_MAX);
+
+	int err;
+
+	if (left) {
+		err = dpack_maybe_discard_items(decoder,
+		                                left,
+		                                DPACK_MAP_FLDNR_MAX);
+		if (!err)
+			err = -EMSGSIZE;
+	}
+	else
+		err = -EBADMSG;
+
+	return err;
 }
 
 static __dpack_nonull(1, 4) __warn_result
@@ -475,7 +516,7 @@ dpack_map_xtract_range(struct dpack_decoder * __restrict decoder,
 			                               decode,
 			                               data,
 			                               nr);
-		return nr ? -EMSGSIZE : -EBADMSG;
+		err = dpack_map_maybe_discard_left(decoder, nr);
 	}
 
 	return err;
@@ -517,7 +558,7 @@ dpack_map_decode_equ(struct dpack_decoder * __restrict decoder,
 			                               decode,
 			                               data,
 			                               nr);
-		return cnt ? -EMSGSIZE : -EBADMSG;
+		err = dpack_map_maybe_discard_left(decoder, 2 * cnt);
 	}
 
 	return err;

@@ -196,7 +196,9 @@ dpack_decode_str_tag(struct dpack_decoder * __restrict decoder,
 		if (((size_t)len >= min_len) && ((size_t)len <= max_len))
 			return len;
 
-		len = (ssize_t)dpack_maybe_skip(decoder, (size_t)len);
+		len = (ssize_t)dpack_maybe_skip(decoder,
+		                                (size_t)len,
+		                                DPACK_STRLEN_MAX);
 		if (!len)
 			len = -EMSGSIZE;
 	}
@@ -285,7 +287,9 @@ dpack_xtract_str_equ(struct dpack_decoder * __restrict decoder,
 		if ((size_t)len == length)
 			return 0;
 
-		len = (ssize_t)dpack_maybe_skip(decoder, (size_t)len);
+		len = (ssize_t)dpack_maybe_skip(decoder,
+		                                (size_t)len,
+		                                DPACK_STRLEN_MAX);
 		if (!len)
 			len = -EMSGSIZE;
 	}
@@ -328,7 +332,9 @@ dpack_xtract_str_max(struct dpack_decoder * __restrict decoder,
 		if ((size_t)len <= max_len)
 			return len;
 
-		len = (ssize_t)dpack_maybe_skip(decoder, (size_t)len);
+		len = (ssize_t)dpack_maybe_skip(decoder,
+		                                (size_t)len,
+		                                DPACK_STRLEN_MAX);
 		if (!len)
 			len = -EMSGSIZE;
 	}
