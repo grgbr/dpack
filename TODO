@@ -1,6 +1,9 @@
 TODO
 ====
 
+* implementation:
+  * file descriptor decoder
+  * file path encoder / decoder, mmap version ?
 * unit tests:
   * lvstr array
   * map

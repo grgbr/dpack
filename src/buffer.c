@@ -10,7 +10,7 @@
 #include <string.h>
 
 /******************************************************************************
- * Encoder / packer
+ * Buffer based encoder / packer
  ******************************************************************************/
 
 #define dpack_encoder_assert_buffer_api(_encoder) \
@@ -46,7 +46,7 @@ dpack_encoder_buffer_used(const struct dpack_encoder * __restrict encoder)
 	return enc->tail;
 }
 
-static __dpack_nonull(1, 2)
+static __dpack_nonull(1, 2) __warn_result
 int
 dpack_encoder_buffer_write(struct dpack_encoder * __restrict encoder,
                            const uint8_t * __restrict        data,
@@ -69,12 +69,14 @@ dpack_encoder_buffer_write(struct dpack_encoder * __restrict encoder,
 	return -EMSGSIZE;
 }
 
-static __dpack_nonull(1)
-void
+static __dpack_nonull(1) __dpack_pure __warn_result
+int
 dpack_encoder_buffer_fini(struct dpack_encoder * __restrict encoder __unused)
 {
 	dpack_encoder_assert_buffer_api((const struct dpack_encoder_buffer *)
 	                                encoder);
+
+	return 0;
 }
 
 const struct dpack_encoder_ops dpack_encoder_buffer_ops = {
@@ -100,7 +102,7 @@ dpack_encoder_init_buffer(struct dpack_encoder_buffer * __restrict encoder,
 }
 
 /******************************************************************************
- * Decoder / unpacker
+ * Buffer based decoder / unpacker
  ******************************************************************************/
 
 #define dpack_decoder_assert_buffer_api(_decoder) \

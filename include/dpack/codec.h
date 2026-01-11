@@ -39,7 +39,7 @@ typedef int dpack_encoder_write_fn(struct dpack_encoder * __restrict,
                                    size_t)
 	__dpack_nonull(1, 2);
 
-typedef void dpack_encoder_fini_fn(struct dpack_encoder * __restrict)
+typedef int dpack_encoder_fini_fn(struct dpack_encoder * __restrict)
 	__dpack_nonull(1);
 
 struct dpack_encoder_ops {
@@ -158,12 +158,12 @@ dpack_encoder_init(struct dpack_encoder * __restrict           encoder,
  * - dpack_encoder_init_buffer()
  */
 static inline __dpack_nonull(1)
-void
+int
 dpack_encoder_fini(struct dpack_encoder * __restrict encoder)
 {
 	dpack_encoder_assert_api(encoder);
 
-	encoder->ops->fini(encoder);
+	return encoder->ops->fini(encoder);
 }
 
 struct dpack_encoder_buffer {
@@ -211,7 +211,7 @@ extern void
 dpack_encoder_init_buffer(struct dpack_encoder_buffer * __restrict encoder,
                           uint8_t * __restrict                     buffer,
                           size_t                                   size)
-	__dpack_nonull(1, 2) __dpack_export;
+	__dpack_nonull(1, 2) __leaf __dpack_export;
 
 /******************************************************************************
  * Decoder / unpacker
@@ -394,6 +394,8 @@ dpack_decoder_fini(struct dpack_decoder * __restrict decoder)
 	decoder->ops->fini(decoder);
 }
 
+#if defined(CONFIG_DPACK_CODEC_BUFFER)
+
 struct dpack_decoder_buffer {
 	struct dpack_decoder base;
 	size_t               head;
@@ -473,5 +475,24 @@ dpack_decoder_init_discard_buffer(
 {
 	_dpack_decoder_init_buffer(decoder, buffer, size, DPACK_DECODER_DISC);
 }
+
+#endif /* defined(CONFIG_DPACK_CODEC_BUFFER) */
+
+#if defined(CONFIG_DPACK_CODEC_FD)
+
+struct dpack_encoder_fd {
+	struct dpack_encoder base;
+	size_t               tail;
+	uint8_t *            buff;
+	size_t               off;
+	int                  fd;
+};
+
+extern int
+dpack_encoder_init_fd(struct dpack_encoder_fd * __restrict encoder,
+                      int                                  fd)
+	__dpack_nonull(1) __leaf __dpack_export;
+
+#endif /* defined(CONFIG_DPACK_CODEC_FD) */
 
 #endif /* _DPACK_CODEC_H */

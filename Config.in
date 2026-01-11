@@ -39,6 +39,22 @@ config DPACK_HAS_BASIC_ITEMS
 	bool
 	default n
 
+config DPACK_CODEC_BUFFER
+	bool "Buffer encoder / decoder"
+	select DPACK_HAS_BASIC_ITEMS
+	default y
+	help
+	  Build dpack library with support allowing to (de)serialize objects
+          from/to memory buffers.
+
+config DPACK_CODEC_FD
+	bool "File descriptor encoder / decoder"
+	select DPACK_HAS_BASIC_ITEMS
+	default y
+	help
+	  Build dpack library with support allowing to (de)serialize objects
+          from/to file descriptors.
+
 config DPACK_SCALAR
 	bool "Scalars"
 	select DPACK_HAS_BASIC_ITEMS
