@@ -478,21 +478,4 @@ dpack_decoder_init_discard_buffer(
 
 #endif /* defined(CONFIG_DPACK_CODEC_BUFFER) */
 
-#if defined(CONFIG_DPACK_CODEC_FD)
-
-struct dpack_encoder_fd {
-	struct dpack_encoder base;
-	size_t               tail;
-	uint8_t *            buff;
-	size_t               off;
-	int                  fd;
-};
-
-extern int
-dpack_encoder_init_fd(struct dpack_encoder_fd * __restrict encoder,
-                      int                                  fd)
-	__dpack_nonull(1) __leaf __dpack_export;
-
-#endif /* defined(CONFIG_DPACK_CODEC_FD) */
-
 #endif /* _DPACK_CODEC_H */
