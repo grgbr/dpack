@@ -28,12 +28,6 @@ config DPACK_DEBUG
 	default n
 	help
 	  Build dpack library with internal debugging support enabled.
-	  This also enables mpack internal debug support with the following
-	  additional features:
-	  - reading / writing to / from STDIO files,
-	  - error strings,
-	  - custom dpack / mpack assertions,
-	  - reader / writer tracking.
 
 config DPACK_HAS_BASIC_ITEMS
 	bool

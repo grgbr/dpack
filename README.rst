@@ -5,7 +5,6 @@
 
 .. _dpack:                  https://github.com/grgbr/dpack
 .. _messagepack:            https://msgpack.org/
-.. _mpack:                  https://github.com/ludocode/mpack
 .. _glibc:                  https://www.gnu.org/software/libc
 
 About
@@ -14,8 +13,7 @@ About
 DPack_ is a lightweight C library allowing to (de)serialize objects according to
 MessagePack_, an efficient binary serialization format.
 
-Implementation is based upon the MPack_ C encoder / decoder and is meant to run
-on GNU Linux / GLibc_ platforms only.
+Implementation is meant to run on GNU Linux / GLibc_ platforms only.
 
 .. rubric:: Licensing
 
@@ -23,9 +21,6 @@ DPack_ sources are distributed under the `GNU Lesser General Public License
 <https://www.gnu.org/licenses/lgpl-3.0.html>`_.
 Documentation manuals are distributed under the `GNU General Public License
 <https://www.gnu.org/licenses/gpl-3.0.html>`_.
-
-The included MPack_ source tree is itself distributed under the `MIT license
-<mpack/LICENSE>`_.
 
 Getting Help
 ############

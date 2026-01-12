@@ -15,9 +15,6 @@
 .. |MessagePack array format|  replace:: :ref:`MessagePack array format <sect-msgpack-array>`
 .. |MessagePack map format|    replace:: :ref:`MessagePack map format <sect-msgpack-map>`
 
-.. _mpack:                     https://github.com/ludocode/mpack
-.. |MPack|                     replace:: `MPack <mpack_>`_
-
 .. |Stroll|                    replace:: :external+stroll:doc:`Stroll <index>`
 .. |Stroll's API guide|        replace:: :external+stroll:doc:`Stroll's API guide <api>`
 
@@ -37,8 +34,8 @@ Overview
 
 What follows here provides a thorough description of how to use DPack_ library.
 
-Basically, DPack_ is a C library that wraps calls to |MPack| to (de)serialize
-objects according to |MessagePack format|. As stated onto the home page:
+Basically, DPack_ is a C library that (de)serializes objects according to
+|MessagePack format|. As stated onto the home page:
 
    It's like JSON but fast and small.
 
