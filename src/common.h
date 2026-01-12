@@ -148,7 +148,7 @@ dpack_fixcnt(uint8_t tag, unsigned int mask, unsigned int * __restrict count)
 	dpack_assert_intern(mask);
 	dpack_assert_intern(count);
 
-	*count = (size_t)((unsigned int)tag & mask);
+	*count = (unsigned int)tag & mask;
 }
 
 extern int

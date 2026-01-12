@@ -21,7 +21,7 @@ dpack_read_cnt8(struct dpack_decoder * __restrict decoder,
 
 	err = dpack_decoder_read(decoder, &cnt, sizeof(cnt));
 	if (!err) {
-		*count = (size_t)cnt;
+		*count = (unsigned int)cnt;
 		return 0;
 	}
 
@@ -40,7 +40,7 @@ dpack_read_cnt16(struct dpack_decoder * __restrict decoder,
 
 	err = dpack_decoder_read(decoder, (uint8_t *)&cnt, sizeof(cnt));
 	if (!err) {
-		*count = (size_t)be16toh(cnt);
+		*count = (unsigned int)be16toh(cnt);
 		return 0;
 	}
 
@@ -59,7 +59,7 @@ dpack_read_cnt32(struct dpack_decoder * __restrict decoder,
 
 	err = dpack_decoder_read(decoder, (uint8_t *)&cnt, sizeof(cnt));
 	if (!err) {
-		*count = (size_t)be32toh(cnt);
+		*count = (unsigned int)be32toh(cnt);
 		return 0;
 	}
 
