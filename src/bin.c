@@ -8,6 +8,7 @@
 #include "dpack/bin.h"
 #include "dpack/codec.h"
 #include "common.h"
+#include <stdlib.h>
 
 size_t
 dpack_bin_size(size_t size)

@@ -9,6 +9,7 @@
 #include <cute/cute.h>
 #include <cute/check.h>
 #include <cute/expect.h>
+#include "utest.h"
 #include <math.h>
 #include <errno.h>
 

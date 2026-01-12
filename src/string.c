@@ -8,6 +8,8 @@
 #include "dpack/string.h"
 #include "dpack/codec.h"
 #include "common.h"
+#include <stdlib.h>
+#include <string.h>
 
 size_t
 dpack_str_size(size_t len)
