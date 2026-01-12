@@ -97,14 +97,16 @@
 #error Huh ?!
 #endif
 
+#define DPACK_FIXMAP_TAG_SIZE 1
+#define DPACK_MAP16_TAG_SIZE  3
+#define DPACK_MAP32_TAG_SIZE  5
+
 /******************************************************************************
  * Msgpack fixmap definitions
  ******************************************************************************/
 
-#define DPACK_FIXMAP_TAG_SIZE 1
-
 #define __DPACK_MAP_HEAD_SIZE(_fld_nr) \
-	MPACK_TAG_SIZE_FIXMAP
+	DPACK_FIXMAP_TAG_SIZE
 
 /******************************************************************************
  * Msgpack 16 bits map definitions
@@ -112,12 +114,10 @@
 
 #if DPACK_MAP_FLDNR_MAX > _DPACK_FIXMAP_FLDNR_MAX
 
-#define DPACK_MAP16_TAG_SIZE 3
-
 #define _DPACK_MAP16_HEAD_SIZE(_fld_nr) \
 	(((_fld_nr) > _DPACK_FIXMAP_FLDNR_MAX) ? \
-	 MPACK_TAG_SIZE_MAP16 : \
-	 MPACK_TAG_SIZE_FIXMAP)
+	 DPACK_MAP16_TAG_SIZE : \
+	 DPACK_FIXMAP_TAG_SIZE)
 
 #undef __DPACK_MAP_HEAD_SIZE
 #define __DPACK_MAP_HEAD_SIZE(_fld_nr) \
@@ -135,7 +135,7 @@
 
 #define _DPACK_MAP32_HEAD_SIZE(_fld_nr) \
 	(((_fld_nr) > _DPACK_MAP16_FLDNR_MAX) ? \
-	 MPACK_TAG_SIZE_MAP32 : \
+	 DPACK_MAP32_TAG_SIZE : \
 	 _DPACK_MAP16_HEAD_SIZE(_fld_nr))
 
 #undef __DPACK_MAP_HEAD_SIZE

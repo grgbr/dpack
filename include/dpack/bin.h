@@ -19,7 +19,8 @@
 #define _DPACK_BIN_H
 
 #include <dpack/cdefs.h>
-#include <dpack/mpack.h>
+#include <stdint.h>
+#include <sys/types.h>
 
 struct dpack_encoder;
 struct dpack_decoder;
@@ -38,6 +39,10 @@ struct dpack_decoder;
 /* Maximum number of bytes a 32 bits msgpack bin may encode */
 #define _DPACK_BIN32_SIZE_MAX UINT32_MAX
 
+#define DPACK_BIN8_TAG_SIZE   2
+#define DPACK_BIN16_TAG_SIZE  3
+#define DPACK_BIN32_TAG_SIZE  5
+
 /*
  * Check DPACK_BINSZ_MAX definition is sensible.
  * Multiple dpack internal functions (such as dpack_decode_bin_tag() for
@@ -48,7 +53,7 @@ struct dpack_decoder;
 
 #define __DPACK_BINSZ_MAX_MIN (16U)
 #define _DPACK_BINSZ_MAX_MIN \
-	(STROLL_CONCAT(MPACK_TAG_SIZE_BIN8, U) + __DPACK_BINSZ_MAX_MIN)
+	(STROLL_CONCAT(DPACK_BIN8_TAG_SIZE, U) + __DPACK_BINSZ_MAX_MIN)
 
 #if DPACK_BINSZ_MAX > (128U * 1024 * 1024)
 #error dpack cannot encode bin which size is > 128 MB !
@@ -65,7 +70,7 @@ struct dpack_decoder;
 
 /* Compute size of an 8 bits encoded msgpack bin */
 #define DPACK_BIN8_SIZE(_sz) \
-	(MPACK_TAG_SIZE_BIN8 + (_sz))
+	(DPACK_BIN8_TAG_SIZE + (_sz))
 
 #define _DPACK_BIN_CONST_SIZE(_sz) \
 	DPACK_BIN8_SIZE(_sz)
@@ -78,7 +83,7 @@ struct dpack_decoder;
 
 /* Compute size of an encoded 16 bits msgpack bin */
 #define DPACK_BIN16_SIZE(_sz) \
-	(MPACK_TAG_SIZE_BIN16 + (_sz))
+	(DPACK_BIN16_TAG_SIZE + (_sz))
 
 /* Size of an encoded bin when size fits into an msgpack 16 bits bin. */
 #define DPACK_BIN16_CONST_SIZE(_sz) \
@@ -99,7 +104,7 @@ struct dpack_decoder;
 
 /* Compute size of an encoded 32 bits msgpack bin */
 #define DPACK_BIN32_SIZE(_sz) \
-	(MPACK_TAG_SIZE_BIN32 + (_sz))
+	(DPACK_BIN32_TAG_SIZE + (_sz))
 
 /* Size of an encoded bin when size fits into an msgpack 32 bits bin. */
 #define DPACK_BIN32_CONST_SIZE(_sz) \

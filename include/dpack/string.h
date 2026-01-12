@@ -19,7 +19,8 @@
 #define _DPACK_STRING_H
 
 #include <dpack/cdefs.h>
-#include <dpack/mpack.h>
+#include <stdint.h>
+#include <sys/types.h>
 
 struct dpack_encoder;
 struct dpack_decoder;
@@ -40,6 +41,11 @@ struct dpack_decoder;
 /* Maximum number of characters an 32 bits msgpack string may encode */
 #define _DPACK_STR32_LEN_MAX   UINT32_MAX
 
+#define DPACK_FIXSTR_TAG_SIZE  1
+#define DPACK_STR8_TAG_SIZE    2
+#define DPACK_STR16_TAG_SIZE   3
+#define DPACK_STR32_TAG_SIZE   5
+
 /*
  * Check DPACK_STRLEN_MAX definition is sensible.
  * Multiple dpack internal functions (such as dpack_decode_str_tag() for
@@ -51,7 +57,7 @@ struct dpack_decoder;
 
 #define _DPACK_STRLEN_MAX_MIN (16U)
 #define _DPACK_STRSZ_MAX_MIN \
-	(STROLL_CONCAT(MPACK_TAG_SIZE_FIXSTR, U) + _DPACK_STRLEN_MAX_MIN)
+	(STROLL_CONCAT(DPACK_FIXSTR_TAG_SIZE, U) + _DPACK_STRLEN_MAX_MIN)
 
 #if DPACK_STRLEN_MAX >= (128U * 1024 * 1024)
 #error DPack maximum string length to large, \
@@ -67,7 +73,7 @@ struct dpack_decoder;
 
 /* Compute size of an encoded msgpack fixstr */
 #define DPACK_FIXSTR_SIZE(_len) \
-	((size_t)MPACK_TAG_SIZE_FIXSTR + (size_t)(_len))
+	((size_t)DPACK_FIXSTR_TAG_SIZE + (size_t)(_len))
 
 #define _DPACK_STR_CONST_SIZE(_len) \
 	DPACK_FIXSTR_SIZE(_len)
@@ -80,7 +86,7 @@ struct dpack_decoder;
 
 /* Compute size of an encoded 8 bits msgpack string */
 #define DPACK_STR8_SIZE(_len) \
-	((size_t)MPACK_TAG_SIZE_STR8 + (size_t)(_len))
+	((size_t)DPACK_STR8_TAG_SIZE + (size_t)(_len))
 
 /* Size of an encoded string when length fits into an msgpack 8 bits string. */
 #define DPACK_STR8_CONST_SIZE(_len) \
@@ -101,7 +107,7 @@ struct dpack_decoder;
 
 /* Compute size of an encoded 16 bits msgpack string */
 #define DPACK_STR16_SIZE(_len) \
-	((size_t)MPACK_TAG_SIZE_STR16 + (size_t)(_len))
+	((size_t)DPACK_STR16_TAG_SIZE + (size_t)(_len))
 
 /* Size of an encoded string when length fits into an msgpack 16 bits string. */
 #define DPACK_STR16_CONST_SIZE(_len) \
@@ -122,7 +128,7 @@ struct dpack_decoder;
 
 /* Compute size of an encoded 32 bits msgpack string */
 #define DPACK_STR32_SIZE(_len) \
-	((size_t)MPACK_TAG_SIZE_STR32 + (size_t)(_len))
+	((size_t)DPACK_STR32_TAG_SIZE + (size_t)(_len))
 
 /* Size of an encoded string when length fits into an msgpack 32 bits string. */
 #define DPACK_STR32_CONST_SIZE(_len) \

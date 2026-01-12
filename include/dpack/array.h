@@ -96,11 +96,13 @@
 #error Huh ?!
 #endif
 
+#define DPACK_FIXARRAY_TAG_SIZE 1
+#define DPACK_ARRAY16_TAG_SIZE  3
+#define DPACK_ARRAY32_TAG_SIZE  5
+
 /******************************************************************************
  * Msgpack fixarray definitions
  ******************************************************************************/
-
-#define DPACK_FIXARRAY_TAG_SIZE 1
 
 #define __DPACK_ARRAY_HEAD_SIZE(_elm_nr) \
 	DPACK_FIXARRAY_TAG_SIZE
@@ -110,8 +112,6 @@
  ******************************************************************************/
 
 #if DPACK_ARRAY_ELMNR_MAX > _DPACK_FIXARRAY_ELMNR_MAX
-
-#define DPACK_ARRAY16_TAG_SIZE 3
 
 #define _DPACK_ARRAY16_HEAD_SIZE(_elm_nr) \
 	(((_elm_nr) > _DPACK_FIXARRAY_ELMNR_MAX) ? \
@@ -129,8 +129,6 @@
  ******************************************************************************/
 
 #if DPACK_ARRAY_ELMNR_MAX > _DPACK_ARRAY16_ELMNR_MAX
-
-#define DPACK_ARRAY32_TAG_SIZE 5
 
 #define _DPACK_ARRAY32_HEAD_SIZE(_elm_nr) \
 	(((_elm_nr) > _DPACK_ARRAY16_ELMNR_MAX) ? \
