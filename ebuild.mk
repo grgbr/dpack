@@ -45,7 +45,7 @@ includedir=$${prefix}/include
 Name: libdpack
 Description: dpack library
 Version: $(VERSION)
-Requires.private: libstroll
+Requires.private: libstroll $(call kconf_enabled,DPACK_CODEC_FILE,libutils)
 Cflags: -I$${includedir}
 Libs: -L$${libdir} -ldpack
 endef

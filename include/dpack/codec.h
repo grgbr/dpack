@@ -211,7 +211,7 @@ extern void
 dpack_encoder_init_buffer(struct dpack_encoder_buffer * __restrict encoder,
                           uint8_t * __restrict                     buffer,
                           size_t                                   size)
-	__dpack_nonull(1, 2) __leaf __dpack_export;
+	__dpack_nonull(1, 2) __dpack_nothrow __leaf __dpack_export;
 
 /******************************************************************************
  * Decoder / unpacker
@@ -268,7 +268,7 @@ typedef int dpack_decoder_read_fn(struct dpack_decoder * __restrict,
 typedef int dpack_decoder_skip_fn(struct dpack_decoder * __restrict, size_t)
 	__dpack_nonull(1);
 
-typedef void dpack_decoder_fini_fn(struct dpack_decoder * __restrict)
+typedef int dpack_decoder_fini_fn(struct dpack_decoder * __restrict)
 	__dpack_nonull(1);
 
 struct dpack_decoder_ops {
@@ -357,7 +357,7 @@ extern int
 dpack_decoder_discard(struct dpack_decoder * __restrict decoder)
 	__dpack_nonull(1) __warn_result __dpack_export;
 
-static inline __dpack_nonull(1, 2)
+static inline __dpack_nonull(1, 2) __dpack_nothrow
 void
 dpack_decoder_init(struct dpack_decoder * __restrict           decoder,
                    const struct dpack_decoder_ops * __restrict ops,
@@ -386,12 +386,12 @@ dpack_decoder_init(struct dpack_decoder * __restrict           decoder,
  * - dpack_decoder_init_discard_buffer()
  */
 static inline __dpack_nonull(1)
-void
+int
 dpack_decoder_fini(struct dpack_decoder * __restrict decoder)
 {
 	dpack_decoder_assert_api(decoder);
 
-	decoder->ops->fini(decoder);
+	return decoder->ops->fini(decoder);
 }
 
 #if defined(CONFIG_DPACK_CODEC_BUFFER)
@@ -477,5 +477,74 @@ dpack_decoder_init_discard_buffer(
 }
 
 #endif /* defined(CONFIG_DPACK_CODEC_BUFFER) */
+
+#if defined(CONFIG_DPACK_CODEC_FILE)
+
+#include <fcntl.h>
+#include <sys/types.h>
+
+struct dpack_decoder_file {
+	struct dpack_decoder base;
+	/* Current offset from start of file. */
+	off_t                foff;
+	/* Current offset of data mapping window base from start of file. */
+	off_t                moff;
+	/* Size of file. */
+	off_t                fsize;
+	/* Size of data mapping window in bytes. */
+	size_t               msize;
+	/* Address of data mapping window. */
+	const uint8_t *      map;
+	/* File descriptor. */
+	int                  fd;
+};
+
+#define DPACK_DECODER_FILE_MSIZE_MAX \
+	STROLL_CONCAT(CONFIG_DPACK_CODEC_FILE_MSIZE_MAX, U)
+
+extern int
+_dpack_decoder_init_file_at(struct dpack_decoder_file * __restrict decoder,
+                            int                                    dir,
+                            const char * __restrict                path,
+                            size_t                                 map_size,
+                            int                                    flags,
+                            bool                                   discard)
+	__dpack_nonull(1, 3) __dpack_export;
+
+#define DPACK_DECODER_FILE_MSIZE_DFLT \
+	STROLL_CONCAT(CONFIG_DPACK_CODEC_FILE_MSIZE_DFLT, U)
+
+static inline __dpack_nonull(1, 3)
+int
+dpack_decoder_init_file_at(struct dpack_decoder_file * __restrict decoder,
+                           int                                    dir,
+                           const char * __restrict                path,
+                           int                                    flags,
+                           bool                                   discard)
+{
+	return _dpack_decoder_init_file_at(decoder,
+	                                   dir,
+	                                   path,
+	                                   DPACK_DECODER_FILE_MSIZE_DFLT,
+	                                   flags,
+	                                   discard);
+}
+
+static inline __dpack_nonull(1, 2)
+int
+dpack_decoder_init_file(struct dpack_decoder_file * __restrict decoder,
+                        const char * __restrict                path,
+                        int                                    flags,
+                        bool                                   discard)
+{
+	return _dpack_decoder_init_file_at(decoder,
+	                                   AT_FDCWD,
+	                                   path,
+	                                   DPACK_DECODER_FILE_MSIZE_DFLT,
+	                                   flags,
+	                                   discard);
+}
+
+#endif /* defined(CONFIG_DPACK_CODEC_FILE) */
 
 #endif /* _DPACK_CODEC_H */

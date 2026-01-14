@@ -41,6 +41,31 @@ config DPACK_CODEC_BUFFER
 	  Build dpack library with support allowing to (de)serialize objects
           from/to memory buffers.
 
+config DPACK_CODEC_FILE
+	bool "File encoder / decoder"
+	select DPACK_HAS_BASIC_ITEMS
+	default n
+	help
+	  Build dpack library with support allowing to (de)serialize objects
+          from/to files hosted onto mass storage.
+
+config DPACK_CODEC_FILE_MSIZE_MAX
+	int
+	depends on DPACK_CODEC_FILE
+	default 16777216
+	help
+	  Maximum size of file decoder mmap(2) data mapping area.
+	  This value *SHOULD* be aligned onto system memory page size !
+
+config DPACK_CODEC_FILE_MSIZE_DFLT
+	int "Default file decoder mapping window size"
+	range 4096 DPACK_CODEC_FILE_MSIZE_MAX
+	depends on DPACK_CODEC_FILE
+	default 1048576
+	help
+	  Default size of file decoder mmap(2) data mapping area.
+	  This value *SHOULD* be aligned onto system memory page size !
+
 config DPACK_SCALAR
 	bool "Scalars"
 	select DPACK_HAS_BASIC_ITEMS

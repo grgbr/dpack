@@ -2,8 +2,10 @@ TODO
 ====
 
 * implementation:
+  * file path encoder
   * file descriptor decoder
-  * file path encoder / decoder, mmap version ?
+  * move codec API to using off_t/off64_t instead of size_t since file codec
+    rely on this to address files > 4GB
 * unit tests:
   * lvstr array
   * map

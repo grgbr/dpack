@@ -38,6 +38,9 @@ libdpack.so-objs      += shared/common.o
 libdpack.so-objs      += $(call kconf_enabled, \
                                 DPACK_CODEC_BUFFER, \
                                 shared/buffer.o)
+libdpack.so-objs      += $(call kconf_enabled, \
+                                DPACK_CODEC_FILE, \
+                                shared/file.o)
 libdpack.so-objs      += $(call kconf_enabled,DPACK_SCALAR,shared/scalar.o)
 libdpack.so-objs      += $(call kconf_enabled,DPACK_STRING,shared/string.o)
 libdpack.so-objs      += $(call kconf_enabled,DPACK_LVSTR,shared/lvstr.o)
@@ -48,12 +51,16 @@ libdpack.so-cflags    := $(filter-out -fpie -fPIE,$(common-cflags)) -fpic
 libdpack.so-ldflags   := $(filter-out -fpie -fPIE,$(common-ldflags)) \
                          -shared -fpic -Bsymbolic -Wl,-soname,libdpack.so
 libdpack.so-pkgconf   := libstroll
+libdpack.so-pkgconf   += $(call kconf_enabled,DPACK_CODEC_FILE,libutils)
 
 arlibs                := libdpack.a
 libdpack.a-objs       += static/common.o
 libdpack.a-objs       += $(call kconf_enabled, \
                                 DPACK_CODEC_BUFFER, \
                                 static/buffer.o)
+libdpack.a-objs       += $(call kconf_enabled, \
+                                DPACK_CODEC_FILE, \
+                                static/file.o)
 libdpack.a-objs       += $(call kconf_enabled,DPACK_SCALAR,static/scalar.o)
 libdpack.a-objs       += $(call kconf_enabled,DPACK_STRING,static/string.o)
 libdpack.a-objs       += $(call kconf_enabled,DPACK_LVSTR,static/lvstr.o)

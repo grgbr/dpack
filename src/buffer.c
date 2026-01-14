@@ -20,7 +20,7 @@
 	dpack_assert_api((_encoder)->tail <= (_encoder)->capa); \
 	dpack_assert_api((_encoder)->buff)
 
-static __dpack_nonull(1) __dpack_pure __warn_result
+static __dpack_nonull(1) __dpack_pure __dpack_nothrow __warn_result
 size_t
 dpack_encoder_buffer_left(const struct dpack_encoder * __restrict encoder)
 {
@@ -33,7 +33,7 @@ dpack_encoder_buffer_left(const struct dpack_encoder * __restrict encoder)
 	return enc->capa - enc->tail;
 }
 
-static __dpack_nonull(1) __dpack_pure __warn_result
+static __dpack_nonull(1) __dpack_pure __dpack_nothrow __warn_result
 size_t
 dpack_encoder_buffer_used(const struct dpack_encoder * __restrict encoder)
 {
@@ -46,7 +46,7 @@ dpack_encoder_buffer_used(const struct dpack_encoder * __restrict encoder)
 	return enc->tail;
 }
 
-static __dpack_nonull(1, 2) __warn_result
+static __dpack_nonull(1, 2) __dpack_nothrow __warn_result
 int
 dpack_encoder_buffer_write(struct dpack_encoder * __restrict encoder,
                            const uint8_t * __restrict        data,
@@ -59,17 +59,19 @@ dpack_encoder_buffer_write(struct dpack_encoder * __restrict encoder,
 
 	struct dpack_encoder_buffer * enc = (struct dpack_encoder_buffer *)
 	                                    encoder;
+	size_t                        tail;
 
-	if (size <= (enc->capa - enc->tail)) {
+	if (!__builtin_add_overflow(enc->tail, size, &tail) &&
+	    (tail <= enc->capa)) {
 		memcpy(&enc->buff[enc->tail], data, size);
-		enc->tail += size;
+		enc->tail = tail;
 		return 0;
 	}
 
 	return -EMSGSIZE;
 }
 
-static __dpack_nonull(1) __dpack_pure __warn_result
+static __dpack_nonull(1) __dpack_pure __dpack_nothrow __warn_result
 int
 dpack_encoder_buffer_fini(struct dpack_encoder * __restrict encoder __unused)
 {
@@ -112,7 +114,7 @@ dpack_encoder_init_buffer(struct dpack_encoder_buffer * __restrict encoder,
 	dpack_assert_api((_decoder)->head <= (_decoder)->capa); \
 	dpack_assert_api((_decoder)->buff)
 
-static __dpack_nonull(1) __dpack_pure __warn_result
+static __dpack_nonull(1) __dpack_pure __dpack_nothrow __warn_result
 size_t
 dpack_decoder_buffer_left(const struct dpack_decoder * __restrict decoder)
 {
@@ -125,7 +127,7 @@ dpack_decoder_buffer_left(const struct dpack_decoder * __restrict decoder)
 	return dec->capa - dec->head;
 }
 
-static __dpack_nonull(1, 2)
+static __dpack_nonull(1, 2) __dpack_nothrow __warn_result
 int
 dpack_decoder_buffer_read(struct dpack_decoder * __restrict decoder,
                           uint8_t * __restrict              data,
@@ -138,17 +140,19 @@ dpack_decoder_buffer_read(struct dpack_decoder * __restrict decoder,
 
 	struct dpack_decoder_buffer * dec = (struct dpack_decoder_buffer *)
 	                                    decoder;
+	size_t                        head;
 
-	if (size <= (dec->capa - dec->head)) {
+	if (!__builtin_add_overflow(dec->head, size, &head) &&
+	    (head <= dec->capa)) {
 		memcpy(data, &dec->buff[dec->head], size);
-		dec->head += size;
+		dec->head = head;
 		return 0;
 	}
 
 	return -ENODATA;
 }
 
-static __dpack_nonull(1)
+static __dpack_nonull(1) __dpack_nothrow __warn_result
 int
 dpack_decoder_buffer_skip(struct dpack_decoder * __restrict decoder,
                           size_t                            size)
@@ -159,21 +163,25 @@ dpack_decoder_buffer_skip(struct dpack_decoder * __restrict decoder,
 
 	struct dpack_decoder_buffer * dec = (struct dpack_decoder_buffer *)
 	                                    decoder;
+	size_t                        head;
 
-	if (size <= (dec->capa - dec->head)) {
-		dec->head += size;
+	if (!__builtin_add_overflow(dec->head, size, &head) &&
+	    (head <= dec->capa)) {
+		dec->head = head;
 		return 0;
 	}
 
 	return -ENODATA;
 }
 
-static __dpack_nonull(1)
-void
+static __dpack_nonull(1) __dpack_nothrow __dpack_const __warn_result
+int
 dpack_decoder_buffer_fini(struct dpack_decoder * __restrict decoder __unused)
 {
 	dpack_decoder_assert_buffer_api((const struct dpack_decoder_buffer *)
 	                                decoder);
+
+	return 0;
 }
 
 const struct dpack_decoder_ops dpack_decoder_buffer_ops = {
