@@ -382,7 +382,7 @@ dpack_discard_map32(struct dpack_decoder * __restrict decoder)
 
 static __dpack_nonull(1) __warn_result
 int
-dpack_discard_map32(struct dpack_decoder * __restrict decoder)
+dpack_discard_map32(struct dpack_decoder * __restrict decoder __unused)
 {
 	dpack_decoder_assert_intern(decoder);
 

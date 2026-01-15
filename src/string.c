@@ -94,6 +94,7 @@ dpack_encode_str_fix(struct dpack_encoder *  __restrict encoder,
 #endif
 	default:
 		dpack_assert_api(0);
+		err = -ERANGE;
 	}
 
 	return (!err)
