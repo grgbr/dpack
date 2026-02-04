@@ -6,6 +6,15 @@
  ******************************************************************************/
 
 #include "common.h"
+#if defined(CONFIG_DPACK_STRING)
+#include "dpack/string.h"
+#endif
+#if defined(CONFIG_DPACK_BIN)
+#include "dpack/bin.h"
+#endif
+#if defined(CONFIG_DPACK_ARRAY)
+#include "dpack/array.h"
+#endif
 #include <endian.h>
 
 static inline __dpack_nonull(1, 2) __warn_result
@@ -66,8 +75,6 @@ dpack_read_cnt32(struct dpack_decoder * __restrict decoder,
 	return err;
 }
 
-#if defined(CONFIG_DPACK_STRING)
-
 static __dpack_nonull(1) __warn_result
 int
 dpack_discard_fixcnt(struct dpack_decoder * __restrict decoder,
@@ -87,8 +94,6 @@ dpack_discard_fixcnt(struct dpack_decoder * __restrict decoder,
 
 	return -ENOTSUP;
 }
-
-#endif
 
 #if (defined(CONFIG_DPACK_STRING) && \
      (DPACK_STRLEN_MAX > _DPACK_FIXSTR_LEN_MAX)) || \
@@ -191,8 +196,6 @@ dpack_discard_items(struct dpack_decoder * __restrict decoder,
 }
 
 #if defined(CONFIG_DPACK_ARRAY)
-
-#include "dpack/array.h"
 
 static __dpack_nonull(1) __warn_result
 int
