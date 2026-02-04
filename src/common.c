@@ -66,6 +66,8 @@ dpack_read_cnt32(struct dpack_decoder * __restrict decoder,
 	return err;
 }
 
+#if defined(CONFIG_DPACK_STRING)
+
 static __dpack_nonull(1) __warn_result
 int
 dpack_discard_fixcnt(struct dpack_decoder * __restrict decoder,
@@ -85,6 +87,12 @@ dpack_discard_fixcnt(struct dpack_decoder * __restrict decoder,
 
 	return -ENOTSUP;
 }
+
+#endif
+
+#if (defined(CONFIG_DPACK_STRING) && \
+     (DPACK_STRLEN_MAX > _DPACK_FIXSTR_LEN_MAX)) || \
+    defined(CONFIG_DPACK_BIN)
 
 static __dpack_nonull(1) __warn_result
 int
@@ -107,6 +115,12 @@ dpack_discard_cnt8(struct dpack_decoder * __restrict decoder,
 	return err;
 }
 
+#endif
+
+#if (defined(CONFIG_DPACK_STRING) && \
+     (DPACK_STRLEN_MAX > _DPACK_STR8_LEN_MAX)) || \
+    (defined(CONFIG_DPACK_BIN) && (DPACK_BINSZ_MAX > _DPACK_BIN8_SIZE_MAX))
+
 static __dpack_nonull(1) __warn_result
 int
 dpack_discard_cnt16(struct dpack_decoder * __restrict decoder,
@@ -128,6 +142,12 @@ dpack_discard_cnt16(struct dpack_decoder * __restrict decoder,
 	return err;
 }
 
+#endif
+
+#if (defined(CONFIG_DPACK_STRING) && \
+     (DPACK_STRLEN_MAX > _DPACK_STR16_LEN_MAX)) || \
+    (defined(CONFIG_DPACK_BIN) && (DPACK_BINSZ_MAX > _DPACK_BIN16_SIZE_MAX))
+
 static __dpack_nonull(1) __warn_result
 int
 dpack_discard_cnt32(struct dpack_decoder * __restrict decoder,
@@ -148,6 +168,8 @@ dpack_discard_cnt32(struct dpack_decoder * __restrict decoder,
 
 	return err;
 }
+
+#endif
 
 static __dpack_nonull(1) __warn_result
 int
@@ -197,7 +219,7 @@ dpack_discard_fixarray(struct dpack_decoder * __restrict decoder,
 static __dpack_nonull(1) __warn_result
 int
 dpack_discard_fixarray(struct dpack_decoder * __restrict decoder __unused,
-                       uint8_t                           tag)
+                       uint8_t                           tag __unused)
 {
 	dpack_decoder_assert_intern(decoder);
 
